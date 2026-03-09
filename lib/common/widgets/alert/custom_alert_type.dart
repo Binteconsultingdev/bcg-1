@@ -1,9 +1,8 @@
 import 'dart:ui';
+import 'package:bcg/common/theme/App_Theme.dart';
+import 'package:bcg/common/widgets/alert/animated_success_check.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-
-import 'package:tendria/common/theme/App_Theme.dart';
-import 'package:tendria/common/widgets/alert/animated_success_check.dart';
 enum CustomAlertType { info, confirm, warning, success, error }
 
 class CustomAlertDialog extends StatelessWidget {

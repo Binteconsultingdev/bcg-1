@@ -1,0 +1,817 @@
+import 'package:bcg/common/theme/App_Theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+
+// import 'package:tu_app/core/theme/theme_color.dart';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Modelos
+// ─────────────────────────────────────────────────────────────────────────────
+enum VentaStatus { pagado, pendiente }
+
+class VentaItem {
+  final String folio;
+  final String cliente;
+  final String fecha;
+  final double total;
+  final VentaStatus status;
+
+  const VentaItem({
+    required this.folio,
+    required this.cliente,
+    required this.fecha,
+    required this.total,
+    required this.status,
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pantalla Ventas
+// ─────────────────────────────────────────────────────────────────────────────
+class VentasScreen extends StatefulWidget {
+  const VentasScreen({super.key});
+
+  @override
+  State<VentasScreen> createState() => _VentasScreenState();
+}
+
+class _VentasScreenState extends State<VentasScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  // 0 = Todas, 1 = Pagos Pendientes
+  int _selectedTab = 0;
+
+  final List<VentaItem> _all = const [
+    VentaItem(
+      folio: 'Nº Folio',
+      cliente: 'Cliente',
+      fecha: '03/03/2026',
+      total: 350.00,
+      status: VentaStatus.pagado,
+    ),
+    VentaItem(
+      folio: '7541 - (48)',
+      cliente: 'AUTOTRANSPORTES LA FLECHA',
+      fecha: '03/03/2026',
+      total: 350.00,
+      status: VentaStatus.pagado,
+    ),
+    VentaItem(
+      folio: '7541 - (48)',
+      cliente: 'AUTOTRANSPORTES LA FLECHA',
+      fecha: '03/03/2026',
+      total: 350.00,
+      status: VentaStatus.pendiente,
+    ),
+  ];
+
+  List<VentaItem> get _filtered {
+    return _all.where((v) {
+      final matchTab = _selectedTab == 0 ||
+          (_selectedTab == 1 && v.status == VentaStatus.pendiente);
+      final matchSearch = _searchQuery.isEmpty ||
+          v.cliente.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          v.folio.toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchTab && matchSearch;
+    }).toList();
+  }
+
+  void _openFilters() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _VentaFilterSheet(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: ThemeColor.backgroundColor,
+        appBar: _buildAppBar(),
+        body: Column(
+          children: [
+            _buildSearchBar(),
+            _buildTabs(),
+            Expanded(child: _buildList()),
+          ],
+        ),
+        floatingActionButton: _buildFab(),
+      ),
+    );
+  }
+
+  // ── AppBar ──────────────────────────────────────────────────────────────
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: ThemeColor.surfaceColor,
+      elevation: 0,
+      centerTitle: true,
+      title: Text('Ventas', style: ThemeColor.headingSmall),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.settings_outlined,
+              color: ThemeColor.textPrimaryColor, size: 22),
+          onPressed: () {},
+        ),
+      ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Divider(height: 1, color: ThemeColor.dividerColor),
+      ),
+    );
+  }
+
+  // ── Barra búsqueda + filtros ────────────────────────────────────────────
+  Widget _buildSearchBar() {
+    return Container(
+      color: ThemeColor.surfaceColor,
+      padding: const EdgeInsets.symmetric(
+        horizontal: ThemeColor.paddingMedium,
+        vertical: ThemeColor.paddingSmall,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: ThemeColor.backgroundColor,
+                borderRadius: ThemeColor.mediumBorderRadius,
+                border: Border.all(color: ThemeColor.dividerColor),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (v) => setState(() => _searchQuery = v),
+                style: ThemeColor.bodyMedium,
+                decoration: InputDecoration(
+                  hintText: 'Buscar cotizaciones',
+                  hintStyle: ThemeColor.bodyMedium
+                      .copyWith(color: ThemeColor.textSecondaryColor),
+                  prefixIcon: Icon(Icons.search,
+                      color: ThemeColor.textSecondaryColor, size: 20),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: ThemeColor.paddingSmall),
+          GestureDetector(
+            onTap: _openFilters,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: ThemeColor.backgroundColor,
+                borderRadius: ThemeColor.mediumBorderRadius,
+                border: Border.all(color: ThemeColor.dividerColor),
+              ),
+              child: const Icon(Icons.tune,
+                  color: ThemeColor.textPrimaryColor, size: 20),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Tabs: Todas / Pagos Pendientes ──────────────────────────────────────
+  Widget _buildTabs() {
+    const labels = ['Todas', 'Pagos Pendientes'];
+    return Container(
+      color: ThemeColor.surfaceColor,
+      padding: const EdgeInsets.only(
+        left: ThemeColor.paddingMedium,
+        right: ThemeColor.paddingMedium,
+        bottom: ThemeColor.paddingSmall,
+      ),
+      child: Row(
+        children: List.generate(labels.length, (i) {
+          final selected = _selectedTab == i;
+          return Padding(
+            padding: const EdgeInsets.only(right: ThemeColor.paddingSmall),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedTab = i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ThemeColor.paddingMedium,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? ThemeColor.primaryColor
+                      : Colors.transparent,
+                  borderRadius: ThemeColor.mediumBorderRadius,
+                  border: Border.all(
+                    color: selected
+                        ? ThemeColor.primaryColor
+                        : ThemeColor.dividerColor,
+                  ),
+                ),
+                child: Text(
+                  labels[i],
+                  style: ThemeColor.bodySmall.copyWith(
+                    color: selected
+                        ? ThemeColor.textLightColor
+                        : ThemeColor.textSecondaryColor,
+                    fontWeight:
+                        selected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  // ── Lista ───────────────────────────────────────────────────────────────
+  Widget _buildList() {
+    final items = _filtered;
+    if (items.isEmpty) {
+      return Center(
+        child: Text('Sin ventas',
+            style: ThemeColor.bodyMedium
+                .copyWith(color: ThemeColor.textSecondaryColor)),
+      );
+    }
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: ThemeColor.paddingMedium,
+        vertical: ThemeColor.paddingSmall,
+      ),
+      decoration: BoxDecoration(
+        color: ThemeColor.surfaceColor,
+        borderRadius: ThemeColor.mediumBorderRadius,
+        border: Border.all(color: ThemeColor.surfaceColor, width: 1.5),
+        boxShadow: [ThemeColor.cardShadow],
+      ),
+      child: ListView.separated(
+        shrinkWrap: true,
+        padding: const EdgeInsets.symmetric(
+          horizontal: ThemeColor.paddingMedium,
+          vertical: ThemeColor.paddingSmall,
+        ),
+        itemCount: items.length,
+        separatorBuilder: (_, __) =>
+            Divider(height: 1, color: ThemeColor.dividerColor),
+        itemBuilder: (_, i) => _VentaTile(item: items[i]),
+      ),
+    );
+  }
+
+  // ── FAB ─────────────────────────────────────────────────────────────────
+  Widget _buildFab() {
+    return FloatingActionButton(
+      onPressed: () {},
+      backgroundColor: ThemeColor.accentColor,
+      elevation: ThemeColor.elevationMedium,
+      child: const Icon(Icons.add,
+          color: ThemeColor.textDarkColor, size: 28),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tile de venta
+// ─────────────────────────────────────────────────────────────────────────────
+class _VentaTile extends StatelessWidget {
+  final VentaItem item;
+  const _VentaTile({required this.item});
+
+  Color get _badgeColor => item.status == VentaStatus.pagado
+      ? ThemeColor.successColor
+      : ThemeColor.errorColor;
+
+  String get _badgeLabel =>
+      item.status == VentaStatus.pagado ? 'PAGADO' : 'PENDIENTE';
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding:
+          const EdgeInsets.symmetric(vertical: ThemeColor.paddingSmall + 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${item.folio} - ${item.cliente}',
+                  style: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.infoColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(item.fecha,
+                    style: ThemeColor.caption
+                        .copyWith(color: ThemeColor.textSecondaryColor)),
+                const SizedBox(height: 4),
+                Text(
+                  '\$${item.total.toStringAsFixed(2)}',
+                  style: ThemeColor.bodyMedium
+                      .copyWith(fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ),
+          // Badge status
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: ThemeColor.paddingSmall + 2,
+              vertical: 5,
+            ),
+            decoration: BoxDecoration(
+              color: _badgeColor,
+              borderRadius: ThemeColor.circularBorderRadius,
+            ),
+            child: Text(
+              _badgeLabel,
+              style: ThemeColor.caption.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bottom Sheet Filtros Ventas
+// ─────────────────────────────────────────────────────────────────────────────
+class _VentaFilterSheet extends StatefulWidget {
+  const _VentaFilterSheet();
+
+  @override
+  State<_VentaFilterSheet> createState() => _VentaFilterSheetState();
+}
+
+class _VentaFilterSheetState extends State<_VentaFilterSheet> {
+  final TextEditingController _desdeCtrl = TextEditingController();
+  final TextEditingController _hastaCtrl = TextEditingController();
+  String? _cliente;
+  String? _metodoPago;
+
+  // Pago: false = Pagado, true = Por Cobrar
+  bool _pagoPorCobrar = true;
+  // Entrega: false = Entregadas, true = Por Entregar
+  bool _entregaPorEntregar = true;
+
+  int get _activeFilters => [
+        if (_desdeCtrl.text.isNotEmpty) true,
+        if (_hastaCtrl.text.isNotEmpty) true,
+        if (_cliente != null) true,
+        if (_metodoPago != null) true,
+      ].length;
+
+  final List<String> _clientes = [
+    'AUTOTRANSPORTES LA FLECHA',
+    'Cliente A',
+    'Cliente B',
+  ];
+  final List<String> _metodos = ['Efectivo', 'Transferencia', 'Tarjeta'];
+
+  void _onClear() {
+    setState(() {
+      _desdeCtrl.clear();
+      _hastaCtrl.clear();
+      _cliente = null;
+      _metodoPago = null;
+      _pagoPorCobrar = true;
+      _entregaPorEntregar = true;
+    });
+  }
+
+  Future<void> _pickDate(TextEditingController ctrl) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: ThemeColor.primaryColor,
+            onPrimary: Colors.white,
+            onSurface: ThemeColor.textPrimaryColor,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) {
+      setState(() {
+        ctrl.text =
+            '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _desdeCtrl.dispose();
+    _hastaCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: ThemeColor.backgroundColor,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(ThemeColor.largeRadius),
+        ),
+      ),
+      padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: ThemeColor.dividerColor,
+                borderRadius: ThemeColor.circularBorderRadius,
+              ),
+            ),
+
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: ThemeColor.paddingMedium,
+                vertical: ThemeColor.paddingSmall,
+              ),
+              child: Row(
+                children: [
+                  const Spacer(),
+                  Text('Filtros', style: ThemeColor.headingSmall),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Text('X',
+                        style: ThemeColor.subtitleLarge
+                            .copyWith(fontWeight: FontWeight.w700)),
+                  ),
+                ],
+              ),
+            ),
+
+            Divider(height: 1, color: ThemeColor.dividerColor),
+            const SizedBox(height: ThemeColor.paddingMedium),
+
+            // ── Bloque 1: Fechas + Cliente ──────────────────────────
+            _FilterCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Fechas
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('De',
+                                style: ThemeColor.bodySmall.copyWith(
+                                    color: ThemeColor.textSecondaryColor)),
+                            const SizedBox(height: 4),
+                            _DateField(
+                                controller: _desdeCtrl,
+                                onTap: () => _pickDate(_desdeCtrl)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: ThemeColor.paddingMedium),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Hasta',
+                                style: ThemeColor.bodySmall.copyWith(
+                                    color: ThemeColor.textSecondaryColor)),
+                            const SizedBox(height: 4),
+                            _DateField(
+                                controller: _hastaCtrl,
+                                onTap: () => _pickDate(_hastaCtrl)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: ThemeColor.paddingMedium),
+                  // Cliente
+                  Text('Cliente',
+                      style: ThemeColor.bodyMedium
+                          .copyWith(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  _DropdownField(
+                    value: _cliente,
+                    items: _clientes,
+                    onChanged: (v) => setState(() => _cliente = v),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: ThemeColor.paddingSmall),
+
+            // ── Bloque 2: Método de Pago ────────────────────────────
+            _FilterCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Método de Pago',
+                      style: ThemeColor.bodyMedium
+                          .copyWith(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  _DropdownField(
+                    value: _metodoPago,
+                    items: _metodos,
+                    onChanged: (v) => setState(() => _metodoPago = v),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: ThemeColor.paddingSmall),
+
+            // ── Bloque 3: Pago ──────────────────────────────────────
+            _FilterCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Pago',
+                      style: ThemeColor.bodyMedium
+                          .copyWith(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: ThemeColor.paddingSmall),
+                  _ToggleGroup(
+                    options: const ['Pagado', 'Por Cobrar'],
+                    selectedIndex: _pagoPorCobrar ? 1 : 0,
+                    onChanged: (i) =>
+                        setState(() => _pagoPorCobrar = i == 1),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: ThemeColor.paddingSmall),
+
+            // ── Bloque 4: Entrega ───────────────────────────────────
+            _FilterCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Entrega',
+                      style: ThemeColor.bodyMedium
+                          .copyWith(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: ThemeColor.paddingSmall),
+                  _ToggleGroup(
+                    options: const ['Entregadas', 'Por Entregar'],
+                    selectedIndex: _entregaPorEntregar ? 1 : 0,
+                    onChanged: (i) =>
+                        setState(() => _entregaPorEntregar = i == 1),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: ThemeColor.paddingMedium),
+
+            // ── Botones ─────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: ThemeColor.paddingMedium),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ThemeColor.widgetButton(
+                      text: 'Limpiar ($_activeFilters)',
+                      onPressed: _onClear,
+                      backgroundColor: ThemeColor.surfaceColor,
+                      textColor: ThemeColor.textPrimaryColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: ThemeColor.paddingMedium),
+                      borderRadius: ThemeColor.smallRadius,
+                      borderColor: ThemeColor.dividerColor,
+                      borderWidth: 1.5,
+                      showShadow: false,
+                    ),
+                  ),
+                  const SizedBox(width: ThemeColor.paddingSmall),
+                  Expanded(
+                    flex: 2,
+                    child: ThemeColor.widgetButton(
+                      text: 'Ver resultados',
+                      onPressed: () => Navigator.of(context).pop(),
+                      backgroundColor: ThemeColor.primaryColor,
+                      textColor: ThemeColor.textLightColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: ThemeColor.paddingMedium),
+                      borderRadius: ThemeColor.smallRadius,
+                      customShadow: ThemeColor.darkShadow,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: ThemeColor.paddingLarge),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Card de sección de filtro
+// ─────────────────────────────────────────────────────────────────────────────
+class _FilterCard extends StatelessWidget {
+  final Widget child;
+  const _FilterCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(
+          horizontal: ThemeColor.paddingMedium),
+      padding: const EdgeInsets.all(ThemeColor.paddingMedium),
+      decoration: BoxDecoration(
+        color: ThemeColor.surfaceColor,
+        borderRadius: ThemeColor.mediumBorderRadius,
+        boxShadow: [ThemeColor.cardShadow],
+      ),
+      child: child,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dropdown genérico
+// ─────────────────────────────────────────────────────────────────────────────
+class _DropdownField extends StatelessWidget {
+  final String? value;
+  final List<String> items;
+  final ValueChanged<String?> onChanged;
+
+  const _DropdownField(
+      {required this.value, required this.items, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 44,
+      decoration: BoxDecoration(
+        color: ThemeColor.surfaceColor,
+        borderRadius: ThemeColor.smallBorderRadius,
+        border: Border.all(color: ThemeColor.dividerColor),
+      ),
+      padding:
+          const EdgeInsets.symmetric(horizontal: ThemeColor.paddingSmall),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down,
+              color: ThemeColor.textSecondaryColor, size: 20),
+          style: ThemeColor.bodyMedium
+              .copyWith(color: ThemeColor.textPrimaryColor),
+          dropdownColor: ThemeColor.surfaceColor,
+          borderRadius: ThemeColor.smallBorderRadius,
+          hint: const SizedBox.shrink(),
+          items: items
+              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Toggle group (Pagado/Por Cobrar  |  Entregadas/Por Entregar)
+// ─────────────────────────────────────────────────────────────────────────────
+class _ToggleGroup extends StatelessWidget {
+  final List<String> options;
+  final int selectedIndex;
+  final ValueChanged<int> onChanged;
+
+  const _ToggleGroup({
+    required this.options,
+    required this.selectedIndex,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: List.generate(options.length, (i) {
+        final selected = selectedIndex == i;
+        return Padding(
+          padding: EdgeInsets.only(
+              right: i < options.length - 1 ? ThemeColor.paddingSmall : 0),
+          child: GestureDetector(
+            onTap: () => onChanged(i),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(
+                horizontal: ThemeColor.paddingMedium,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color:
+                    selected ? ThemeColor.accentColor : Colors.transparent,
+                borderRadius: ThemeColor.circularBorderRadius,
+                border: Border.all(
+                  color: selected
+                      ? ThemeColor.accentColor
+                      : ThemeColor.dividerColor,
+                ),
+              ),
+              child: Text(
+                options[i],
+                style: ThemeColor.bodySmall.copyWith(
+                  color: selected
+                      ? ThemeColor.textDarkColor
+                      : ThemeColor.textSecondaryColor,
+                  fontWeight:
+                      selected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Campo de fecha con tap
+// ─────────────────────────────────────────────────────────────────────────────
+class _DateField extends StatelessWidget {
+  final TextEditingController controller;
+  final VoidCallback onTap;
+  const _DateField({required this.controller, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 40,
+        decoration: BoxDecoration(
+          color: ThemeColor.surfaceColor,
+          borderRadius: ThemeColor.smallBorderRadius,
+          border: Border.all(color: ThemeColor.dividerColor),
+        ),
+        padding: const EdgeInsets.symmetric(
+            horizontal: ThemeColor.paddingSmall),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                controller.text,
+                style: ThemeColor.bodySmall
+                    .copyWith(color: ThemeColor.textPrimaryColor),
+              ),
+            ),
+            Icon(Icons.calendar_today_outlined,
+                size: 14, color: ThemeColor.textSecondaryColor),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,58 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class ThemeColor {
-  // Colores principales - Tema de citas (Burdeos/Vino)
-  static const Color primaryColor = Color(0xFF4A141E); // Burdeos principal
-  static const Color secondaryColor = Color(0xFF8B2C4B); // Burdeos oscuro
-  static const Color tertiaryColor = Color(0xFF2E3A44); // Dorado suave
+  // ===========================
+  // COLORES PRINCIPALES - BCG
+  // ===========================
+  static const Color primaryColor = Color(0xFF1A1A1A);       // Negro principal
+  static const Color secondaryColor = Color(0xFF2C2C2C);     // Negro secundario
+  static const Color tertiaryColor = Color(0xFF3D3D3D);      // Gris oscuro
 
-  static const Color accentColor = Color(0xFFB83A5E); // Rosa burdeos claro
-  static const Color radarScanner = Color.fromARGB(255, 103, 167, 93); // Burdeos principal
+  static const Color accentColor = Color(0xFFF5A623);        // Dorado/Amarillo BCG
+  static const Color accentDark = Color(0xFFD4891A);         // Dorado oscuro
 
   // Colores de fondo
-  static const Color backgroundColor = Colors.white;
-  static const Color surfaceColor = Colors.white; // Superficies blancas
-  static const Color cardColor = Colors.white; // Cards blancas
-  static final Color backgroundColorfondo = Color(0xFFEFEFEA);
+  static const Color backgroundColor = Color(0xFFF5F5F5);   // Gris muy claro
+  static const Color surfaceColor = Colors.white;
+  static const Color cardColor = Colors.white;
+  static final Color backgroundColorfondo = const Color(0xFFEEEEEE);
 
   // Colores de texto
-  static const Color textPrimaryColor = Colors.black87; // Texto principal
-  static const Color textSecondaryColor = Color(0xFF5F6368); // Texto secundario
-  static const Color textTertiaryColor = Color(0xFF656565); // Texto terciario
-  static const Color textLightColor = Colors.white; // Texto claro
-  static const Color textDarkColor = Colors.black;
+  static const Color textPrimaryColor = Color(0xFF1A1A1A);   // Negro
+  static const Color textSecondaryColor = Color(0xFF757575); // Gris medio
+  static const Color textTertiaryColor = Color(0xFF9E9E9E);  // Gris claro
+  static const Color textLightColor = Colors.white;
+  static const Color textDarkColor = Color(0xFF1A1A1A);
 
   // Colores de estado
-  static const Color successColor = Color(0xFF4CAF50); // Verde éxito
-  static const Color warningColor = Color(0xFFF7770E); // Naranja advertencia
-  static const Color errorColor = Color(0xFFFF3B3B); // Rojo error
-  static const Color infoColor = Color(0xFF2196F3); // Azul información
-  static const Color onlineColor = Color(0xFF4CAF50); // Verde online
-//loading 
-static final Color loaddingwithOpacity1 = const Color.fromARGB(255, 200, 200, 200).withOpacity(0.15);
-static final Color loaddingwithOpacity3 = const Color.fromARGB(255, 180, 180, 180).withOpacity(0.35);
-static final Color loadding = const Color.fromARGB(255, 160, 160, 160);
+  static const Color successColor = Color(0xFF4CAF50);       // Verde - PAGADO
+  static const Color warningColor = Color(0xFFF5A623);       // Amarillo - PENDIENTE
+  static const Color errorColor = Color(0xFFE53935);         // Rojo - ADEUDO
+  static const Color infoColor = Color(0xFF1565C0);          // Azul info
+  static const Color onlineColor = Color(0xFF4CAF50);
+
+  // Loading
+  static final Color loaddingwithOpacity1 = const Color(0xFFBDBDBD).withOpacity(0.15);
+  static final Color loaddingwithOpacity3 = const Color(0xFF9E9E9E).withOpacity(0.35);
+  static final Color loadding = const Color(0xFF757575);
 
   // Colores específicos de la app
-  static const Color badgeColor = primaryColor; // Color de badges "Tu turno"
-  static const Color distanceBadgeColor = primaryColor; // Badge de distancia
-  static const Color likeButtonColor = primaryColor; // Botón de like
-  static const Color storyGradientStart = Color(
-    0xFF8B2C4B,
-  ); // Inicio gradiente historia
-  static const Color storyGradientEnd = Color(
-    0xFF4A1428,
-  ); // Fin gradiente historia
+  static const Color badgeColor = accentColor;
+  static const Color distanceBadgeColor = accentColor;
+  static const Color likeButtonColor = accentColor;
 
   // Colores para navegación
-  static const Color navbarSelectedColor = primaryColor;
-  static final Color navbarUnselectedColor = Colors.grey.shade600;
+  static const Color navbarSelectedColor = accentColor;
+  static final Color navbarUnselectedColor = Colors.grey.shade500;
 
   // Utilidades
-  static final Color shadowColor = Colors.black.withOpacity(0.1);
+  static final Color shadowColor = Colors.black.withOpacity(0.12);
   static final Color dividerColor = const Color(0xFFE0E0E0);
   static final Color disabledColor = Colors.grey.shade400;
 
@@ -72,109 +68,93 @@ static final Color loadding = const Color.fromARGB(255, 160, 160, 160);
   static const double elevationLarge = 8.0;
 
   // BorderRadius
-  static BorderRadius get smallBorderRadius =>
-      BorderRadius.circular(smallRadius);
-  static BorderRadius get mediumBorderRadius =>
-      BorderRadius.circular(mediumRadius);
-  static BorderRadius get largeBorderRadius =>
-      BorderRadius.circular(largeRadius);
-  static BorderRadius get extraLargeBorderRadius =>
-      BorderRadius.circular(extraLargeRadius);
+  static BorderRadius get smallBorderRadius => BorderRadius.circular(smallRadius);
+  static BorderRadius get mediumBorderRadius => BorderRadius.circular(mediumRadius);
+  static BorderRadius get largeBorderRadius => BorderRadius.circular(largeRadius);
+  static BorderRadius get extraLargeBorderRadius => BorderRadius.circular(extraLargeRadius);
   static BorderRadius get circularBorderRadius => BorderRadius.circular(100);
 
   // Sombras
   static BoxShadow get lightShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.05),
-    blurRadius: 8,
-    offset: const Offset(0, 2),
-  );
+        color: Colors.black.withOpacity(0.05),
+        blurRadius: 8,
+        offset: const Offset(0, 2),
+      );
 
   static BoxShadow get mediumShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.08),
-    blurRadius: 10,
-    offset: const Offset(0, 4),
-  );
+        color: Colors.black.withOpacity(0.08),
+        blurRadius: 10,
+        offset: const Offset(0, 4),
+      );
 
   static BoxShadow get darkShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.15),
-    blurRadius: 12,
-    offset: const Offset(0, 6),
-  );
+        color: Colors.black.withOpacity(0.15),
+        blurRadius: 12,
+        offset: const Offset(0, 6),
+      );
 
   static BoxShadow get cardShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.08),
-    blurRadius: 8,
-    offset: const Offset(0, 2),
-  );
-  static BoxShadow get storyShadow => BoxShadow(
-    color: Colors.black.withOpacity(0.15),
-    spreadRadius: 2,
-    blurRadius: 8,
-    offset: const Offset(0, 4),
-  );
+        color: Colors.black.withOpacity(0.06),
+        blurRadius: 8,
+        offset: const Offset(0, 2),
+      );
 
   // Gradientes
-  static LinearGradient get primaryGradient => LinearGradient(
-    colors: [primaryColor, secondaryColor],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static LinearGradient get primaryGradient => const LinearGradient(
+        colors: [primaryColor, secondaryColor],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
 
-  static LinearGradient get storyGradient => LinearGradient(
-    colors: [storyGradientStart, storyGradientEnd],
-    begin: Alignment.topRight,
-    end: Alignment.bottomLeft,
-  );
-
-  static LinearGradient get storyOverlayGradient => LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Colors.black.withOpacity(0.5), Colors.black.withOpacity(0.5)],
-  );
+  static LinearGradient get accentGradient => const LinearGradient(
+        colors: [accentColor, accentDark],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
 
   // Decoraciones
   static BoxDecoration get cardDecoration => BoxDecoration(
-    color: cardColor,
-    borderRadius: mediumBorderRadius,
-    boxShadow: [cardShadow],
-  );
+        color: cardColor,
+        borderRadius: mediumBorderRadius,
+        boxShadow: [cardShadow],
+      );
 
   static BoxDecoration get profileCardDecoration => BoxDecoration(
-    color: cardColor,
-    borderRadius: largeBorderRadius,
-    boxShadow: [cardShadow],
-  );
+        color: cardColor,
+        borderRadius: largeBorderRadius,
+        boxShadow: [cardShadow],
+      );
 
   // Estilos de texto
   static TextStyle get headingLarge => const TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
-    color: textPrimaryColor,
-  );
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: textPrimaryColor,
+      );
 
   static TextStyle get headingMedium => const TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: textPrimaryColor,
-  );
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: textPrimaryColor,
+      );
 
   static TextStyle get headingSmall => const TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.bold,
-    color: textPrimaryColor,
-  );
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: textPrimaryColor,
+      );
 
   static TextStyle get subtitleLarge => const TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    color: textPrimaryColor,
-  );
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: textPrimaryColor,
+      );
 
   static TextStyle get subtitleMedium => const TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
-    color: textPrimaryColor,
-  );
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: textPrimaryColor,
+      );
 
   static TextStyle get bodyLarge =>
       const TextStyle(fontSize: 16, color: textPrimaryColor);
@@ -189,115 +169,120 @@ static final Color loadding = const Color.fromARGB(255, 160, 160, 160);
       const TextStyle(fontSize: 11, color: textSecondaryColor);
 
   static TextStyle get buttonText => const TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: textLightColor,
-  );
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: textLightColor,
+      );
 
   static TextStyle get badgeText => const TextStyle(
-    fontSize: 11,
-    fontWeight: FontWeight.w500,
-    color: textLightColor,
-  );
+        fontSize: 11,
+        fontWeight: FontWeight.w500,
+        color: textDarkColor,
+      );
 
   // Theme Data
   static ThemeData get themeData => ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.light,
-    primaryColor: primaryColor,
-    scaffoldBackgroundColor: backgroundColor,
+        useMaterial3: true,
+        brightness: Brightness.light,
+        primaryColor: primaryColor,
+        scaffoldBackgroundColor: backgroundColor,
 
-    colorScheme: ColorScheme.light(
-      primary: primaryColor,
-      onPrimary: textLightColor,
-      secondary: secondaryColor,
-      onSecondary: textLightColor,
-      tertiary: accentColor,
-      error: errorColor,
-      onError: textLightColor,
-      background: backgroundColor,
-      onBackground: textPrimaryColor,
-      surface: surfaceColor,
-      onSurface: textPrimaryColor,
-    ),
+        colorScheme: ColorScheme.light(
+          primary: primaryColor,
+          onPrimary: textLightColor,
+          secondary: accentColor,
+          onSecondary: textDarkColor,
+          tertiary: tertiaryColor,
+          error: errorColor,
+          onError: textLightColor,
+          background: backgroundColor,
+          onBackground: textPrimaryColor,
+          surface: surfaceColor,
+          onSurface: textPrimaryColor,
+        ),
 
-    appBarTheme: AppBarTheme(
-      backgroundColor: surfaceColor,
-      foregroundColor: textPrimaryColor,
-      elevation: 0,
-      titleTextStyle: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: textPrimaryColor,
-      ),
-    ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: primaryColor,
+          foregroundColor: textLightColor,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          titleTextStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+          systemOverlayStyle: SystemUiOverlayStyle.light,
+        ),
 
-    cardTheme: CardThemeData(
-      color: cardColor,
-      elevation: elevationSmall,
-      shadowColor: shadowColor,
-      shape: RoundedRectangleBorder(borderRadius: mediumBorderRadius),
-    ),
+        cardTheme: CardThemeData(
+          color: cardColor,
+          elevation: elevationSmall,
+          shadowColor: shadowColor,
+          shape: RoundedRectangleBorder(borderRadius: mediumBorderRadius),
+        ),
 
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: primaryColor,
-        foregroundColor: textLightColor,
-        shape: RoundedRectangleBorder(borderRadius: mediumBorderRadius),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-        textStyle: buttonText,
-        elevation: elevationSmall,
-      ),
-    ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            foregroundColor: textLightColor,
+            shape: RoundedRectangleBorder(borderRadius: mediumBorderRadius),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+            textStyle: buttonText,
+            elevation: elevationSmall,
+          ),
+        ),
 
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: primaryColor,
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-      ),
-    ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: primaryColor,
+            textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+        ),
 
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      border: OutlineInputBorder(
-        borderRadius: mediumBorderRadius,
-        borderSide: BorderSide(color: Colors.grey.shade300),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: mediumBorderRadius,
-        borderSide: BorderSide(color: Colors.grey.shade300),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: mediumBorderRadius,
-        borderSide: const BorderSide(color: primaryColor, width: 1.5),
-      ),
-      labelStyle: const TextStyle(color: textSecondaryColor),
-      hintStyle: TextStyle(color: textSecondaryColor.withOpacity(0.7)),
-    ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          border: OutlineInputBorder(
+            borderRadius: mediumBorderRadius,
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: mediumBorderRadius,
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: mediumBorderRadius,
+            borderSide: const BorderSide(color: accentColor, width: 1.5),
+          ),
+          labelStyle: const TextStyle(color: textSecondaryColor),
+          hintStyle: const TextStyle(color: textSecondaryColor),
+        ),
 
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: surfaceColor,
-      selectedItemColor: primaryColor,
-      unselectedItemColor: navbarUnselectedColor,
-      selectedLabelStyle: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-      ),
-      unselectedLabelStyle: const TextStyle(fontSize: 12),
-      elevation: 8,
-      type: BottomNavigationBarType.fixed,
-    ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: primaryColor,
+          selectedItemColor: accentColor,
+          unselectedItemColor: Colors.grey.shade500,
+          selectedLabelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
+          elevation: 8,
+          type: BottomNavigationBarType.fixed,
+        ),
 
-    dividerTheme: DividerThemeData(color: dividerColor, thickness: 1, space: 1),
+        dividerTheme:
+            DividerThemeData(color: dividerColor, thickness: 1, space: 1),
 
-    iconTheme: const IconThemeData(color: textPrimaryColor, size: 24),
-  );
+        iconTheme: const IconThemeData(color: textPrimaryColor, size: 24),
+      );
 
   // ========================================
   // WIDGETS PERSONALIZADOS
   // ========================================
+
   static Widget createAppLogo({
     String imagePath = 'assets/logo/logo.png',
     double size = 150,
@@ -320,67 +305,87 @@ static final Color loadding = const Color.fromARGB(255, 160, 160, 160);
     );
   }
 
-  // Badge de "Tu turno"
+  // Badge de estado (PAGADO, PENDIENTE, ADEUDO, VENDIDO, etc.)
+  static Widget createStatusBadge(String text, {Color? color}) {
+    Color badgeBackgroundColor;
+    Color textCol = Colors.white;
+
+    switch (text.toUpperCase()) {
+      case 'PAGADO':
+        badgeBackgroundColor = successColor;
+        break;
+      case 'PENDIENTE':
+        badgeBackgroundColor = warningColor;
+        textCol = textDarkColor;
+        break;
+      case 'ADEUDO':
+      case 'ELIMINADO':
+        badgeBackgroundColor = errorColor;
+        break;
+      case 'VENDIDO':
+        badgeBackgroundColor = infoColor;
+        break;
+      default:
+        badgeBackgroundColor = color ?? primaryColor;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: badgeBackgroundColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: textCol,
+        ),
+      ),
+    );
+  }
+
+  // Badge genérico (reemplaza createTurnBadge y createDistanceBadge)
   static Widget createTurnBadge(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: badgeColor,
+        color: accentColor,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(text, style: badgeText),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: textDarkColor,
+        ),
+      ),
     );
   }
 
-  // Badge de distancia
   static Widget createDistanceBadge(String distance) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: distanceBadgeColor,
+        color: accentColor,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(distance, style: badgeText),
-    );
-  }
-
-  static Widget createStoryRing({
-    required Widget child,
-    bool hasStory = true,
-    bool isViewed = false,
-    double size = 80,
-    double borderWidth = 2,
-  }) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: hasStory && !isViewed ? storyGradient : null,
-        border:
-            !hasStory || isViewed
-                ? Border.all(color: Colors.grey[300]!, width: borderWidth)
-                : null,
-        boxShadow: [storyShadow],
-      ),
-      child: Container(
-        margin: EdgeInsets.all(hasStory && !isViewed ? 3 : 0),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border:
-              hasStory && !isViewed
-                  ? Border.all(color: Colors.white, width: borderWidth)
-                  : null,
+      child: Text(
+        distance,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: textDarkColor,
         ),
-        child: ClipOval(child: child),
       ),
     );
   }
-
 
   static Widget widgetButton({
     VoidCallback? onPressed,
-    String text = 'AGENDAR CITA',
+    String text = 'GUARDAR',
     Color? backgroundColor,
     Color? textColor,
     double? fontSize,
@@ -394,28 +399,19 @@ static final Color loadding = const Color.fromARGB(255, 160, 160, 160);
     BoxShadow? customShadow,
     bool isLoading = false,
   }) {
-    VoidCallback defaultOnPressed = () {
-      try {} catch (e) {
-        print('Error: StartController no encontrado');
-      }
-    };
-
-    VoidCallback finalOnPressed =
-        onPressed ?? (text == 'AGENDAR CITA' ? defaultOnPressed : () {});
+    VoidCallback finalOnPressed = onPressed ?? () {};
 
     return MouseRegion(
-      // ⬅️ Nuevo
-      cursor: SystemMouseCursors.click, // ⬅️ Cambia el cursor al pasar el mouse
+      cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: isLoading ? null : finalOnPressed,
         child: Container(
-          padding: padding ?? EdgeInsets.symmetric(horizontal: 13, vertical: 2),
+          padding:
+              padding ?? const EdgeInsets.symmetric(horizontal: 13, vertical: 2),
           decoration: BoxDecoration(
             color: isLoading
-                ? (backgroundColor ?? ThemeColor.secondaryColor).withOpacity(
-                    0.7,
-                  )
-                : (backgroundColor ?? ThemeColor.secondaryColor),
+                ? (backgroundColor ?? primaryColor).withOpacity(0.7)
+                : (backgroundColor ?? primaryColor),
             borderRadius: BorderRadius.circular(borderRadius ?? 5),
             border: borderColor != null
                 ? Border.all(color: borderColor, width: borderWidth ?? 1.0)
@@ -436,7 +432,7 @@ static final Color loadding = const Color.fromARGB(255, 160, 160, 160);
                   )
                 : Text(
                     text,
-                    style: GoogleFonts.rubik(
+                    style: TextStyle(
                       color: textColor ?? Colors.white,
                       fontSize: fontSize ?? 12,
                       fontWeight: fontWeight ?? FontWeight.w500,
@@ -450,7 +446,61 @@ static final Color loadding = const Color.fromARGB(255, 160, 160, 160);
     );
   }
 
-  // Botón circular de acción (like, etc)
+  // Botón de acción con acento dorado (para acciones primarias como "Cobrar")
+  static Widget widgetAccentButton({
+    required VoidCallback onPressed,
+    required String text,
+    double? fontSize,
+    EdgeInsets? padding,
+    double? borderRadius,
+    bool isLoading = false,
+  }) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: isLoading ? null : onPressed,
+        child: Container(
+          padding:
+              padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: accentGradient,
+            borderRadius: BorderRadius.circular(borderRadius ?? 8),
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Center(
+            child: isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(textDarkColor),
+                    ),
+                  )
+                : Text(
+                    text,
+                    style: TextStyle(
+                      color: textDarkColor,
+                      fontSize: fontSize ?? 14,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Botón circular de acción
   static Widget createCircularActionButton({
     required IconData icon,
     required VoidCallback onTap,
@@ -473,298 +523,102 @@ static final Color loadding = const Color.fromARGB(255, 160, 160, 160);
     );
   }
 
-  // Card de perfil recomendado
-  static Widget createRecommendedProfileCard({
-    required String imageUrl,
-    required String name,
-    required int age,
-    required VoidCallback onTap,
-    required VoidCallback onLike,
-    double width = 280,
-    double height = 320,
+  static Widget createMainScaffold({
+    required Widget body,
+    required int currentIndex,
+    required Function(int) onNavigationTap,
+    required List<String> iconPaths,
+    List<String>? labels,
+    Color? backgroundColor,
+    Color? bottomNavBackgroundColor,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: width,
-        height: height,
-        decoration: profileCardDecoration,
-        child: Stack(
-          children: [
-            ClipRRect(
-              borderRadius: largeBorderRadius,
-              child: Image.network(
-                imageUrl,
-                width: double.infinity,
-                height: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-            Positioned(
-              bottom: 12,
-              left: 12,
-              right: 12,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: circularBorderRadius,
-                    ),
-                    child: Text('$name, $age', style: subtitleLarge),
-                  ),
-                  createCircularActionButton(
-                    icon: Icons.favorite,
-                    onTap: onLike,
-                    iconColor: likeButtonColor,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+    return Scaffold(
+      backgroundColor: backgroundColor ?? ThemeColor.backgroundColor,
+      body: body,
+      bottomNavigationBar: createBottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onNavigationTap,
+        iconPaths: iconPaths,
+        labels: labels,
+        backgroundColor: bottomNavBackgroundColor,
       ),
     );
   }
 
-  // Card de perfil activo
-  static Widget createActiveProfileCard({
-    required String imageUrl,
-    required String name,
-    required int age,
-    required String location,
-    required double distance,
-    required VoidCallback onTap,
+  static Widget createBottomNavigationBar({
+    required int currentIndex,
+    required Function(int) onTap,
+    required List<String> iconPaths,
+    List<String>? labels,
+    Color? backgroundColor,
+    Color? selectedItemColor,
+    Color? unselectedItemColor,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: cardDecoration,
-        child: Row(
-          children: [
-            CircleAvatar(radius: 40, backgroundImage: NetworkImage(imageUrl)),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+    final Color bgColor = backgroundColor ?? primaryColor;
+    final Color selectedColor = selectedItemColor ?? accentColor;
+    final Color unselectedColor =
+        unselectedItemColor ?? Colors.grey.shade500;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            spreadRadius: 0,
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 70,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(iconPaths.length, (index) {
+              final isSelected = currentIndex == index;
+              return GestureDetector(
+                onTap: () => onTap(index),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 6, horizontal: 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(name, style: subtitleLarge),
-                      const SizedBox(width: 8),
-                      createDistanceBadge('${distance.toInt()} km'),
+                      Image.asset(
+                        iconPaths[index],
+                        width: 26,
+                        height: 26,
+                        fit: BoxFit.contain,
+                        color: isSelected ? selectedColor : unselectedColor,
+                      ),
+                      if (labels != null && index < labels.length) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          labels[index],
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                            color:
+                                isSelected ? selectedColor : unselectedColor,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Ubicación: $location',
-                    style: bodyMedium.copyWith(color: textSecondaryColor),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Edad: $age años',
-                    style: bodyMedium.copyWith(color: textSecondaryColor),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Botón de nueva gente
-  static Widget createNewPeopleButton({
-    required String text,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: primaryColor,
-          borderRadius: circularBorderRadius,
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: textLightColor,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
+                ),
+              );
+            }),
           ),
         ),
       ),
     );
   }
 
-  // Item de chat en lista
-  static Widget createChatItem({
-    required String imageUrl,
-    required String name,
-    required String lastMessage,
-    required bool isYourTurn,
-    required VoidCallback onTap,
-    bool isOnline = false,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundImage: NetworkImage(imageUrl),
-                ),
-                if (isOnline)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: onlineColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          style: subtitleLarge,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (isYourTurn) createTurnBadge('Tu turno'),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    lastMessage,
-                    style: bodyMedium.copyWith(color: textSecondaryColor),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-static Widget createMainScaffold({
-  required Widget body,
-  required int currentIndex,
-  required Function(int) onNavigationTap,
-  required List<String> iconPaths,
-  List<String>? labels, // ← nuevo
-  Color? backgroundColor,
-  Color? bottomNavBackgroundColor,
-}) {
-  return Scaffold(
-    backgroundColor: backgroundColor ?? bottomNavBackgroundColor,
-    body: body,
-    bottomNavigationBar: createBottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onNavigationTap,
-      iconPaths: iconPaths,
-      labels: labels, // ← nuevo
-      backgroundColor: bottomNavBackgroundColor,
-    ),
-  );
-}
-
-static Widget createBottomNavigationBar({
-  required int currentIndex,
-  required Function(int) onTap,
-  required List<String> iconPaths,
-  List<String>? labels, // ← nuevo
-  Color? backgroundColor,
-  Color? selectedItemColor,
-  Color? unselectedItemColor,
-}) {
-  return Container(
-    decoration: BoxDecoration(
-      color: backgroundColor ?? Colors.white,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.5),
-          spreadRadius: 0,
-          blurRadius: 4,
-          offset: const Offset(0, -2),
-        ),
-      ],
-    ),
-    child: SafeArea(
-      child: Container(
-        height: 70,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(iconPaths.length, (index) {
-            final isSelected = currentIndex == index;
-            return GestureDetector(
-              onTap: () => onTap(index),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      iconPaths[index],
-                      width: 26,
-                      height: 26,
-                      fit: BoxFit.contain,
-                      color: isSelected ? ThemeColor.textPrimaryColor : null,
-                    ),
-                    if (labels != null && index < labels.length) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        labels[index],
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                          color: isSelected
-                              ? ThemeColor.textPrimaryColor
-                              : ThemeColor.textSecondaryColor,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    ),
-  );
-}
-
   /// Widget reutilizable para campos de texto con label
-  /// Soporta email, password, text normal, etc.
   static Widget createLabeledTextField({
     required String label,
     required TextEditingController controller,
@@ -796,13 +650,11 @@ static Widget createBottomNavigationBar({
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label
         Row(
           children: [
             Text(
               label,
-              style:
-                  labelStyle ??
+              style: labelStyle ??
                   bodyMedium.copyWith(
                     color: labelColor ?? textDarkColor,
                     fontWeight: FontWeight.w500,
@@ -820,8 +672,6 @@ static Widget createBottomNavigationBar({
           ],
         ),
         SizedBox(height: labelSpacing ?? paddingSmall),
-
-        // TextField
         TextField(
           controller: controller,
           focusNode: focusNode,
@@ -831,20 +681,18 @@ static Widget createBottomNavigationBar({
           onChanged: onChanged,
           enabled: enabled,
           maxLines: maxLines,
-          style:
-              textStyle ??
+          style: textStyle ??
               bodyMedium.copyWith(color: textColor ?? textDarkColor),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle:
-                hintStyle ??
-                bodyMedium.copyWith(color: hintColor ?? textSecondaryColor),
+            hintStyle: hintStyle ??
+                bodyMedium.copyWith(
+                    color: hintColor ?? textSecondaryColor),
             errorText: showError ? errorText : null,
             errorStyle: bodySmall.copyWith(color: errorColor, height: 1.5),
             filled: true,
             fillColor: fillColor ?? surfaceColor,
-            contentPadding:
-                contentPadding ??
+            contentPadding: contentPadding ??
                 EdgeInsets.symmetric(
                   horizontal: paddingLarge,
                   vertical: paddingMedium,
@@ -858,7 +706,7 @@ static Widget createBottomNavigationBar({
               borderRadius: borderRadius ?? circularBorderRadius,
               borderSide: showError
                   ? BorderSide(color: errorColor, width: 1.5)
-                  : BorderSide.none,
+                  : BorderSide(color: Colors.grey.shade300),
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: borderRadius ?? circularBorderRadius,
@@ -872,7 +720,7 @@ static Widget createBottomNavigationBar({
               borderSide: BorderSide(
                 color: showError
                     ? errorColor
-                    : (focusedBorderColor ?? primaryColor),
+                    : (focusedBorderColor ?? accentColor),
                 width: 1.5,
               ),
             ),
@@ -887,6 +735,111 @@ static Widget createBottomNavigationBar({
           ),
         ),
       ],
+    );
+  }
+
+  // Card de perfil activo (adaptado para app de ventas - item de cliente/producto)
+  static Widget createActiveProfileCard({
+    required String imageUrl,
+    required String name,
+    required int age,
+    required String location,
+    required double distance,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: cardDecoration,
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundImage: NetworkImage(imageUrl),
+              backgroundColor: secondaryColor,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(name, style: subtitleLarge),
+                      ),
+                      const SizedBox(width: 8),
+                      createDistanceBadge('${distance.toInt()} km'),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Ubicación: $location',
+                    style: bodyMedium.copyWith(color: textSecondaryColor),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Edad: $age años',
+                    style: bodyMedium.copyWith(color: textSecondaryColor),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Item de lista genérico (reemplaza createChatItem para ventas/cotizaciones)
+  static Widget createListItem({
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    Widget? leading,
+    Widget? trailing,
+    String? statusText,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        child: Row(
+          children: [
+            if (leading != null) ...[leading, const SizedBox(width: 12)],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: subtitleLarge,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (statusText != null)
+                        createStatusBadge(statusText),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: bodyMedium.copyWith(color: textSecondaryColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (trailing != null) ...[const SizedBox(width: 8), trailing],
+          ],
+        ),
+      ),
     );
   }
 }

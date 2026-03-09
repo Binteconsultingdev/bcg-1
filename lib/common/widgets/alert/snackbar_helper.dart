@@ -1,7 +1,8 @@
 import 'dart:ui';
+import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:tendria/common/theme/App_Theme.dart';
+
 
 void showSnackBar(String message, Color color) {
   ScaffoldMessenger.of(Get.context!).clearSnackBars();

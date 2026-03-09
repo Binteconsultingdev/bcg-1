@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'package:bcg/common/constants/constants.dart';
+import 'package:bcg/features/auth/data/model/loginResponse/login_response_model.dart';
+import 'package:bcg/features/auth/domain/entities/response/login_response_entity.dart';
+import 'package:bcg/framework/preferences_service.dart';
 import 'package:get/get.dart';
 class AuthService extends GetxService {
   static final AuthService _instance = AuthService._internal();
