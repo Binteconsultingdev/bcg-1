@@ -1,82 +1,33 @@
 import 'package:bcg/common/theme/App_Theme.dart';
+import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
+import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-// import 'package:tu_app/core/theme/theme_color.dart';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Modelo
-// ─────────────────────────────────────────────────────────────────────────────
-enum CotizacionStatus { abierta, vencida, vendida }
-
-class CotizacionItem {
-  final String folio;
-  final String cliente;
-  final String fecha;
-  final double total;
-  final CotizacionStatus status;
-
-  const CotizacionItem({
-    required this.folio,
-    required this.cliente,
-    required this.fecha,
-    required this.total,
-    required this.status,
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Pantalla Cotizaciones
-// ─────────────────────────────────────────────────────────────────────────────
-class CotizacionesScreen extends StatefulWidget {
-  const CotizacionesScreen({super.key});
+class CotizacionesPage extends StatefulWidget {
+  const CotizacionesPage({super.key});
 
   @override
-  State<CotizacionesScreen> createState() => _CotizacionesScreenState();
+  State<CotizacionesPage> createState() => _CotizacionesPageState();
 }
 
-class _CotizacionesScreenState extends State<CotizacionesScreen> {
+class _CotizacionesPageState extends State<CotizacionesPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-
-  // 0 = Todas, 1 = Vencidas, 2 = Vendidas
   int _selectedTab = 0;
+  late final QuotesController _ctrl;
 
-  final List<CotizacionItem> _all = const [
-    CotizacionItem(
-      folio: 'Nº Folio',
-      cliente: 'Cliente',
-      fecha: '03/03/2026',
-      total: 350.00,
-      status: CotizacionStatus.abierta,
-    ),
-    CotizacionItem(
-      folio: '7541 - (48)',
-      cliente: 'AUTOTRANSPORTES LA FLECHA',
-      fecha: '03/03/2026',
-      total: 350.00,
-      status: CotizacionStatus.vencida,
-    ),
-    CotizacionItem(
-      folio: '7541 - (48)',
-      cliente: 'AUTOTRANSPORTES LA FLECHA',
-      fecha: '03/03/2026',
-      total: 350.00,
-      status: CotizacionStatus.vendida,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.find<QuotesController>();
+  }
 
-  List<CotizacionItem> get _filtered {
-    return _all.where((c) {
-      final matchTab = _selectedTab == 0 ||
-          (_selectedTab == 1 && c.status == CotizacionStatus.vencida) ||
-          (_selectedTab == 2 && c.status == CotizacionStatus.vendida);
-      final matchSearch = _searchQuery.isEmpty ||
-          c.cliente.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          c.folio.toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchTab && matchSearch;
-    }).toList();
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _openFilters() {
@@ -84,14 +35,8 @@ class _CotizacionesScreenState extends State<CotizacionesScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _CotizacionFilterSheet(),
+      builder: (_) => _CotizacionFilterSheet(controller: _ctrl),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
@@ -113,7 +58,6 @@ class _CotizacionesScreenState extends State<CotizacionesScreen> {
     );
   }
 
-  // ── AppBar ──────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: ThemeColor.surfaceColor,
@@ -134,7 +78,6 @@ class _CotizacionesScreenState extends State<CotizacionesScreen> {
     );
   }
 
-  // ── Barra búsqueda + filtros ────────────────────────────────────────────
   Widget _buildSearchBar() {
     return Container(
       color: ThemeColor.surfaceColor,
@@ -191,7 +134,6 @@ class _CotizacionesScreenState extends State<CotizacionesScreen> {
     );
   }
 
-  // ── Tabs: Todas / Vencidas / Vendidas ───────────────────────────────────
   Widget _buildTabs() {
     const labels = ['Todas', 'Vencidas', 'Vendidas'];
     return Container(
@@ -244,31 +186,61 @@ class _CotizacionesScreenState extends State<CotizacionesScreen> {
     );
   }
 
-  // ── Lista ───────────────────────────────────────────────────────────────
+
   Widget _buildList() {
-    final items = _filtered;
-    if (items.isEmpty) {
-      return Center(
-        child: Text(
-          'Sin cotizaciones',
-          style: ThemeColor.bodyMedium
-              .copyWith(color: ThemeColor.textSecondaryColor),
+    return Obx(() {
+      if (_ctrl.isLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(color: ThemeColor.primaryColor),
+        );
+      }
+
+      if (_ctrl.errorMessage.isNotEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _ctrl.errorMessage.value,
+                style: ThemeColor.bodyMedium
+                    .copyWith(color: ThemeColor.errorColor),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _ctrl.fetchQuotes,
+                child: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        );
+      }
+
+      final items = _ctrl.filteredByTab(_selectedTab, _searchQuery);
+
+      if (items.isEmpty) {
+        return Center(
+          child: Text(
+            'Sin cotizaciones',
+            style: ThemeColor.bodyMedium
+                .copyWith(color: ThemeColor.textSecondaryColor),
+          ),
+        );
+      }
+
+      return ListView.separated(
+        padding: const EdgeInsets.symmetric(
+          horizontal: ThemeColor.paddingMedium,
+          vertical: ThemeColor.paddingSmall,
         ),
+        itemCount: items.length,
+        separatorBuilder: (_, __) =>
+            Divider(height: 1, color: ThemeColor.dividerColor),
+        itemBuilder: (_, i) => _CotizacionTile(item: items[i]),
       );
-    }
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingSmall,
-      ),
-      itemCount: items.length,
-      separatorBuilder: (_, __) =>
-          Divider(height: 1, color: ThemeColor.dividerColor),
-      itemBuilder: (_, i) => _CotizacionTile(item: items[i]),
-    );
+    });
   }
 
-  // ── FAB ─────────────────────────────────────────────────────────────────
   Widget _buildFab() {
     return FloatingActionButton(
       onPressed: () {},
@@ -279,32 +251,18 @@ class _CotizacionesScreenState extends State<CotizacionesScreen> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tile de cotización
-// ─────────────────────────────────────────────────────────────────────────────
 class _CotizacionTile extends StatelessWidget {
-  final CotizacionItem item;
+  final GetQuoteEntity item;
   const _CotizacionTile({required this.item});
 
   Color get _statusColor {
-    switch (item.status) {
-      case CotizacionStatus.abierta:
-        return ThemeColor.infoColor;
-      case CotizacionStatus.vencida:
+    switch (item.status?.toLowerCase()) {
+      case 'vencida':
         return ThemeColor.errorColor;
-      case CotizacionStatus.vendida:
+      case 'vendida':
         return ThemeColor.successColor;
-    }
-  }
-
-  String get _statusLabel {
-    switch (item.status) {
-      case CotizacionStatus.abierta:
-        return 'Abierta';
-      case CotizacionStatus.vencida:
-        return 'Vencida';
-      case CotizacionStatus.vendida:
-        return 'Vendida';
+      default:
+        return ThemeColor.infoColor;
     }
   }
 
@@ -320,26 +278,23 @@ class _CotizacionTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Folio - Cliente
                 Text(
-                  '${item.folio} - ${item.cliente}',
+                  '${item.folito ?? '-'} - ${item.client ?? '-'}',
                   style: ThemeColor.bodyMedium.copyWith(
                     color: ThemeColor.infoColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 2),
-                // Fecha
                 Text(
-                  item.fecha,
+                  item.date ?? '-',
                   style: ThemeColor.caption.copyWith(
                     color: ThemeColor.textSecondaryColor,
                   ),
                 ),
                 const SizedBox(height: 4),
-                // Total
                 Text(
-                  '\$${item.total.toStringAsFixed(2)}',
+                  '\$${item.total?.toStringAsFixed(2) ?? '0.00'}',
                   style: ThemeColor.bodyMedium.copyWith(
                     color: ThemeColor.textPrimaryColor,
                     fontWeight: FontWeight.w500,
@@ -348,7 +303,6 @@ class _CotizacionTile extends StatelessWidget {
               ],
             ),
           ),
-          // Badge status
           Container(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingSmall,
@@ -359,7 +313,7 @@ class _CotizacionTile extends StatelessWidget {
               borderRadius: ThemeColor.smallBorderRadius,
             ),
             child: Text(
-              _statusLabel,
+              item.status ?? 'Abierta',
               style: ThemeColor.caption.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -371,12 +325,9 @@ class _CotizacionTile extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom Sheet Filtros Cotizaciones
-// ─────────────────────────────────────────────────────────────────────────────
 class _CotizacionFilterSheet extends StatefulWidget {
-  const _CotizacionFilterSheet();
+  final QuotesController controller;
+  const _CotizacionFilterSheet({required this.controller});
 
   @override
   State<_CotizacionFilterSheet> createState() =>
@@ -410,6 +361,7 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
       _cliente = null;
       _activeFilters = 0;
     });
+    widget.controller.clearFilters();
   }
 
   Future<void> _pickDate(TextEditingController ctrl) async {
@@ -460,10 +412,8 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
           Container(
-            margin:
-                const EdgeInsets.only(top: ThemeColor.paddingSmall),
+            margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
             width: 40,
             height: 4,
             decoration: BoxDecoration(
@@ -472,7 +422,7 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
             ),
           ),
 
-          // Header
+   
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -498,7 +448,6 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
           Divider(height: 1, color: ThemeColor.dividerColor),
           const SizedBox(height: ThemeColor.paddingMedium),
 
-          // Contenido
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -508,16 +457,13 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
               decoration: BoxDecoration(
                 color: ThemeColor.surfaceColor,
                 borderRadius: ThemeColor.mediumBorderRadius,
-                
                 boxShadow: [ThemeColor.cardShadow],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Rango de fechas
                   Row(
                     children: [
-                      // De
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -537,7 +483,6 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                         ),
                       ),
                       const SizedBox(width: ThemeColor.paddingMedium),
-                      // Hasta
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -560,7 +505,6 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                   ),
                   const SizedBox(height: ThemeColor.paddingMedium),
 
-                  // Cliente dropdown
                   Text(
                     'Cliente',
                     style: ThemeColor.bodyMedium.copyWith(
@@ -573,8 +517,7 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                     decoration: BoxDecoration(
                       color: ThemeColor.surfaceColor,
                       borderRadius: ThemeColor.smallBorderRadius,
-                      border:
-                          Border.all(color: ThemeColor.dividerColor),
+                      border: Border.all(color: ThemeColor.dividerColor),
                     ),
                     padding: const EdgeInsets.symmetric(
                         horizontal: ThemeColor.paddingSmall),
@@ -583,16 +526,15 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                         value: _cliente,
                         isExpanded: true,
                         icon: const Icon(Icons.keyboard_arrow_down,
-                            color: ThemeColor.textSecondaryColor,
-                            size: 20),
-                        style: ThemeColor.bodyMedium.copyWith(
-                            color: ThemeColor.textPrimaryColor),
+                            color: ThemeColor.textSecondaryColor, size: 20),
+                        style: ThemeColor.bodyMedium
+                            .copyWith(color: ThemeColor.textPrimaryColor),
                         dropdownColor: ThemeColor.surfaceColor,
                         borderRadius: ThemeColor.smallBorderRadius,
                         hint: const SizedBox.shrink(),
                         items: _clientes
-                            .map((e) => DropdownMenuItem(
-                                value: e, child: Text(e)))
+                            .map((e) =>
+                                DropdownMenuItem(value: e, child: Text(e)))
                             .toList(),
                         onChanged: (v) => setState(() {
                           _cliente = v;
@@ -608,7 +550,6 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
 
           const SizedBox(height: ThemeColor.paddingLarge),
 
-          // Botones
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium),
@@ -635,7 +576,14 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                   flex: 2,
                   child: ThemeColor.widgetButton(
                     text: 'Ver resultados',
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () {
+                      widget.controller.applyFilters(
+                        client: _cliente ?? '',
+                        dateFrom: _desdeController.text,
+                        dateUntil: _hastaController.text,
+                      );
+                      Navigator.of(context).pop();
+                    },
                     backgroundColor: ThemeColor.primaryColor,
                     textColor: ThemeColor.textLightColor,
                     fontSize: 14,
@@ -656,9 +604,6 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Campo de fecha con tap
-// ─────────────────────────────────────────────────────────────────────────────
 class _DateField extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onTap;
@@ -690,8 +635,7 @@ class _DateField extends StatelessWidget {
               ),
             ),
             Icon(Icons.calendar_today_outlined,
-                size: 14,
-                color: ThemeColor.textSecondaryColor),
+                size: 14, color: ThemeColor.textSecondaryColor),
           ],
         ),
       ),

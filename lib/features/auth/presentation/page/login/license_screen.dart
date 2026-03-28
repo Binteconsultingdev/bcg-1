@@ -1,10 +1,9 @@
 import 'package:bcg/common/theme/App_Theme.dart';
+
+import 'package:bcg/features/auth/presentation/page/login/license_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-
-// Asegúrate de importar tu ThemeColor
-// import 'package:tu_app/core/theme/theme_color.dart';
 
 class LicenseScreen extends StatefulWidget {
   const LicenseScreen({super.key});
@@ -15,14 +14,7 @@ class LicenseScreen extends StatefulWidget {
 
 class _LicenseScreenState extends State<LicenseScreen>
     with SingleTickerProviderStateMixin {
-  // 4 campos para la clave de licencia
-  final List<TextEditingController> _controllers =
-      List.generate(4, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes =
-      List.generate(4, (_) => FocusNode());
-
-  bool _acceptPrivacy = false;
-  bool _isLoading = false;
+  late final LicenseController _controller;
 
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
@@ -31,6 +23,8 @@ class _LicenseScreenState extends State<LicenseScreen>
   @override
   void initState() {
     super.initState();
+    _controller = Get.find<LicenseController>();
+
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 700),
@@ -51,36 +45,8 @@ class _LicenseScreenState extends State<LicenseScreen>
 
   @override
   void dispose() {
-    for (final c in _controllers) {
-      c.dispose();
-    }
-    for (final f in _focusNodes) {
-      f.dispose();
-    }
     _animController.dispose();
     super.dispose();
-  }
-
-  void _onFieldChanged(String value, int index) {
-    if (value.length == 1 && index < 3) {
-      _focusNodes[index + 1].requestFocus();
-    } else if (value.isEmpty && index > 0) {
-      _focusNodes[index - 1].requestFocus();
-    }
-  }
-
-  bool get _isFormValid {
-    final allFilled = _controllers.every((c) => c.text.trim().isNotEmpty);
-    return allFilled && _acceptPrivacy;
-  }
-
-  Future<void> _onContinue() async {
-    if (!_isFormValid) return;
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1500));
-    setState(() => _isLoading = false);
-    // TODO: navegar a la siguiente pantalla
-    // Get.offNamed(Routes.HOME);
   }
 
   @override
@@ -101,13 +67,9 @@ class _LicenseScreenState extends State<LicenseScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // ── Logo ──────────────────────────────────────────
                     const SizedBox(height: ThemeColor.paddingExtraLarge),
                     _buildLogo(),
-
                     const Spacer(),
-
-                    // ── Título ────────────────────────────────────────
                     Text(
                       'CLAVE DE LICENCIA',
                       style: ThemeColor.headingMedium.copyWith(
@@ -118,17 +80,10 @@ class _LicenseScreenState extends State<LicenseScreen>
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: ThemeColor.paddingLarge),
-
-                    // ── Campos de licencia ────────────────────────────
                     _buildLicenseFields(),
                     const SizedBox(height: ThemeColor.paddingMedium),
-
-                    // ── Checkbox privacidad ───────────────────────────
                     _buildPrivacyCheckbox(),
-
                     const Spacer(),
-
-                    // ── Botón Continuar ───────────────────────────────
                     _buildContinueButton(),
                     const SizedBox(height: ThemeColor.paddingExtraLarge),
                   ],
@@ -149,14 +104,13 @@ class _LicenseScreenState extends State<LicenseScreen>
       'assets/logo/logo.png',
       height: 70,
       fit: BoxFit.contain,
-      // fallback si no existe el asset en desarrollo
       errorBuilder: (_, __, ___) => Container(
         height: 70,
-        padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingMedium),
+        padding: const EdgeInsets.symmetric(
+            horizontal: ThemeColor.paddingMedium),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Ícono hexágono BCG simulado
             Container(
               width: 50,
               height: 50,
@@ -207,13 +161,10 @@ class _LicenseScreenState extends State<LicenseScreen>
   Widget _buildLicenseFields() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Ancho disponible - padding horizontal de la pantalla (2 * paddingLarge)
         final availableWidth = constraints.maxWidth;
-        // 3 separadores de ~20px c/u + 8px de padding horizontal c/u = ~84px total
         const separatorsWidth = 3 * 28.0;
-        // Calcular ancho de cada campo dinámicamente
-        final fieldWidth = ((availableWidth - separatorsWidth) / 4)
-            .clamp(50.0, 90.0);
+        final fieldWidth =
+            ((availableWidth - separatorsWidth) / 4).clamp(50.0, 90.0);
         final fieldHeight = fieldWidth * 0.75;
 
         return Row(
@@ -223,9 +174,9 @@ class _LicenseScreenState extends State<LicenseScreen>
             return Row(
               children: [
                 _LicenseField(
-                  controller: _controllers[i],
-                  focusNode: _focusNodes[i],
-                  onChanged: (v) => _onFieldChanged(v, i),
+                  controller: _controller.fieldControllers[i],
+                  focusNode: _controller.focusNodes[i],
+                  onChanged: (v) => _controller.onFieldChanged(v, i),
                   width: fieldWidth,
                   height: fieldHeight,
                 ),
@@ -251,65 +202,64 @@ class _LicenseScreenState extends State<LicenseScreen>
   // Checkbox aviso de privacidad
   // ─────────────────────────────────────────────────────────────────────────
   Widget _buildPrivacyCheckbox() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Checkbox personalizado con colores del theme
-        GestureDetector(
-          onTap: () => setState(() => _acceptPrivacy = !_acceptPrivacy),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: _acceptPrivacy
-                  ? ThemeColor.primaryColor
-                  : ThemeColor.surfaceColor,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: _acceptPrivacy
-                    ? ThemeColor.primaryColor
-                    : ThemeColor.dividerColor,
-                width: 1.5,
+    return Obx(() => Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: _controller.togglePrivacy,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: _controller.acceptPrivacy.value
+                      ? ThemeColor.primaryColor
+                      : ThemeColor.surfaceColor,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: _controller.acceptPrivacy.value
+                        ? ThemeColor.primaryColor
+                        : ThemeColor.dividerColor,
+                    width: 1.5,
+                  ),
+                  boxShadow: [ThemeColor.lightShadow],
+                ),
+                child: _controller.acceptPrivacy.value
+                    ? const Icon(
+                        Icons.check,
+                        size: 14,
+                        color: ThemeColor.accentColor,
+                      )
+                    : null,
               ),
-              boxShadow: [ThemeColor.lightShadow],
             ),
-            child: _acceptPrivacy
-                ? const Icon(
-                    Icons.check,
-                    size: 14,
-                    color: ThemeColor.accentColor,
-                  )
-                : null,
-          ),
-        ),
-        const SizedBox(width: ThemeColor.paddingSmall),
-        GestureDetector(
-          onTap: () => setState(() => _acceptPrivacy = !_acceptPrivacy),
-          child: Text(
-            'Aceptar aviso de privacidad',
-            style: ThemeColor.bodyMedium.copyWith(
-              color: ThemeColor.textSecondaryColor,
+            const SizedBox(width: ThemeColor.paddingSmall),
+            GestureDetector(
+              onTap: _controller.togglePrivacy,
+              child: Text(
+                'Aceptar aviso de privacidad',
+                style: ThemeColor.bodyMedium.copyWith(
+                  color: ThemeColor.textSecondaryColor,
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
-    );
+          ],
+        ));
   }
 
   // ─────────────────────────────────────────────────────────────────────────
   // Botón Continuar
   // ─────────────────────────────────────────────────────────────────────────
   Widget _buildContinueButton() {
-    final bool enabled = _isFormValid;
-
+  return Obx(() {
+    final enabled = _controller.formValid.value; // ✅ antes: isFormValid
     return AnimatedOpacity(
       opacity: enabled ? 1.0 : 0.45,
       duration: const Duration(milliseconds: 300),
       child: ThemeColor.widgetButton(
         text: 'Continuar',
-        isLoading: _isLoading,
-        onPressed: enabled ? _onContinue : null,
+        isLoading: _controller.isLoading.value,
+        onPressed: enabled ? _controller.onContinueTap : null,
         backgroundColor: ThemeColor.primaryColor,
         textColor: ThemeColor.textLightColor,
         fontSize: 16,
@@ -322,7 +272,8 @@ class _LicenseScreenState extends State<LicenseScreen>
         customShadow: ThemeColor.darkShadow,
       ),
     );
-  }
+  });
+}
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -368,9 +319,8 @@ class _LicenseFieldState extends State<_LicenseField> {
         color: ThemeColor.surfaceColor,
         borderRadius: ThemeColor.smallBorderRadius,
         border: Border.all(
-          color: _isFocused
-              ? ThemeColor.accentColor
-              : ThemeColor.dividerColor,
+          color:
+              _isFocused ? ThemeColor.accentColor : ThemeColor.dividerColor,
           width: _isFocused ? 2.0 : 1.2,
         ),
         boxShadow: [

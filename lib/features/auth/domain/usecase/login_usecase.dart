@@ -6,7 +6,7 @@ import 'package:bcg/features/auth/domain/repositories/auth_repository.dart';
 class LoginUsecase {
   final AuthRepository authRepository;
   LoginUsecase({required this.authRepository});
-  Future<LoginResponseEntity> execute ({required String email,required String password}) async {
-    return await authRepository.login(email, password);
+  Future<LoginResponseEntity> call ({required String user,required String password, required String baseDatos}) async {
+    return await authRepository.login(user, password,baseDatos);
   }
 }

@@ -86,7 +86,7 @@ class _LoginPageState extends State<LoginPage>
 
                           ThemeColor.createLabeledTextField(
                             label: 'Usuario:',
-                            controller: _controller.emailController,
+                            controller: _controller.userController,
                             focusNode: _controller.emailFocusNode,
                             hintText: '',
                             keyboardType: TextInputType.text,

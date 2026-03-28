@@ -1,14 +1,16 @@
 import 'package:bcg/common/errors/convert_message.dart';
 import 'package:bcg/common/services/auth_service.dart';
+import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/settings/routes_names.dart';
 import 'package:bcg/common/widgets/alert/custom_alert_type.dart';
 import 'package:bcg/features/auth/domain/usecase/login_usecase.dart';
+import 'package:bcg/features/auth/domain/usecase/validate_licenses_usecase.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 
 class LoginController extends GetxController {
-  late final TextEditingController emailController;
+  late final TextEditingController userController;
   late final TextEditingController passwordController;
   late final FocusNode emailFocusNode;
   late final FocusNode passwordFocusNode;
@@ -17,12 +19,16 @@ class LoginController extends GetxController {
   final RxBool showPassword = false.obs;
 
   final AuthService _authService = Get.find<AuthService>();
+    final LicenseService _licenseService = Get.find<LicenseService>(); // ✅
+
   final LoginUsecase loginUsecase;
+  final ValidateLicensesUsecase validateLicensesUsecase;
   //final SaveTokenFcmUsecase saveTokenFcmUsecase;
 
 
   LoginController({
     required this.loginUsecase,
+    required this.validateLicensesUsecase,
    //required this.saveTokenFcmUsecase,
   });
 
@@ -33,7 +39,7 @@ class LoginController extends GetxController {
   }
 
   void _initializeControllers() {
-    emailController = TextEditingController();
+    userController = TextEditingController();
     passwordController = TextEditingController();
     emailFocusNode = FocusNode();
     passwordFocusNode = FocusNode();
@@ -52,29 +58,39 @@ class LoginController extends GetxController {
     showPassword.value = !showPassword.value;
   }
 
-  void onLoginTap() async {
+void onLoginTap() async {
     if (!_validateFields()) return;
 
     try {
       isLoading.value = true;
 
-      final email = emailController.text.trim();
+      // ✅ Leer la base desde LicenseService
+      final baseDatos = await _licenseService.getBase();
+
+      if (baseDatos == null || baseDatos.isEmpty) {
+        _showErrorAlert(
+          'Sin licencia',
+          'No se encontró una licencia válida. Por favor ingresa tu clave de licencia.',
+        );
+        Get.offAllNamed(RoutesNames.licensePage); 
+        return;
+      }
+
+      final email = userController.text.trim();
       final password = passwordController.text.trim();
 
-      final loginResponse = await loginUsecase.execute(
-        email: email,
+      final loginResponse = await loginUsecase.call(
+        user: email,
         password: password,
+        baseDatos: baseDatos, 
       );
 
       await _authService.saveLoginResponse(loginResponse);
-   
-   
+
       _clearFields();
       await _resetControllersForNewSession();
-      
-      
-   
-        Get.offAllNamed( RoutesNames.homePage);
+
+      Get.offAllNamed(RoutesNames.homePage);
     } catch (e) {
       _showErrorAlert(
         'ACCESO INCORRECTO',
@@ -141,7 +157,7 @@ class LoginController extends GetxController {
   }
 
   bool _validateFields() {
-    if (emailController.text.isEmpty) {
+    if (userController.text.isEmpty) {
       _showErrorAlert(
         'Advertencia',
         'Por favor, ingresa tu usuario',
@@ -161,8 +177,8 @@ class LoginController extends GetxController {
   }
 
   void _clearFields() {
-    if (emailController.hasListeners) {
-      emailController.clear();
+    if (userController.hasListeners) {
+      userController.clear();
     }
     if (passwordController.hasListeners) {
       passwordController.clear();
@@ -175,8 +191,8 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    if (!emailController.hasListeners) {
-      emailController.dispose();
+    if (!userController.hasListeners) {
+      userController.dispose();
     }
     if (!passwordController.hasListeners) {
       passwordController.dispose();

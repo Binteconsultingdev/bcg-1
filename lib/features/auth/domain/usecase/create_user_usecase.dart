@@ -6,7 +6,7 @@ import 'package:bcg/features/auth/domain/repositories/auth_repository.dart';
 class CreateUserUsecase {
   final AuthRepository authRepository;
   CreateUserUsecase({required this.authRepository});
-  Future<void> execute(CreateUserEntity entity) async {
+  Future<void> call(CreateUserEntity entity) async {
     return await authRepository.createUser(entity);
   }
 }

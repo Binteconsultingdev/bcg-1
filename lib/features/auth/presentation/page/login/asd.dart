@@ -101,7 +101,7 @@ class LoginPage extends GetView<LoginController> {
         children: [
           ThemeColor.createLabeledTextField(
             label: 'Correo electrónico:',
-            controller: controller.emailController,
+            controller: controller.userController,
             focusNode: controller.emailFocusNode,
             hintText: 'correo@gmail.com',
             keyboardType: TextInputType.emailAddress,

@@ -1,4 +1,3 @@
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferencesUser {
@@ -12,22 +11,25 @@ class PreferencesUser {
 
   late SharedPreferences _prefs;
 
-  initiPrefs() async {
+  Future<void> initiPrefs() async {
     _prefs = await SharedPreferences.getInstance();
   }
 
-  void savePrefs(
-      {required dynamic type, required String key, required dynamic value}) {
+  // ✅ ahora es async con await
+  Future<void> savePrefs({
+    required dynamic type,
+    required String key,
+    required dynamic value,
+  }) async {
     switch (type) {
       case bool:
-        _prefs.setBool(key, value);
+        await _prefs.setBool(key, value);
         break;
       case int:
-        _prefs.setInt(key, value);
+        await _prefs.setInt(key, value);
         break;
-
       case String:
-        _prefs.setString(key, value);
+        await _prefs.setString(key, value);
         break;
     }
   }
@@ -43,11 +45,11 @@ class PreferencesUser {
     }
   }
 
-  Future clearOnePreference({required String key}) async {
+  Future<void> clearOnePreference({required String key}) async {
     await _prefs.remove(key);
   }
 
-  Future removePreferences() async {
-    _prefs.clear();
+  Future<void> removePreferences() async {
+    await _prefs.clear();
   }
 }
