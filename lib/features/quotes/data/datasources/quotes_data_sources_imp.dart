@@ -58,14 +58,16 @@ Future<List<GetQuoteEntity>> fetchQuote(
   }
 }
 
-   Future<void> createQuote(QuoteEntity entity) async {
+   Future<void> createQuote(QuoteEntity entity, String token) async {
     try {
-      Uri url = Uri.parse('$defaultApiServer/Auth/registrar');
+      Uri url = Uri.parse('$defaultApiServer/Cotizaciones');
 
       final response = await http.post(
         url,
-        headers: <String, String>{'Content-Type': 'application/json'},
-        body: jsonEncode(QuoteModel.fromEntity(entity).toJson()),
+ headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },        body: jsonEncode(QuoteModel.fromEntity(entity).toJson()),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

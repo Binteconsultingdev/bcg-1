@@ -37,7 +37,7 @@ class ProductoEntity {
   final String iva;
   final String claveSat;
   final String url;
-  final double descuento;
+  final double? descuento;
   final int prioridad;
 
   ProductoEntity({
@@ -51,7 +51,7 @@ class ProductoEntity {
     required this.iva,
     required this.claveSat,
     required this.url,
-    required this.descuento,
+     this.descuento,
     required this.prioridad,
   });
 }

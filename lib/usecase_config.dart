@@ -15,6 +15,7 @@ import 'package:bcg/features/auth/domain/usecase/validate_licenses_usecase.dart'
 import 'package:bcg/features/quotes/data/datasources/quotes_data_sources_imp.dart';
 import 'package:bcg/features/quotes/data/repositories/quotes_repository_imp.dart';
 import 'package:bcg/features/quotes/domain/usecase/create_quotes_usecase.dart';
+import 'package:bcg/features/quotes/domain/usecase/fetch_folio_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
 import 'package:bcg/features/sales/data/datasources/sales_data_sources_imp.dart';
 import 'package:bcg/features/sales/data/repositories/sales_repository_imp.dart';
@@ -42,6 +43,7 @@ class UsecaseConfig {
 
   CreateQuotesUsecase?createQuotesUsecase;
   FetchQuoteUsecase? fetchQuoteUsecase;
+ FetchFolioUsecase? fetchFolioUsecase;
 
  PointSalesUsecase?pointSalesUsecase;
   UsecaseConfig(){
@@ -65,6 +67,7 @@ class UsecaseConfig {
     
     createQuotesUsecase = CreateQuotesUsecase(quotesRepository: quotesRepositoryImp!);
     fetchQuoteUsecase = FetchQuoteUsecase(quotesRepository: quotesRepositoryImp!); 
+    fetchFolioUsecase = FetchFolioUsecase(quotesRepository: quotesRepositoryImp!);
     
     pointSalesUsecase = PointSalesUsecase(salesRepository: salesRepositoryImp!);
 

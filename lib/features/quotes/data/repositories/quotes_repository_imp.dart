@@ -11,7 +11,9 @@ class QuotesRepositoryImp implements QuotesRepository {
   QuotesRepositoryImp({required this.quotesDataSourcesImp});
   @override
   Future<void> createQuote(QuoteEntity entity) async {
-    return quotesDataSourcesImp.createQuote(entity);
+        final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
+
+    return quotesDataSourcesImp.createQuote(entity, token);
   }
 
   @override
