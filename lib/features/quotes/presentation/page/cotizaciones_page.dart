@@ -1,3 +1,4 @@
+import 'package:bcg/common/settings/routes_names.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
@@ -243,7 +244,9 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
 
   Widget _buildFab() {
     return FloatingActionButton(
-      onPressed: () {},
+      onPressed: () {
+        Get.toNamed(RoutesNames.createQuotePage);
+      },
       backgroundColor: ThemeColor.accentColor,
       elevation: ThemeColor.elevationMedium,
       child: const Icon(Icons.add, color: ThemeColor.textDarkColor, size: 28),

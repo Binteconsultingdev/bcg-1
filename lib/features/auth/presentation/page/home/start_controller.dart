@@ -2,7 +2,7 @@
 import 'package:bcg/page/clientes_screen.dart';
 import 'package:bcg/features/quotes/presentation/page/cotizaciones_page.dart';
 import 'package:bcg/features/Inventory/presentation/page/inventario_screen.dart';
-import 'package:bcg/page/ventas_screen.dart';
+import 'package:bcg/features/sales/presentation/page/ventas_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -10,7 +10,7 @@ class StartController extends GetxController {
   final List<Widget> pages = [
     InventarioScreen(),
     CotizacionesPage(),
-    VentasScreen(),
+    VentasPage(),
     ClientesScreen(),
   ];
   final List<String> labels = ['Inventario', 'Cotizaciones', 'Ventas', 'Clientes'];

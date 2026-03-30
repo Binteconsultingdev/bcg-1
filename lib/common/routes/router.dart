@@ -7,7 +7,8 @@ import 'package:bcg/features/quotes/presentation/page/cotizaciones_page.dart';
 import 'package:bcg/features/Inventory/presentation/page/inventario_screen.dart';
 import 'package:bcg/features/auth/presentation/page/login/license_screen.dart';
 import 'package:bcg/features/auth/presentation/page/login/login_page.dart';
-import 'package:bcg/page/ventas_screen.dart';
+import 'package:bcg/features/quotes/presentation/page/create_quote_page.dart';
+import 'package:bcg/features/sales/presentation/page/ventas_page.dart';
 import 'package:bcg/page/ver_cotizacion_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +18,7 @@ class AppPages {
    
    
         GetPage(name: RoutesNames.welcomePage, page: () => SplashPage()),
+        GetPage(name: RoutesNames.createQuotePage, page: () => CreateQuotePage()),
 
         GetPage(name: RoutesNames.loginPage, page: () => LoginPage()),
         GetPage(name: RoutesNames.licensePage, page: () => LicenseScreen()),

@@ -4,4 +4,5 @@ class RoutesNames {
   static const String loginPage = '/login';
   static const String registerPage = '/register';
   static const String licensePage = '/licensePage';
+  static const String createQuotePage = '/createQuotePage';
 }

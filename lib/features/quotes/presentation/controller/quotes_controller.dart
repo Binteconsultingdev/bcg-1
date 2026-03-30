@@ -1,10 +1,12 @@
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
+import 'package:bcg/features/quotes/domain/usecase/create_quotes_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
 import 'package:get/get.dart';
 
 class QuotesController extends GetxController {
   final FetchQuoteUsecase fetchQuoteUsecase;
-  QuotesController({required this.fetchQuoteUsecase});
+  final CreateQuotesUsecase createQuotesUsecase;
+  QuotesController({required this.fetchQuoteUsecase, required this.createQuotesUsecase});
 
   // ── Estado ──────────────────────────────────────────────────────────────
   final RxList<GetQuoteEntity> quotes = <GetQuoteEntity>[].obs;

@@ -1,81 +1,33 @@
 import 'package:bcg/common/theme/App_Theme.dart';
+import 'package:bcg/features/sales/domain/entities/point_sale_entity.dart';
+import 'package:bcg/features/sales/presentation/controller/sales_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-// import 'package:tu_app/core/theme/theme_color.dart';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Modelos
-// ─────────────────────────────────────────────────────────────────────────────
-enum VentaStatus { pagado, pendiente }
-
-class VentaItem {
-  final String folio;
-  final String cliente;
-  final String fecha;
-  final double total;
-  final VentaStatus status;
-
-  const VentaItem({
-    required this.folio,
-    required this.cliente,
-    required this.fecha,
-    required this.total,
-    required this.status,
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Pantalla Ventas
-// ─────────────────────────────────────────────────────────────────────────────
-class VentasScreen extends StatefulWidget {
-  const VentasScreen({super.key});
+class VentasPage extends StatefulWidget {
+  const VentasPage({super.key});
 
   @override
-  State<VentasScreen> createState() => _VentasScreenState();
+  State<VentasPage> createState() => _VentasPageState();
 }
 
-class _VentasScreenState extends State<VentasScreen> {
+class _VentasPageState extends State<VentasPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-
-  // 0 = Todas, 1 = Pagos Pendientes
   int _selectedTab = 0;
+  late final SalesController _ctrl;
 
-  final List<VentaItem> _all = const [
-    VentaItem(
-      folio: 'Nº Folio',
-      cliente: 'Cliente',
-      fecha: '03/03/2026',
-      total: 350.00,
-      status: VentaStatus.pagado,
-    ),
-    VentaItem(
-      folio: '7541 - (48)',
-      cliente: 'AUTOTRANSPORTES LA FLECHA',
-      fecha: '03/03/2026',
-      total: 350.00,
-      status: VentaStatus.pagado,
-    ),
-    VentaItem(
-      folio: '7541 - (48)',
-      cliente: 'AUTOTRANSPORTES LA FLECHA',
-      fecha: '03/03/2026',
-      total: 350.00,
-      status: VentaStatus.pendiente,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.find<SalesController>();
+  }
 
-  List<VentaItem> get _filtered {
-    return _all.where((v) {
-      final matchTab = _selectedTab == 0 ||
-          (_selectedTab == 1 && v.status == VentaStatus.pendiente);
-      final matchSearch = _searchQuery.isEmpty ||
-          v.cliente.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          v.folio.toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchTab && matchSearch;
-    }).toList();
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _openFilters() {
@@ -83,14 +35,8 @@ class _VentasScreenState extends State<VentasScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _VentaFilterSheet(),
+      builder: (_) => _VentaFilterSheet(controller: _ctrl),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
@@ -112,7 +58,6 @@ class _VentasScreenState extends State<VentasScreen> {
     );
   }
 
-  // ── AppBar ──────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: ThemeColor.surfaceColor,
@@ -133,7 +78,6 @@ class _VentasScreenState extends State<VentasScreen> {
     );
   }
 
-  // ── Barra búsqueda + filtros ────────────────────────────────────────────
   Widget _buildSearchBar() {
     return Container(
       color: ThemeColor.surfaceColor,
@@ -156,7 +100,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 onChanged: (v) => setState(() => _searchQuery = v),
                 style: ThemeColor.bodyMedium,
                 decoration: InputDecoration(
-                  hintText: 'Buscar cotizaciones',
+                  hintText: 'Buscar ventas',
                   hintStyle: ThemeColor.bodyMedium
                       .copyWith(color: ThemeColor.textSecondaryColor),
                   prefixIcon: Icon(Icons.search,
@@ -189,7 +133,6 @@ class _VentasScreenState extends State<VentasScreen> {
     );
   }
 
-  // ── Tabs: Todas / Pagos Pendientes ──────────────────────────────────────
   Widget _buildTabs() {
     const labels = ['Todas', 'Pagos Pendientes'];
     return Container(
@@ -213,9 +156,7 @@ class _VentasScreenState extends State<VentasScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: selected
-                      ? ThemeColor.primaryColor
-                      : Colors.transparent,
+                  color: selected ? ThemeColor.primaryColor : Colors.transparent,
                   borderRadius: ThemeColor.mediumBorderRadius,
                   border: Border.all(
                     color: selected
@@ -241,49 +182,77 @@ class _VentasScreenState extends State<VentasScreen> {
     );
   }
 
-  // ── Lista ───────────────────────────────────────────────────────────────
   Widget _buildList() {
-    final items = _filtered;
-    if (items.isEmpty) {
-      return Center(
-        child: Text('Sin ventas',
-            style: ThemeColor.bodyMedium
-                .copyWith(color: ThemeColor.textSecondaryColor)),
-      );
-    }
-    return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingSmall,
-      ),
-      decoration: BoxDecoration(
-        color: ThemeColor.surfaceColor,
-        borderRadius: ThemeColor.mediumBorderRadius,
-        border: Border.all(color: ThemeColor.surfaceColor, width: 1.5),
-        boxShadow: [ThemeColor.cardShadow],
-      ),
-      child: ListView.separated(
-        shrinkWrap: true,
-        padding: const EdgeInsets.symmetric(
+    return Obx(() {
+      if (_ctrl.isLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(color: ThemeColor.primaryColor),
+        );
+      }
+
+      if (_ctrl.errorMessage.isNotEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _ctrl.errorMessage.value,
+                style: ThemeColor.bodyMedium
+                    .copyWith(color: ThemeColor.errorColor),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _ctrl.fetchSales,
+                child: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        );
+      }
+
+      final items = _ctrl.filteredByTab(_selectedTab, _searchQuery);
+
+      if (items.isEmpty) {
+        return Center(
+          child: Text('Sin ventas',
+              style: ThemeColor.bodyMedium
+                  .copyWith(color: ThemeColor.textSecondaryColor)),
+        );
+      }
+
+      return Container(
+        margin: const EdgeInsets.symmetric(
           horizontal: ThemeColor.paddingMedium,
           vertical: ThemeColor.paddingSmall,
         ),
-        itemCount: items.length,
-        separatorBuilder: (_, __) =>
-            Divider(height: 1, color: ThemeColor.dividerColor),
-        itemBuilder: (_, i) => _VentaTile(item: items[i]),
-      ),
-    );
+        decoration: BoxDecoration(
+          color: ThemeColor.surfaceColor,
+          borderRadius: ThemeColor.mediumBorderRadius,
+          border: Border.all(color: ThemeColor.surfaceColor, width: 1.5),
+          boxShadow: [ThemeColor.cardShadow],
+        ),
+        child: ListView.separated(
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(
+            horizontal: ThemeColor.paddingMedium,
+            vertical: ThemeColor.paddingSmall,
+          ),
+          itemCount: items.length,
+          separatorBuilder: (_, __) =>
+              Divider(height: 1, color: ThemeColor.dividerColor),
+          itemBuilder: (_, i) => _VentaTile(item: items[i]),
+        ),
+      );
+    });
   }
 
-  // ── FAB ─────────────────────────────────────────────────────────────────
   Widget _buildFab() {
     return FloatingActionButton(
       onPressed: () {},
       backgroundColor: ThemeColor.accentColor,
       elevation: ThemeColor.elevationMedium,
-      child: const Icon(Icons.add,
-          color: ThemeColor.textDarkColor, size: 28),
+      child: const Icon(Icons.add, color: ThemeColor.textDarkColor, size: 28),
     );
   }
 }
@@ -292,21 +261,21 @@ class _VentasScreenState extends State<VentasScreen> {
 // Tile de venta
 // ─────────────────────────────────────────────────────────────────────────────
 class _VentaTile extends StatelessWidget {
-  final VentaItem item;
+  final PointSaleEntity item;
   const _VentaTile({required this.item});
 
-  Color get _badgeColor => item.status == VentaStatus.pagado
-      ? ThemeColor.successColor
-      : ThemeColor.errorColor;
+  Color get _badgeColor =>
+      item.status?.toLowerCase() == 'pendiente'
+          ? ThemeColor.errorColor
+          : ThemeColor.successColor;
 
   String get _badgeLabel =>
-      item.status == VentaStatus.pagado ? 'PAGADO' : 'PENDIENTE';
+      item.status?.toLowerCase() == 'pendiente' ? 'PENDIENTE' : 'PAGADO';
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(vertical: ThemeColor.paddingSmall + 2),
+      padding: const EdgeInsets.symmetric(vertical: ThemeColor.paddingSmall + 2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -315,26 +284,27 @@ class _VentaTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${item.folio} - ${item.cliente}',
+                  '${item.folito ?? '-'} - ${item.client ?? '-'}',
                   style: ThemeColor.bodyMedium.copyWith(
                     color: ThemeColor.infoColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(item.fecha,
-                    style: ThemeColor.caption
-                        .copyWith(color: ThemeColor.textSecondaryColor)),
+                Text(
+                  item.date ?? '-',
+                  style: ThemeColor.caption
+                      .copyWith(color: ThemeColor.textSecondaryColor),
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  '\$${item.total.toStringAsFixed(2)}',
+                  '\$${item.total?.toStringAsFixed(2) ?? '0.00'}',
                   style: ThemeColor.bodyMedium
                       .copyWith(fontWeight: FontWeight.w500),
                 ),
               ],
             ),
           ),
-          // Badge status
           Container(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingSmall + 2,
@@ -360,10 +330,11 @@ class _VentaTile extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Bottom Sheet Filtros Ventas
+// Bottom Sheet Filtros
 // ─────────────────────────────────────────────────────────────────────────────
 class _VentaFilterSheet extends StatefulWidget {
-  const _VentaFilterSheet();
+  final SalesController controller;
+  const _VentaFilterSheet({required this.controller});
 
   @override
   State<_VentaFilterSheet> createState() => _VentaFilterSheetState();
@@ -374,10 +345,7 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
   final TextEditingController _hastaCtrl = TextEditingController();
   String? _cliente;
   String? _metodoPago;
-
-  // Pago: false = Pagado, true = Por Cobrar
   bool _pagoPorCobrar = true;
-  // Entrega: false = Entregadas, true = Por Entregar
   bool _entregaPorEntregar = true;
 
   int get _activeFilters => [
@@ -403,6 +371,7 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
       _pagoPorCobrar = true;
       _entregaPorEntregar = true;
     });
+    widget.controller.clearFilters();
   }
 
   Future<void> _pickDate(TextEditingController ctrl) async {
@@ -446,8 +415,8 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
           top: Radius.circular(ThemeColor.largeRadius),
         ),
       ),
-      padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -455,7 +424,8 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
             // Handle
             Container(
               margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                 color: ThemeColor.dividerColor,
                 borderRadius: ThemeColor.circularBorderRadius,
@@ -486,12 +456,11 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
             Divider(height: 1, color: ThemeColor.dividerColor),
             const SizedBox(height: ThemeColor.paddingMedium),
 
-            // ── Bloque 1: Fechas + Cliente ──────────────────────────
+            // Bloque 1: Fechas + Cliente
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Fechas
                   Row(
                     children: [
                       Expanded(
@@ -526,7 +495,6 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
                     ],
                   ),
                   const SizedBox(height: ThemeColor.paddingMedium),
-                  // Cliente
                   Text('Cliente',
                       style: ThemeColor.bodyMedium
                           .copyWith(fontWeight: FontWeight.w500)),
@@ -542,7 +510,7 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
 
             const SizedBox(height: ThemeColor.paddingSmall),
 
-            // ── Bloque 2: Método de Pago ────────────────────────────
+            // Bloque 2: Método de Pago
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -562,7 +530,7 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
 
             const SizedBox(height: ThemeColor.paddingSmall),
 
-            // ── Bloque 3: Pago ──────────────────────────────────────
+            // Bloque 3: Pago
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -583,7 +551,7 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
 
             const SizedBox(height: ThemeColor.paddingSmall),
 
-            // ── Bloque 4: Entrega ───────────────────────────────────
+            // Bloque 4: Entrega
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -604,7 +572,7 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
 
             const SizedBox(height: ThemeColor.paddingMedium),
 
-            // ── Botones ─────────────────────────────────────────────
+            // Botones
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: ThemeColor.paddingMedium),
@@ -631,7 +599,16 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
                     flex: 2,
                     child: ThemeColor.widgetButton(
                       text: 'Ver resultados',
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () {
+                        widget.controller.applyFilters(
+                          dateFrom: _desdeCtrl.text,
+                          dateUntil: _hastaCtrl.text,
+                          client: _cliente ?? '',
+                          // El toggle Pago mapea al statusPayment que espera la API
+                          statusPayment: _pagoPorCobrar ? 'pendiente' : 'pagado',
+                        );
+                        Navigator.of(context).pop();
+                      },
                       backgroundColor: ThemeColor.primaryColor,
                       textColor: ThemeColor.textLightColor,
                       fontSize: 14,
@@ -654,7 +631,7 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Card de sección de filtro
+// Widgets auxiliares (sin cambios respecto al original)
 // ─────────────────────────────────────────────────────────────────────────────
 class _FilterCard extends StatelessWidget {
   final Widget child;
@@ -663,8 +640,7 @@ class _FilterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-          horizontal: ThemeColor.paddingMedium),
+      margin: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingMedium),
       padding: const EdgeInsets.all(ThemeColor.paddingMedium),
       decoration: BoxDecoration(
         color: ThemeColor.surfaceColor,
@@ -676,9 +652,6 @@ class _FilterCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Dropdown genérico
-// ─────────────────────────────────────────────────────────────────────────────
 class _DropdownField extends StatelessWidget {
   final String? value;
   final List<String> items;
@@ -719,9 +692,6 @@ class _DropdownField extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Toggle group (Pagado/Por Cobrar  |  Entregadas/Por Entregar)
-// ─────────────────────────────────────────────────────────────────────────────
 class _ToggleGroup extends StatelessWidget {
   final List<String> options;
   final int selectedIndex;
@@ -750,8 +720,7 @@ class _ToggleGroup extends StatelessWidget {
                 vertical: 8,
               ),
               decoration: BoxDecoration(
-                color:
-                    selected ? ThemeColor.accentColor : Colors.transparent,
+                color: selected ? ThemeColor.accentColor : Colors.transparent,
                 borderRadius: ThemeColor.circularBorderRadius,
                 border: Border.all(
                   color: selected
@@ -765,8 +734,7 @@ class _ToggleGroup extends StatelessWidget {
                   color: selected
                       ? ThemeColor.textDarkColor
                       : ThemeColor.textSecondaryColor,
-                  fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
             ),
@@ -777,9 +745,6 @@ class _ToggleGroup extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Campo de fecha con tap
-// ─────────────────────────────────────────────────────────────────────────────
 class _DateField extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onTap;

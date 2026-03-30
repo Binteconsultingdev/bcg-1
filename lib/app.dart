@@ -8,6 +8,7 @@ import 'package:bcg/features/auth/presentation/page/Splash/splash_controller.dar
 import 'package:bcg/features/auth/presentation/page/login/license_controller.dart';
 import 'package:bcg/features/auth/presentation/page/login/login_controller.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
+import 'package:bcg/features/sales/presentation/controller/sales_controller.dart';
 import 'package:bcg/usecase_config.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -42,7 +43,8 @@ class App extends StatelessWidget {
         Get.lazyPut(() => LicenseController(validateLicensesUsecase: Get.find()), fenix: true);
         Get.lazyPut(() => InventoryController(fetchInventarioUsecase: Get.find(), fetchSubfamiliasUsecase: Get.find(), fetchFamiliasUsecase: Get.find()),fenix: true);
         Get.lazyPut(() => SplashController(), fenix: true);
-        Get.lazyPut(() => QuotesController(fetchQuoteUsecase: Get.find()),fenix: true);
+        Get.lazyPut(() => QuotesController(fetchQuoteUsecase: Get.find(), createQuotesUsecase: Get.find()),fenix: true);
+        Get.lazyPut(() => SalesController(pointSalesUsecase:Get.find()),fenix: true);
 
       }),
 
