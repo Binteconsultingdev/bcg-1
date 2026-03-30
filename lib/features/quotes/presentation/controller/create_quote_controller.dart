@@ -1,6 +1,8 @@
 
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
+import 'package:bcg/features/quotes/domain/usecase/create_quotes_usecase.dart';
+import 'package:bcg/features/quotes/domain/usecase/fetch_folio_usecase.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,12 +10,12 @@ import 'package:get/get.dart';
 import '../../../Inventory/domain/entities/inventory_entity.dart';
 import '../../domain/entities/quote_entity.dart';
 
-class _QuoteItem {
+class QuoteItem {
   final InventoryEntity product;
   final RxInt quantity;
   final RxDouble discount; // descuento individual (%)
 
-  _QuoteItem({required this.product, int initialQty = 1})
+  QuoteItem({required this.product, int initialQty = 1})
       : quantity = initialQty.obs,
         discount = 0.0.obs;
 
@@ -22,18 +24,27 @@ class _QuoteItem {
   double get discountAmount => subtotal * (discount.value / 100);
   double get total => subtotal - discountAmount;
 }
-class _CreateQuotePageController extends GetxController {
-  // ── Dependencias ──────────────────────────────────────────────────────
-  late final QuotesController _quotesCtrl;
-  late final InventoryController _inventoryCtrl;
 
+
+
+class CreateQuoteController extends GetxController {
+  // ── Dependencias ──────────────────────────────────────────────────────
+  
+  final CreateQuotesUsecase createQuotesUsecase;
+  final FetchFolioUsecase fetchFolioUsecase;
+  CreateQuoteController({required this.createQuotesUsecase,required this.fetchFolioUsecase});
+  late final InventoryController _inventoryCtrl;
+   late final QuotesController _quotesCtrl;
   // ── Estado del formulario ─────────────────────────────────────────────
   final folio = ''.obs;
   final selectedClientId = Rxn<String>();
   final selectedClientName = Rxn<String>();
+
+final clienteName = ''.obs;
+final clienteController = TextEditingController();
   final selectedPriceType = 'Regular'.obs;
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
-  final items = <_QuoteItem>[].obs;
+  final items = <QuoteItem>[].obs;
   final globalDiscount = 0.0.obs;
   final referencia = ''.obs;
 
@@ -49,6 +60,7 @@ class _CreateQuotePageController extends GetxController {
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
+void onClienteChanged(String value) => clienteName.value = value;
 
   // ── Opciones ──────────────────────────────────────────────────────────
   final List<String> priceOptions = ['Regular', 'Mayoreo', 'Especial'];
@@ -73,7 +85,6 @@ class _CreateQuotePageController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _quotesCtrl = Get.find<QuotesController>();
     _inventoryCtrl = Get.find<InventoryController>();
     _loadFolio();
   }
@@ -81,7 +92,7 @@ class _CreateQuotePageController extends GetxController {
   Future<void> _loadFolio() async {
     try {
       isLoadingFolio.value = true;
-      final folioEntity = await _quotesCtrl.fetchFolioUsecase.call();
+      final folioEntity = await fetchFolioUsecase.call();
       folio.value = folioEntity.folio;
     } catch (e) {
       errorMessage.value = 'No se pudo obtener el folio';
@@ -103,17 +114,17 @@ class _CreateQuotePageController extends GetxController {
     if (existing != null) {
       existing.quantity.value++;
     } else {
-      items.add(_QuoteItem(product: product));
+      items.add(QuoteItem(product: product));
     }
     productSearchCtrl.clear();
     productSearchQuery.value = '';
     isSearching.value = false;
   }
 
-  void removeItem(_QuoteItem item) => items.remove(item);
+  void removeItem(QuoteItem item) => items.remove(item);
 
-  void duplicateItem(_QuoteItem item) {
-    items.add(_QuoteItem(
+  void duplicateItem(QuoteItem item) {
+    items.add(QuoteItem(
       product: item.product,
       initialQty: item.quantity.value,
     ));
@@ -153,7 +164,8 @@ class _CreateQuotePageController extends GetxController {
 
   // ── Crear cotización ──────────────────────────────────────────────────
   Future<void> createQuote() async {
-    if (selectedClientId.value == null || selectedClientId.value!.isEmpty) {
+    if (clienteName.value.trim().isEmpty)
+ {
       _showWarning('Selecciona un cliente para continuar');
       return;
     }
@@ -168,7 +180,7 @@ class _CreateQuotePageController extends GetxController {
 
       final entity = QuoteEntity(
         folio: folio.value,
-        cliente: selectedClientId.value!,
+cliente: clienteName.value.trim(),
         total: totalToPay,
         cataPrecio: selectedPriceType.value,
         descuento: globalDiscount.value.toStringAsFixed(2),
@@ -195,7 +207,7 @@ class _CreateQuotePageController extends GetxController {
         }).toList(),
       );
 
-      await _quotesCtrl.createQuotesUsecase.call(entity);
+      await createQuotesUsecase.call(entity);
       await _quotesCtrl.fetchQuotes();
 
       Get.back(result: true);

@@ -6,9 +6,7 @@ import 'package:get/get.dart';
 
 class QuotesController extends GetxController {
   final FetchQuoteUsecase fetchQuoteUsecase;
-  final CreateQuotesUsecase createQuotesUsecase;
-  final FetchFolioUsecase fetchFolioUsecase;
-  QuotesController({required this.fetchQuoteUsecase, required this.createQuotesUsecase, required this.fetchFolioUsecase});
+  QuotesController({required this.fetchQuoteUsecase, });
 
   // ── Estado ──────────────────────────────────────────────────────────────
   final RxList<GetQuoteEntity> quotes = <GetQuoteEntity>[].obs;

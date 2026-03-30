@@ -7,6 +7,7 @@ import 'package:bcg/features/Inventory/presentation/controller/inventory_control
 import 'package:bcg/features/auth/presentation/page/Splash/splash_controller.dart';
 import 'package:bcg/features/auth/presentation/page/login/license_controller.dart';
 import 'package:bcg/features/auth/presentation/page/login/login_controller.dart';
+import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
 import 'package:bcg/features/sales/presentation/controller/sales_controller.dart';
 import 'package:bcg/usecase_config.dart';
@@ -38,13 +39,16 @@ class App extends StatelessWidget {
         Get.put(usecaseConfig.fetchQuoteUsecase!,permanent: true);
         Get.put(usecaseConfig.pointSalesUsecase!, permanent: true);
         Get.put(usecaseConfig.fetchFolioUsecase!, permanent: true);
+        Get.put(usecaseConfig.fetchClientsUsecase!, permanent:  true);
+        Get.put(usecaseConfig.createClientUsecase! , permanent:  true);
        
        
         Get.lazyPut(() => LoginController(loginUsecase: Get.find(), validateLicensesUsecase: Get.find() ), fenix: true);
         Get.lazyPut(() => LicenseController(validateLicensesUsecase: Get.find()), fenix: true);
         Get.lazyPut(() => InventoryController(fetchInventarioUsecase: Get.find(), fetchSubfamiliasUsecase: Get.find(), fetchFamiliasUsecase: Get.find()),fenix: true);
         Get.lazyPut(() => SplashController(), fenix: true);
-        Get.lazyPut(() => QuotesController(fetchQuoteUsecase: Get.find(), createQuotesUsecase: Get.find(), fetchFolioUsecase: Get.find()),fenix: true);
+        Get.lazyPut(() => QuotesController(fetchQuoteUsecase: Get.find(),),fenix: true);
+        Get.lazyPut(() => CreateQuoteController(createQuotesUsecase: Get.find(), fetchFolioUsecase: Get.find(),),fenix: true);
         Get.lazyPut(() => SalesController(pointSalesUsecase:Get.find()),fenix: true);
 
       }),

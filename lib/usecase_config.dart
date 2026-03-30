@@ -12,6 +12,10 @@ import 'package:bcg/features/auth/data/repositories/auth_repository_imp.dart';
 import 'package:bcg/features/auth/domain/usecase/create_user_usecase.dart';
 import 'package:bcg/features/auth/domain/usecase/login_usecase.dart';
 import 'package:bcg/features/auth/domain/usecase/validate_licenses_usecase.dart';
+import 'package:bcg/features/client/data/datasources/client_data_sources_imp.dart';
+import 'package:bcg/features/client/data/repositories/client_repository_imp.dart';
+import 'package:bcg/features/client/domain/usecase/create_client_usecase.dart';
+import 'package:bcg/features/client/domain/usecase/fetch_clients_usecase.dart';
 import 'package:bcg/features/quotes/data/datasources/quotes_data_sources_imp.dart';
 import 'package:bcg/features/quotes/data/repositories/quotes_repository_imp.dart';
 import 'package:bcg/features/quotes/domain/usecase/create_quotes_usecase.dart';
@@ -25,10 +29,12 @@ class UsecaseConfig {
   AuthDataSourceImp? authDataSourceImp;
   QuotesDataSourcesImp? quotesDataSourcesImp;
   SalesDataSourcesImp? salesDataSourcesImp;
+  ClientDataSourcesImp? clientDataSourcesImp;
 
   AuthRepositoryImp? authRepositoryImp;
   QuotesRepositoryImp? quotesRepositoryImp;
   SalesRepositoryImp? salesRepositoryImp;
+  ClientRepositoryImp?clientRepositoryImp;
 
   LoginUsecase? loginUsecase;
   CreateUserUsecase? createUserUsecase;
@@ -45,17 +51,22 @@ class UsecaseConfig {
   FetchQuoteUsecase? fetchQuoteUsecase;
  FetchFolioUsecase? fetchFolioUsecase;
 
+ CreateClientUsecase? createClientUsecase;
+ FetchClientsUsecase? fetchClientsUsecase;
+
  PointSalesUsecase?pointSalesUsecase;
   UsecaseConfig(){
     authDataSourceImp = AuthDataSourceImp();
     quotesDataSourcesImp = QuotesDataSourcesImp();
     inventoryDatasourcesImp = InventoryDatasourcesImp();
     salesDataSourcesImp= SalesDataSourcesImp();
+    clientDataSourcesImp = ClientDataSourcesImp();
     
     authRepositoryImp = AuthRepositoryImp(authDataSourceImp: authDataSourceImp!);
     inventoryRepositoryImp = InventoryRepositoryImp(inventoryDatasourcesImp: inventoryDatasourcesImp!);
     quotesRepositoryImp = QuotesRepositoryImp(quotesDataSourcesImp: quotesDataSourcesImp!);
     salesRepositoryImp = SalesRepositoryImp(salesDataSourcesImp: salesDataSourcesImp!);
+    clientRepositoryImp = ClientRepositoryImp(clientDataSourcesImp: clientDataSourcesImp!);
 
     loginUsecase = LoginUsecase(authRepository: authRepositoryImp!);
     
@@ -70,6 +81,9 @@ class UsecaseConfig {
     fetchFolioUsecase = FetchFolioUsecase(quotesRepository: quotesRepositoryImp!);
     
     pointSalesUsecase = PointSalesUsecase(salesRepository: salesRepositoryImp!);
+
+    fetchClientsUsecase = FetchClientsUsecase(clientRepository: clientRepositoryImp!);
+    createClientUsecase = CreateClientUsecase(clientRepository: clientRepositoryImp!);
 
   }
 }
