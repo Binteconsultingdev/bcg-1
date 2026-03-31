@@ -7,9 +7,11 @@ import 'package:bcg/common/errors/api_errors.dart';
 import 'package:bcg/features/quotes/data/model/folio_model.dart';
 import 'package:bcg/features/quotes/data/model/get_quote_model.dart';
 import 'package:bcg/features/quotes/data/model/quote_model.dart';
+import 'package:bcg/features/quotes/data/model/quote_pdf_model.dart';
 import 'package:bcg/features/quotes/domain/entities/folito_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_entity.dart';
+import 'package:bcg/features/quotes/domain/entities/quote_pdf_entity.dart';
 import 'package:http/http.dart' as http;
 
 class QuotesDataSourcesImp {
@@ -121,4 +123,36 @@ Future<List<GetQuoteEntity>> fetchQuote(
       throw Exception('$e');
     }
 }
+
+Future<QuotePdfEntity> generatePdf(int folio, String token) async {
+   try {
+      final uri = Uri.parse('$defaultApiServer/Cotizaciones/$folio/generar-pdf');
+    
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/pdf',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return QuotePdfModel.fromBytes(response.bodyBytes);
+    }
+     ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+      exception.validateMesage();
+      throw exception;
+    } catch (e) {
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is TimeoutException) {
+        print('🌐 Error de red detectado');
+        throw Exception(convertMessageException(error: e));
+      }
+
+      throw Exception('$e');
+    }
+   
+  }
+
 }
