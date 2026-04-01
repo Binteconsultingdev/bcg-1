@@ -1,4 +1,5 @@
 import 'package:bcg/common/errors/convert_message.dart';
+import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/domain/entities/create_client_entity.dart';
 import 'package:bcg/features/client/domain/usecase/create_client_usecase.dart';
@@ -39,8 +40,7 @@ class ClientController extends GetxController {
   final RxString createError = ''.obs;
 
   bool get isFormValid =>
-      empresaCtrl.text.trim().isNotEmpty &&
-      nombreCtrl.text.trim().isNotEmpty;
+      empresaCtrl.text.trim().isNotEmpty && nombreCtrl.text.trim().isNotEmpty;
 
   // ── Filtros activos ───────────────────────────────────────────────────────
   final RxString clientFilter = ''.obs;
@@ -83,31 +83,32 @@ class ClientController extends GetxController {
     isCreating.value = false;
   }
 
-Future<void> createClient() async {
-  if (!isFormValid) return;
-  try {
-    isCreating.value = true;
-    createError.value = '';
+  Future<void> createClient() async {
+    if (!isFormValid) return;
+    try {
+      isCreating.value = true;
+      createError.value = '';
 
-    await createClientUsecase.call(
-      CreateClientEntity(
-        company: empresaCtrl.text.trim(),
-        name: nombreCtrl.text.trim(),
-        phone: telefonoCtrl.text.trim(),
-        email: emailCtrl.text.trim(),
-      ),
-    );
+      await createClientUsecase.call(
+        CreateClientEntity(
+          company: empresaCtrl.text.trim(),
+          name: nombreCtrl.text.trim(),
+          phone: telefonoCtrl.text.trim(),
+          email: emailCtrl.text.trim(),
+        ),
+      );
 
-    resetForm();
-    Get.back(); // cierra el sheet desde el controller
-    await fetchClients();
-  } catch (e) {
-    createError.value = cleanExceptionMessage(e);
-    
-  } finally {
-    isCreating.value = false;
+      resetForm();
+      Get.back(); // cierra el sheet desde el controller
+      await fetchClients();
+      showSuccessSnackbar('Cliente creado correctamente');
+    } catch (e) {
+      createError.value = cleanExceptionMessage(e);
+    } finally {
+      isCreating.value = false;
+    }
   }
-}
+
   // ── Scroll listener ───────────────────────────────────────────────────────
   void _onScroll() {
     final pos = scrollController.position;
@@ -137,7 +138,12 @@ Future<void> createClient() async {
       emailFilter.value = email;
 
       final result = await fetchClientsUsecase.call(
-        client, company, rfc, email, _currentPage, _pageSize,
+        client,
+        company,
+        rfc,
+        email,
+        _currentPage,
+        _pageSize,
       );
 
       clients.assignAll(result);

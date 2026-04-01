@@ -29,14 +29,17 @@ class _ClientesScreenState extends State<ClientesScreen> {
     super.dispose();
   }
 
-void _openNuevoCliente() {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => _NuevoClienteSheet(controller: _ctrl),
-  );
-}
+  void _openNuevoCliente() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: false, // dejarlo en false para controlar manualmente
+
+      builder: (_) => _NuevoClienteSheet(controller: _ctrl),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -65,8 +68,11 @@ void _openNuevoCliente() {
       title: Text('Clientes', style: ThemeColor.headingSmall),
       actions: [
         IconButton(
-          icon: const Icon(Icons.settings_outlined,
-              color: ThemeColor.textPrimaryColor, size: 22),
+          icon: const Icon(
+            Icons.settings_outlined,
+            color: ThemeColor.textPrimaryColor,
+            size: 22,
+          ),
           onPressed: () {
             AuthService authService = AuthService();
             authService.logoutaler();
@@ -101,10 +107,14 @@ void _openNuevoCliente() {
           style: ThemeColor.bodyMedium,
           decoration: InputDecoration(
             hintText: 'Buscar cliente',
-            hintStyle: ThemeColor.bodyMedium
-                .copyWith(color: ThemeColor.textSecondaryColor),
-            prefixIcon: Icon(Icons.search,
-                color: ThemeColor.textSecondaryColor, size: 20),
+            hintStyle: ThemeColor.bodyMedium.copyWith(
+              color: ThemeColor.textSecondaryColor,
+            ),
+            prefixIcon: Icon(
+              Icons.search,
+              color: ThemeColor.textSecondaryColor,
+              size: 20,
+            ),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
             focusedBorder: InputBorder.none,
@@ -117,8 +127,7 @@ void _openNuevoCliente() {
 
   Widget _buildAgregarBtn() {
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: ThemeColor.paddingMedium),
+      padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingMedium),
       child: ThemeColor.widgetButton(
         text: 'Agregar Cliente',
         onPressed: _openNuevoCliente,
@@ -127,7 +136,8 @@ void _openNuevoCliente() {
         fontSize: 15,
         fontWeight: FontWeight.w600,
         padding: const EdgeInsets.symmetric(
-            vertical: ThemeColor.paddingSmall + 4),
+          vertical: ThemeColor.paddingSmall + 4,
+        ),
         borderRadius: ThemeColor.smallRadius,
         customShadow: ThemeColor.darkShadow,
       ),
@@ -151,8 +161,9 @@ void _openNuevoCliente() {
             children: [
               Text(
                 _ctrl.errorMessage.value,
-                style: ThemeColor.bodyMedium
-                    .copyWith(color: ThemeColor.errorColor),
+                style: ThemeColor.bodyMedium.copyWith(
+                  color: ThemeColor.errorColor,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -168,9 +179,12 @@ void _openNuevoCliente() {
       // ── Vacío ────────────────────────────────────────────────────────────
       if (_ctrl.clients.isEmpty) {
         return Center(
-          child: Text('Sin clientes',
-              style: ThemeColor.bodyMedium
-                  .copyWith(color: ThemeColor.textSecondaryColor)),
+          child: Text(
+            'Sin clientes',
+            style: ThemeColor.bodyMedium.copyWith(
+              color: ThemeColor.textSecondaryColor,
+            ),
+          ),
         );
       }
 
@@ -197,7 +211,8 @@ void _openNuevoCliente() {
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Center(
                       child: CircularProgressIndicator(
-                          color: ThemeColor.primaryColor),
+                        color: ThemeColor.primaryColor,
+                      ),
                     ),
                   );
                 }
@@ -208,7 +223,8 @@ void _openNuevoCliente() {
                       child: Text(
                         'No hay más clientes',
                         style: ThemeColor.bodyMedium.copyWith(
-                            color: ThemeColor.textSecondaryColor),
+                          color: ThemeColor.textSecondaryColor,
+                        ),
                       ),
                     ),
                   );
@@ -236,7 +252,8 @@ class _ClienteTile extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-          vertical: ThemeColor.paddingSmall + 2),
+        vertical: ThemeColor.paddingSmall + 2,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -255,8 +272,9 @@ class _ClienteTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '\$${cliente.owes!.toStringAsFixed(2)}',
-                    style: ThemeColor.bodyMedium
-                        .copyWith(fontWeight: FontWeight.w500),
+                    style: ThemeColor.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ],
@@ -285,6 +303,7 @@ class _ClienteTile extends StatelessWidget {
     );
   }
 }
+
 class _NuevoClienteSheet extends StatefulWidget {
   final ClientController controller;
   const _NuevoClienteSheet({required this.controller});
@@ -314,15 +333,18 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
     super.dispose();
   }
 
-Future<void> _onGuardar() async {
-  FocusScope.of(context).unfocus();
-  await _ctrl.createClient();
-}
+  Future<void> _onGuardar() async {
+    FocusScope.of(context).unfocus();
+    await _ctrl.createClient();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom),
+     padding: EdgeInsets.only(
+    bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom, 
+  ),
       child: Container(
         decoration: BoxDecoration(
           color: ThemeColor.backgroundColor,
@@ -357,9 +379,12 @@ Future<void> _onGuardar() async {
                   const Spacer(),
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: Text('X',
-                        style: ThemeColor.subtitleLarge
-                            .copyWith(fontWeight: FontWeight.w700)),
+                    child: Text(
+                      'X',
+                      style: ThemeColor.subtitleLarge.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -372,7 +397,8 @@ Future<void> _onGuardar() async {
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: ThemeColor.paddingMedium),
+                  horizontal: ThemeColor.paddingMedium,
+                ),
                 child: Container(
                   padding: const EdgeInsets.all(ThemeColor.paddingMedium),
                   decoration: BoxDecoration(
@@ -383,9 +409,12 @@ Future<void> _onGuardar() async {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Información del Cliente',
-                          style: ThemeColor.bodyMedium
-                              .copyWith(fontWeight: FontWeight.w700)),
+                      Text(
+                        'Información del Cliente',
+                        style: ThemeColor.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const SizedBox(height: ThemeColor.paddingMedium),
 
                       ThemeColor.createLabeledTextField(
@@ -394,8 +423,7 @@ Future<void> _onGuardar() async {
                         focusNode: _ctrl.empresaFocus,
                         borderRadius: ThemeColor.smallBorderRadius,
                         isRequired: true,
-                        onSubmitted: (_) =>
-                            _ctrl.nombreFocus.requestFocus(),
+                        onSubmitted: (_) => _ctrl.nombreFocus.requestFocus(),
                       ),
                       const SizedBox(height: ThemeColor.paddingMedium),
 
@@ -405,8 +433,7 @@ Future<void> _onGuardar() async {
                         focusNode: _ctrl.nombreFocus,
                         borderRadius: ThemeColor.smallBorderRadius,
                         isRequired: true,
-                        onSubmitted: (_) =>
-                            _ctrl.telefonoFocus.requestFocus(),
+                        onSubmitted: (_) => _ctrl.telefonoFocus.requestFocus(),
                       ),
                       const SizedBox(height: ThemeColor.paddingMedium),
 
@@ -416,8 +443,7 @@ Future<void> _onGuardar() async {
                         focusNode: _ctrl.telefonoFocus,
                         keyboardType: TextInputType.phone,
                         borderRadius: ThemeColor.smallBorderRadius,
-                        onSubmitted: (_) =>
-                            _ctrl.emailFocus.requestFocus(),
+                        onSubmitted: (_) => _ctrl.emailFocus.requestFocus(),
                       ),
                       const SizedBox(height: ThemeColor.paddingMedium),
 
@@ -437,11 +463,13 @@ Future<void> _onGuardar() async {
                         }
                         return Padding(
                           padding: const EdgeInsets.only(
-                              top: ThemeColor.paddingSmall),
+                            top: ThemeColor.paddingSmall,
+                          ),
                           child: Text(
                             _ctrl.createError.value,
-                            style: ThemeColor.bodySmall
-                                .copyWith(color: ThemeColor.errorColor),
+                            style: ThemeColor.bodySmall.copyWith(
+                              color: ThemeColor.errorColor,
+                            ),
                           ),
                         );
                       }),
@@ -456,25 +484,28 @@ Future<void> _onGuardar() async {
             // Botón guardar
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: ThemeColor.paddingMedium),
-              child: Obx(() => AnimatedOpacity(
-                    opacity: _ctrl.isFormValid ? 1.0 : 0.5,
-                    duration: const Duration(milliseconds: 250),
-                    child: ThemeColor.widgetButton(
-                      text: 'Guardar Cliente',
-                      isLoading: _ctrl.isCreating.value,
-                      onPressed:
-                          _ctrl.isFormValid ? _onGuardar : null,
-                      backgroundColor: ThemeColor.primaryColor,
-                      textColor: ThemeColor.textLightColor,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: ThemeColor.paddingSmall + 4),
-                      borderRadius: ThemeColor.smallRadius,
-                      customShadow: ThemeColor.darkShadow,
+                horizontal: ThemeColor.paddingMedium,
+              ),
+              child: Obx(
+                () => AnimatedOpacity(
+                  opacity: _ctrl.isFormValid ? 1.0 : 0.5,
+                  duration: const Duration(milliseconds: 250),
+                  child: ThemeColor.widgetButton(
+                    text: 'Guardar Cliente',
+                    isLoading: _ctrl.isCreating.value,
+                    onPressed: _ctrl.isFormValid ? _onGuardar : null,
+                    backgroundColor: ThemeColor.primaryColor,
+                    textColor: ThemeColor.textLightColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: ThemeColor.paddingSmall + 4,
                     ),
-                  )),
+                    borderRadius: ThemeColor.smallRadius,
+                    customShadow: ThemeColor.darkShadow,
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: ThemeColor.paddingLarge),
           ],

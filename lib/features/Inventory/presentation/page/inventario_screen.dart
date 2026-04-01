@@ -409,7 +409,10 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
             top: Radius.circular(ThemeColor.largeRadius)),
       ),
       padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          EdgeInsets.only(
+    bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom, 
+  ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

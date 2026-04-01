@@ -67,10 +67,15 @@ class _VentasPageState extends State<VentasPage> {
       title: Text('Ventas', style: ThemeColor.headingSmall),
       actions: [
         IconButton(
-          icon: const Icon(Icons.settings_outlined,
-              color: ThemeColor.textPrimaryColor, size: 22),
-          onPressed: () {  AuthService authService = AuthService();
-            authService.logoutaler();},
+          icon: const Icon(
+            Icons.settings_outlined,
+            color: ThemeColor.textPrimaryColor,
+            size: 22,
+          ),
+          onPressed: () {
+            AuthService authService = AuthService();
+            authService.logoutaler();
+          },
         ),
       ],
       bottom: PreferredSize(
@@ -103,10 +108,14 @@ class _VentasPageState extends State<VentasPage> {
                 style: ThemeColor.bodyMedium,
                 decoration: InputDecoration(
                   hintText: 'Buscar ventas',
-                  hintStyle: ThemeColor.bodyMedium
-                      .copyWith(color: ThemeColor.textSecondaryColor),
-                  prefixIcon: Icon(Icons.search,
-                      color: ThemeColor.textSecondaryColor, size: 20),
+                  hintStyle: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.textSecondaryColor,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: ThemeColor.textSecondaryColor,
+                    size: 20,
+                  ),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -126,8 +135,11 @@ class _VentasPageState extends State<VentasPage> {
                 borderRadius: ThemeColor.mediumBorderRadius,
                 border: Border.all(color: ThemeColor.dividerColor),
               ),
-              child: const Icon(Icons.tune,
-                  color: ThemeColor.textPrimaryColor, size: 20),
+              child: const Icon(
+                Icons.tune,
+                color: ThemeColor.textPrimaryColor,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -158,7 +170,9 @@ class _VentasPageState extends State<VentasPage> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: selected ? ThemeColor.primaryColor : Colors.transparent,
+                  color: selected
+                      ? ThemeColor.primaryColor
+                      : Colors.transparent,
                   borderRadius: ThemeColor.mediumBorderRadius,
                   border: Border.all(
                     color: selected
@@ -172,8 +186,7 @@ class _VentasPageState extends State<VentasPage> {
                     color: selected
                         ? ThemeColor.textLightColor
                         : ThemeColor.textSecondaryColor,
-                    fontWeight:
-                        selected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ),
@@ -184,102 +197,109 @@ class _VentasPageState extends State<VentasPage> {
     );
   }
 
- Widget _buildList() {
-  return Obx(() {
-    if (_ctrl.isLoading.value) {
-      return const Center(
-        child: CircularProgressIndicator(color: ThemeColor.primaryColor),
-      );
-    }
+  Widget _buildList() {
+    return Obx(() {
+      if (_ctrl.isLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(color: ThemeColor.primaryColor),
+        );
+      }
 
-    if (_ctrl.errorMessage.isNotEmpty && _ctrl.sales.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _ctrl.errorMessage.value,
-              style: ThemeColor.bodyMedium.copyWith(color: ThemeColor.errorColor),
-              textAlign: TextAlign.center,
+      if (_ctrl.errorMessage.isNotEmpty && _ctrl.sales.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _ctrl.errorMessage.value,
+                style: ThemeColor.bodyMedium.copyWith(
+                  color: ThemeColor.errorColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _ctrl.fetchSales,
+                child: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        );
+      }
+
+      final items = _ctrl.filteredByTab(_selectedTab, _searchQuery);
+
+      if (items.isEmpty) {
+        return Center(
+          child: Text(
+            'Sin ventas',
+            style: ThemeColor.bodyMedium.copyWith(
+              color: ThemeColor.textSecondaryColor,
             ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: _ctrl.fetchSales,
-              child: const Text('Reintentar'),
-            ),
-          ],
-        ),
-      );
-    }
+          ),
+        );
+      }
 
-    final items = _ctrl.filteredByTab(_selectedTab, _searchQuery);
-
-    if (items.isEmpty) {
-      return Center(
-        child: Text('Sin ventas',
-            style: ThemeColor.bodyMedium
-                .copyWith(color: ThemeColor.textSecondaryColor)),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _ctrl.fetchSales,
-      child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: ThemeColor.paddingMedium,
-          vertical: ThemeColor.paddingSmall,
-        ),
-        decoration: BoxDecoration(
-          color: ThemeColor.surfaceColor,
-          borderRadius: ThemeColor.mediumBorderRadius,
-          border: Border.all(color: ThemeColor.surfaceColor, width: 1.5),
-          boxShadow: [ThemeColor.cardShadow],
-        ),
-        child: ListView.separated(
-          controller: _ctrl.scrollController,
-          padding: const EdgeInsets.symmetric(
+      return RefreshIndicator(
+        onRefresh: _ctrl.fetchSales,
+        child: Container(
+          margin: const EdgeInsets.symmetric(
             horizontal: ThemeColor.paddingMedium,
             vertical: ThemeColor.paddingSmall,
           ),
-          itemCount: items.length + 1,
-          separatorBuilder: (_, i) {
-            if (i == items.length - 1) return const SizedBox.shrink();
-            return Divider(height: 1, color: ThemeColor.dividerColor);
-          },
-          itemBuilder: (_, i) {
-            if (i == items.length) {
-              return Obx(() {
-                if (_ctrl.isLoadingMore.value) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                          color: ThemeColor.primaryColor),
-                    ),
-                  );
-                }
-                if (!_ctrl.hasMorePages.value) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Center(
-                      child: Text(
-                        'No hay más ventas',
-                        style: ThemeColor.bodyMedium.copyWith(
-                            color: ThemeColor.textSecondaryColor),
+          decoration: BoxDecoration(
+            color: ThemeColor.surfaceColor,
+            borderRadius: ThemeColor.mediumBorderRadius,
+            border: Border.all(color: ThemeColor.surfaceColor, width: 1.5),
+            boxShadow: [ThemeColor.cardShadow],
+          ),
+          child: ListView.separated(
+            controller: _ctrl.scrollController,
+            padding: const EdgeInsets.symmetric(
+              horizontal: ThemeColor.paddingMedium,
+              vertical: ThemeColor.paddingSmall,
+            ),
+            itemCount: items.length + 1,
+            separatorBuilder: (_, i) {
+              if (i == items.length - 1) return const SizedBox.shrink();
+              return Divider(height: 1, color: ThemeColor.dividerColor);
+            },
+            itemBuilder: (_, i) {
+              if (i == items.length) {
+                return Obx(() {
+                  if (_ctrl.isLoadingMore.value) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: ThemeColor.primaryColor,
+                        ),
                       ),
-                    ),
-                  );
-                }
-                return const SizedBox(height: 24);
-              });
-            }
-            return _VentaTile(item: items[i]);
-          },
+                    );
+                  }
+                  if (!_ctrl.hasMorePages.value) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: Text(
+                          'No hay más ventas',
+                          style: ThemeColor.bodyMedium.copyWith(
+                            color: ThemeColor.textSecondaryColor,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox(height: 24);
+                });
+              }
+              return _VentaTile(item: items[i]);
+            },
+          ),
         ),
-      ),
-    );
-  });
-}
+      );
+    });
+  }
 
   Widget _buildFab() {
     return FloatingActionButton(
@@ -291,15 +311,13 @@ class _VentasPageState extends State<VentasPage> {
   }
 }
 
-
 class _VentaTile extends StatelessWidget {
   final PointSaleEntity item;
   const _VentaTile({required this.item});
 
-  Color get _badgeColor =>
-      item.status?.toLowerCase() == 'pendiente'
-          ? ThemeColor.errorColor
-          : ThemeColor.successColor;
+  Color get _badgeColor => item.status?.toLowerCase() == 'pendiente'
+      ? ThemeColor.errorColor
+      : ThemeColor.successColor;
 
   String get _badgeLabel =>
       item.status?.toLowerCase() == 'pendiente' ? 'PENDIENTE' : 'PAGADO';
@@ -307,7 +325,9 @@ class _VentaTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: ThemeColor.paddingSmall + 2),
+      padding: const EdgeInsets.symmetric(
+        vertical: ThemeColor.paddingSmall + 2,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -325,14 +345,16 @@ class _VentaTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   item.date ?? '-',
-                  style: ThemeColor.caption
-                      .copyWith(color: ThemeColor.textSecondaryColor),
+                  style: ThemeColor.caption.copyWith(
+                    color: ThemeColor.textSecondaryColor,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '\$${item.total?.toStringAsFixed(2) ?? '0.00'}',
-                  style: ThemeColor.bodyMedium
-                      .copyWith(fontWeight: FontWeight.w500),
+                  style: ThemeColor.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -378,11 +400,11 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
   bool _entregaPorEntregar = true;
 
   int get _activeFilters => [
-        if (_desdeCtrl.text.isNotEmpty) true,
-        if (_hastaCtrl.text.isNotEmpty) true,
-        if (_cliente != null) true,
-        if (_metodoPago != null) true,
-      ].length;
+    if (_desdeCtrl.text.isNotEmpty) true,
+    if (_hastaCtrl.text.isNotEmpty) true,
+    if (_cliente != null) true,
+    if (_metodoPago != null) true,
+  ].length;
 
   final List<String> _clientes = [
     'AUTOTRANSPORTES LA FLECHA',
@@ -444,8 +466,11 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
           top: Radius.circular(ThemeColor.largeRadius),
         ),
       ),
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom, 
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -472,9 +497,12 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
                   const Spacer(),
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: Text('X',
-                        style: ThemeColor.subtitleLarge
-                            .copyWith(fontWeight: FontWeight.w700)),
+                    child: Text(
+                      'X',
+                      style: ThemeColor.subtitleLarge.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -493,13 +521,17 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('De',
-                                style: ThemeColor.bodySmall.copyWith(
-                                    color: ThemeColor.textSecondaryColor)),
+                            Text(
+                              'De',
+                              style: ThemeColor.bodySmall.copyWith(
+                                color: ThemeColor.textSecondaryColor,
+                              ),
+                            ),
                             const SizedBox(height: 4),
                             _DateField(
-                                controller: _desdeCtrl,
-                                onTap: () => _pickDate(_desdeCtrl)),
+                              controller: _desdeCtrl,
+                              onTap: () => _pickDate(_desdeCtrl),
+                            ),
                           ],
                         ),
                       ),
@@ -508,22 +540,29 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Hasta',
-                                style: ThemeColor.bodySmall.copyWith(
-                                    color: ThemeColor.textSecondaryColor)),
+                            Text(
+                              'Hasta',
+                              style: ThemeColor.bodySmall.copyWith(
+                                color: ThemeColor.textSecondaryColor,
+                              ),
+                            ),
                             const SizedBox(height: 4),
                             _DateField(
-                                controller: _hastaCtrl,
-                                onTap: () => _pickDate(_hastaCtrl)),
+                              controller: _hastaCtrl,
+                              onTap: () => _pickDate(_hastaCtrl),
+                            ),
                           ],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: ThemeColor.paddingMedium),
-                  Text('Cliente',
-                      style: ThemeColor.bodyMedium
-                          .copyWith(fontWeight: FontWeight.w500)),
+                  Text(
+                    'Cliente',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   _DropdownField(
                     value: _cliente,
@@ -540,9 +579,12 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Método de Pago',
-                      style: ThemeColor.bodyMedium
-                          .copyWith(fontWeight: FontWeight.w500)),
+                  Text(
+                    'Método de Pago',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   _DropdownField(
                     value: _metodoPago,
@@ -559,15 +601,17 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Pago',
-                      style: ThemeColor.bodyMedium
-                          .copyWith(fontWeight: FontWeight.w500)),
+                  Text(
+                    'Pago',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: ThemeColor.paddingSmall),
                   _ToggleGroup(
                     options: const ['Pagado', 'Por Cobrar'],
                     selectedIndex: _pagoPorCobrar ? 1 : 0,
-                    onChanged: (i) =>
-                        setState(() => _pagoPorCobrar = i == 1),
+                    onChanged: (i) => setState(() => _pagoPorCobrar = i == 1),
                   ),
                 ],
               ),
@@ -579,9 +623,12 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Entrega',
-                      style: ThemeColor.bodyMedium
-                          .copyWith(fontWeight: FontWeight.w500)),
+                  Text(
+                    'Entrega',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: ThemeColor.paddingSmall),
                   _ToggleGroup(
                     options: const ['Entregadas', 'Por Entregar'],
@@ -597,7 +644,8 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
 
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: ThemeColor.paddingMedium),
+                horizontal: ThemeColor.paddingMedium,
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -609,7 +657,8 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       padding: const EdgeInsets.symmetric(
-                          vertical: ThemeColor.paddingMedium),
+                        vertical: ThemeColor.paddingMedium,
+                      ),
                       borderRadius: ThemeColor.smallRadius,
                       borderColor: ThemeColor.dividerColor,
                       borderWidth: 1.5,
@@ -626,7 +675,9 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
                           dateFrom: _desdeCtrl.text,
                           dateUntil: _hastaCtrl.text,
                           client: _cliente ?? '',
-                          statusPayment: _pagoPorCobrar ? 'pendiente' : 'pagado',
+                          statusPayment: _pagoPorCobrar
+                              ? 'pendiente'
+                              : 'pagado',
                         );
                         Navigator.of(context).pop();
                       },
@@ -635,7 +686,8 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       padding: const EdgeInsets.symmetric(
-                          vertical: ThemeColor.paddingMedium),
+                        vertical: ThemeColor.paddingMedium,
+                      ),
                       borderRadius: ThemeColor.smallRadius,
                       customShadow: ThemeColor.darkShadow,
                     ),
@@ -650,7 +702,6 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
     );
   }
 }
-
 
 class _FilterCard extends StatelessWidget {
   final Widget child;
@@ -676,8 +727,11 @@ class _DropdownField extends StatelessWidget {
   final List<String> items;
   final ValueChanged<String?> onChanged;
 
-  const _DropdownField(
-      {required this.value, required this.items, required this.onChanged});
+  const _DropdownField({
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -688,16 +742,19 @@ class _DropdownField extends StatelessWidget {
         borderRadius: ThemeColor.smallBorderRadius,
         border: Border.all(color: ThemeColor.dividerColor),
       ),
-      padding:
-          const EdgeInsets.symmetric(horizontal: ThemeColor.paddingSmall),
+      padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingSmall),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down,
-              color: ThemeColor.textSecondaryColor, size: 20),
-          style: ThemeColor.bodyMedium
-              .copyWith(color: ThemeColor.textPrimaryColor),
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            color: ThemeColor.textSecondaryColor,
+            size: 20,
+          ),
+          style: ThemeColor.bodyMedium.copyWith(
+            color: ThemeColor.textPrimaryColor,
+          ),
           dropdownColor: ThemeColor.surfaceColor,
           borderRadius: ThemeColor.smallBorderRadius,
           hint: const SizedBox.shrink(),
@@ -729,7 +786,8 @@ class _ToggleGroup extends StatelessWidget {
         final selected = selectedIndex == i;
         return Padding(
           padding: EdgeInsets.only(
-              right: i < options.length - 1 ? ThemeColor.paddingSmall : 0),
+            right: i < options.length - 1 ? ThemeColor.paddingSmall : 0,
+          ),
           child: GestureDetector(
             onTap: () => onChanged(i),
             child: AnimatedContainer(
@@ -781,18 +839,23 @@ class _DateField extends StatelessWidget {
           border: Border.all(color: ThemeColor.dividerColor),
         ),
         padding: const EdgeInsets.symmetric(
-            horizontal: ThemeColor.paddingSmall),
+          horizontal: ThemeColor.paddingSmall,
+        ),
         child: Row(
           children: [
             Expanded(
               child: Text(
                 controller.text,
-                style: ThemeColor.bodySmall
-                    .copyWith(color: ThemeColor.textPrimaryColor),
+                style: ThemeColor.bodySmall.copyWith(
+                  color: ThemeColor.textPrimaryColor,
+                ),
               ),
             ),
-            Icon(Icons.calendar_today_outlined,
-                size: 14, color: ThemeColor.textSecondaryColor),
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 14,
+              color: ThemeColor.textSecondaryColor,
+            ),
           ],
         ),
       ),

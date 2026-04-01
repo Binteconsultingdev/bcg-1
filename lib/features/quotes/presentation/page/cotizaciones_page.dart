@@ -441,9 +441,10 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
           top: Radius.circular(ThemeColor.largeRadius),
         ),
       ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
+      padding:EdgeInsets.only(
+    bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom, 
+  ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
