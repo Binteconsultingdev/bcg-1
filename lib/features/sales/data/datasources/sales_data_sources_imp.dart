@@ -4,7 +4,9 @@ import 'dart:io';
 
 import 'package:bcg/common/constants/constants.dart';
 import 'package:bcg/common/errors/api_errors.dart';
+import 'package:bcg/features/sales/data/model/create_sales_model.dart';
 import 'package:bcg/features/sales/data/model/point_sale_model.dart';
+import 'package:bcg/features/sales/domain/entities/create_sales_entity.dart';
 import 'package:bcg/features/sales/domain/entities/point_sale_entity.dart';
 import 'package:http/http.dart' as http;
 class SalesDataSourcesImp  {
@@ -55,4 +57,35 @@ Future<List<PointSaleEntity>> fetchQuote(
     throw Exception(e);
   }
 }
+   Future<void>generateSales(CreateSalesEntity entity, String token)async {
+    try {
+      Uri url = Uri.parse('$defaultApiServer/VentaSalida/generar');
+
+      final response = await http.post(
+        url,
+ headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },        body: jsonEncode(CreateSalesModel.fromEntity(entity).toJson()),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return;
+      }
+
+      ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+      exception.validateMesage();
+      throw exception;
+    } catch (e) {
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is TimeoutException) {
+        print('🌐 Error de red detectado');
+        throw Exception(convertMessageException(error: e));
+      }
+
+      throw Exception('$e');
+    }
+  }
+
 }

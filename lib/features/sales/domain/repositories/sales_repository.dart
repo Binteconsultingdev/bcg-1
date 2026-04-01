@@ -1,3 +1,4 @@
+import 'package:bcg/features/sales/domain/entities/create_sales_entity.dart';
 import 'package:bcg/features/sales/domain/entities/point_sale_entity.dart';
 
 abstract class SalesRepository {
@@ -9,4 +10,5 @@ abstract class SalesRepository {
     String statusPayment,
     String userToFilter,
   );
+  Future<void>generateSales(CreateSalesEntity entity);
 }

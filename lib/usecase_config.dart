@@ -3,7 +3,6 @@
 
 import 'package:bcg/features/Inventory/data/datasources/inventory_datasources_imp.dart';
 import 'package:bcg/features/Inventory/data/repositories/inventory_repository_imp.dart';
-import 'package:bcg/features/Inventory/domain/repositories/Inventory_repository.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_familias_usecase.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_inventario_usecase.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_subfamilias_usecase.dart';
