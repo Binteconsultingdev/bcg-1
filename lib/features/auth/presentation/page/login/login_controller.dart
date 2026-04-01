@@ -19,7 +19,7 @@ class LoginController extends GetxController {
   final RxBool showPassword = false.obs;
 
   final AuthService _authService = Get.find<AuthService>();
-    final LicenseService _licenseService = Get.find<LicenseService>(); // ✅
+    final LicenseService _licenseService = Get.find<LicenseService>(); 
 
   final LoginUsecase loginUsecase;
   final ValidateLicensesUsecase validateLicensesUsecase;
@@ -64,7 +64,6 @@ void onLoginTap() async {
     try {
       isLoading.value = true;
 
-      // ✅ Leer la base desde LicenseService
       final baseDatos = await _licenseService.getBase();
 
       if (baseDatos == null || baseDatos.isEmpty) {

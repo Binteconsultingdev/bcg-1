@@ -4,9 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Formatter que intercepta paste antes de que LengthLimiting lo trunque
-// ─────────────────────────────────────────────────────────────────────────────
 class _PasteAwareFormatter extends TextInputFormatter {
   final int fieldIndex;
   final void Function(String raw, int index) onPaste;
@@ -20,7 +17,6 @@ class _PasteAwareFormatter extends TextInputFormatter {
   ) {
     final clean = newValue.text.replaceAll('-', '').replaceAll(' ', '');
 
-    // Si viene más de 4 chars → es un paste, lo interceptamos
     if (clean.length > 4) {
       Future.microtask(() => onPaste(clean, fieldIndex));
       final segment = clean.substring(0, 4);
@@ -34,9 +30,6 @@ class _PasteAwareFormatter extends TextInputFormatter {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Screen
-// ─────────────────────────────────────────────────────────────────────────────
 class LicenseScreen extends StatefulWidget {
   const LicenseScreen({super.key});
 
@@ -128,9 +121,6 @@ class _LicenseScreenState extends State<LicenseScreen>
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Logo
-  // ─────────────────────────────────────────────────────────────────────────
   Widget _buildLogo() {
     return Image.asset(
       'assets/logo/logo.png',
@@ -187,9 +177,6 @@ class _LicenseScreenState extends State<LicenseScreen>
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Campos de licencia (4 bloques)
-  // ─────────────────────────────────────────────────────────────────────────
   Widget _buildLicenseFields() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -231,10 +218,6 @@ class _LicenseScreenState extends State<LicenseScreen>
       },
     );
   }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // Checkbox aviso de privacidad
-  // ─────────────────────────────────────────────────────────────────────────
   Widget _buildPrivacyCheckbox() {
     return Obx(() => Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -281,9 +264,6 @@ class _LicenseScreenState extends State<LicenseScreen>
         ));
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Botón Continuar
-  // ─────────────────────────────────────────────────────────────────────────
   Widget _buildContinueButton() {
     return Obx(() {
       final enabled = _controller.formValid.value;
@@ -310,9 +290,6 @@ class _LicenseScreenState extends State<LicenseScreen>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Widget interno: campo individual de licencia
-// ─────────────────────────────────────────────────────────────────────────────
 class _LicenseField extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;

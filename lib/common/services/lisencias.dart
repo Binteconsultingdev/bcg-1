@@ -12,6 +12,7 @@ class LicenseService extends GetxService {
   LicenseEntity? _cachedLicense;
 
   factory LicenseService() => _instance;
+LicenseEntity? getLicenseSync() => _cachedLicense;
 
   LicenseService._internal();
 

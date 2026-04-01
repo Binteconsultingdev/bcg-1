@@ -1,6 +1,7 @@
 
 
 import 'package:bcg/common/services/auth_service.dart';
+import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
@@ -196,8 +197,29 @@ class InventarioScreen extends StatelessWidget {
     );
   }
 }
+class _LicenseLogo extends StatelessWidget {
+  final double size;
+  const _LicenseLogo({this.size = 52});
 
+  @override
+  Widget build(BuildContext context) {
+    final licenseService = Get.find<LicenseService>();
+    final logoUrl = licenseService.getLicenseSync()?.urllogo ?? '';
 
+    if (logoUrl.isEmpty) return const SizedBox.shrink();
+
+    return ClipRRect(
+      borderRadius: ThemeColor.smallBorderRadius,
+      child: Image.network(
+        logoUrl,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,   // ← contain para que no se recorte el logo
+        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+      ),
+    );
+  }
+}
 class _ProductTile extends StatelessWidget {
   final InventoryEntity product;
   const _ProductTile({required this.product});
@@ -218,14 +240,31 @@ final hasImage = (product.imageUrl?.isNotEmpty ?? false);
               borderRadius: ThemeColor.smallBorderRadius,
               border: Border.all(color: ThemeColor.dividerColor),
             ),
-            child: hasImage
-                ? ClipRRect(
-                    borderRadius: ThemeColor.smallBorderRadius,
-                     child: Image.network(product.imageUrl ?? '', fit: BoxFit.cover),
-
-                  )
-                : const Icon(Icons.image_outlined,
-                    color: Color(0xFFBDBDBD), size: 28),
+             child: hasImage
+    ? ClipRRect(
+        borderRadius: ThemeColor.smallBorderRadius,
+        child: Image.network(
+          product.imageUrl!,
+          fit: BoxFit.cover,
+          // Si la URL existe pero la imagen falla → logo de licencia
+          errorBuilder: (_, __, ___) => _LicenseLogo(),
+          loadingBuilder: (_, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  color: ThemeColor.accentColor,
+                ),
+              ),
+            );
+          },
+        ),
+      )
+    // Si no hay URL → logo de licencia
+    : _LicenseLogo(),
           ),
           const SizedBox(width: ThemeColor.paddingMedium),
           Expanded(
