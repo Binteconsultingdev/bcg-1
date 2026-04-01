@@ -1,10 +1,42 @@
 import 'package:bcg/common/theme/App_Theme.dart';
-
 import 'package:bcg/features/auth/presentation/page/login/license_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Formatter que intercepta paste antes de que LengthLimiting lo trunque
+// ─────────────────────────────────────────────────────────────────────────────
+class _PasteAwareFormatter extends TextInputFormatter {
+  final int fieldIndex;
+  final void Function(String raw, int index) onPaste;
+
+  _PasteAwareFormatter({required this.fieldIndex, required this.onPaste});
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final clean = newValue.text.replaceAll('-', '').replaceAll(' ', '');
+
+    // Si viene más de 4 chars → es un paste, lo interceptamos
+    if (clean.length > 4) {
+      Future.microtask(() => onPaste(clean, fieldIndex));
+      final segment = clean.substring(0, 4);
+      return TextEditingValue(
+        text: segment,
+        selection: TextSelection.collapsed(offset: segment.length),
+      );
+    }
+
+    return newValue;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Screen
+// ─────────────────────────────────────────────────────────────────────────────
 class LicenseScreen extends StatefulWidget {
   const LicenseScreen({super.key});
 
@@ -177,6 +209,8 @@ class _LicenseScreenState extends State<LicenseScreen>
                   controller: _controller.fieldControllers[i],
                   focusNode: _controller.focusNodes[i],
                   onChanged: (v) => _controller.onFieldChanged(v, i),
+                  fieldIndex: i,
+                  onPaste: _controller.handlePaste,
                   width: fieldWidth,
                   height: fieldHeight,
                 ),
@@ -251,29 +285,29 @@ class _LicenseScreenState extends State<LicenseScreen>
   // Botón Continuar
   // ─────────────────────────────────────────────────────────────────────────
   Widget _buildContinueButton() {
-  return Obx(() {
-    final enabled = _controller.formValid.value; // ✅ antes: isFormValid
-    return AnimatedOpacity(
-      opacity: enabled ? 1.0 : 0.45,
-      duration: const Duration(milliseconds: 300),
-      child: ThemeColor.widgetButton(
-        text: 'Continuar',
-        isLoading: _controller.isLoading.value,
-        onPressed: enabled ? _controller.onContinueTap : null,
-        backgroundColor: ThemeColor.primaryColor,
-        textColor: ThemeColor.textLightColor,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        padding: const EdgeInsets.symmetric(
-          vertical: ThemeColor.paddingMedium,
-          horizontal: ThemeColor.paddingLarge,
+    return Obx(() {
+      final enabled = _controller.formValid.value;
+      return AnimatedOpacity(
+        opacity: enabled ? 1.0 : 0.45,
+        duration: const Duration(milliseconds: 300),
+        child: ThemeColor.widgetButton(
+          text: 'Continuar',
+          isLoading: _controller.isLoading.value,
+          onPressed: enabled ? _controller.onContinueTap : null,
+          backgroundColor: ThemeColor.primaryColor,
+          textColor: ThemeColor.textLightColor,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          padding: const EdgeInsets.symmetric(
+            vertical: ThemeColor.paddingMedium,
+            horizontal: ThemeColor.paddingLarge,
+          ),
+          borderRadius: ThemeColor.mediumRadius,
+          customShadow: ThemeColor.darkShadow,
         ),
-        borderRadius: ThemeColor.mediumRadius,
-        customShadow: ThemeColor.darkShadow,
-      ),
-    );
-  });
-}
+      );
+    });
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -283,6 +317,8 @@ class _LicenseField extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final ValueChanged<String> onChanged;
+  final void Function(String raw, int index) onPaste;
+  final int fieldIndex;
   final double width;
   final double height;
 
@@ -290,6 +326,8 @@ class _LicenseField extends StatefulWidget {
     required this.controller,
     required this.focusNode,
     required this.onChanged,
+    required this.onPaste,
+    required this.fieldIndex,
     this.width = 72,
     this.height = 54,
   });
@@ -343,7 +381,11 @@ class _LicenseFieldState extends State<_LicenseField> {
           keyboardType: TextInputType.text,
           textCapitalization: TextCapitalization.characters,
           inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\-]')),
+            _PasteAwareFormatter(
+              fieldIndex: widget.fieldIndex,
+              onPaste: widget.onPaste,
+            ),
             LengthLimitingTextInputFormatter(4),
           ],
           style: ThemeColor.subtitleLarge.copyWith(

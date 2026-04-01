@@ -41,13 +41,46 @@ class LicenseController extends GetxController {
 
   void togglePrivacy() => acceptPrivacy.value = !acceptPrivacy.value;
 
-  void onFieldChanged(String value, int index) {
-    if (value.length == 4 && index < 3) {
-      focusNodes[index + 1].requestFocus();
-    } else if (value.isEmpty && index > 0) {
-      focusNodes[index - 1].requestFocus();
-    }
+void onFieldChanged(String value, int index) {
+  // ── Detectar paste de clave completa ──────────────────────────────
+  // Ejemplo: "PUCZ-HtUG-2NGU-qKaE" o "PUCZHtUG2NGUqKaE"
+  final clean = value.replaceAll('-', '').replaceAll(' ', '');
+  if (clean.length > 4) {
+    handlePaste(clean, index);
+    return;
   }
+
+  // ── Comportamiento normal: avanzar/retroceder foco ────────────────
+  if (value.length == 4 && index < 3) {
+    focusNodes[index + 1].requestFocus();
+  } else if (value.isEmpty && index > 0) {
+    focusNodes[index - 1].requestFocus();
+  }
+}
+
+// Cambia _handlePaste → handlePaste (quita el guión bajo)
+void handlePaste(String raw, int startIndex) {
+  final clean = raw.replaceAll(RegExp(r'[-\s]'), '');
+
+  for (int i = startIndex; i < 4; i++) {
+    final from = (i - startIndex) * 4;
+    if (from >= clean.length) break;
+
+    final segment = clean.substring(
+      from,
+      (from + 4).clamp(0, clean.length),
+    );
+
+    fieldControllers[i].text = segment;
+    fieldControllers[i].selection = TextSelection.collapsed(
+      offset: segment.length,
+    );
+  }
+
+  final filled = fieldControllers.where((c) => c.text.length == 4).length;
+  focusNodes[filled.clamp(0, 3)].requestFocus();
+  _updateFormValid();
+}
 
   String get _licencia =>
       fieldControllers.map((c) => c.text.trim()).join('-');

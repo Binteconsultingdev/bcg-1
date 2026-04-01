@@ -1,3 +1,4 @@
+import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/settings/routes_names.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
@@ -69,7 +70,8 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
         IconButton(
           icon: const Icon(Icons.settings_outlined,
               color: ThemeColor.textPrimaryColor, size: 22),
-          onPressed: () {},
+          onPressed: () {  AuthService authService = AuthService();
+            authService.logoutaler();},
         ),
       ],
       bottom: PreferredSize(

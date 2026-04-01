@@ -14,7 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 class QuoteItem {
   final InventoryEntity product;
   final RxInt quantity;
-  final RxDouble discount; // descuento individual (%)
+  final RxDouble discount; 
 
   QuoteItem({required this.product, int initialQty = 1})
     : quantity = initialQty.obs,
@@ -58,20 +58,16 @@ class CreateQuoteController extends GetxController {
   final isLoadingFolio = false.obs;
   final errorMessage = ''.obs;
 
-  // Búsqueda de producto
   final productSearchQuery = ''.obs;
   final isSearching = false.obs;
 
-  // Controllers de texto
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
   void onClienteChanged(String value) => clienteName.value = value;
 
-  // ── Opciones ──────────────────────────────────────────────────────────
   final List<String> priceOptions = ['Regular', 'Mayoreo', 'Especial'];
 
-  // ── Computed ──────────────────────────────────────────────────────────
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
@@ -89,7 +85,6 @@ class CreateQuoteController extends GetxController {
         .toList();
   }
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────
   @override
   void onInit() {
     super.onInit();
@@ -108,7 +103,6 @@ class CreateQuoteController extends GetxController {
     }
   }
 
-  // ── Búsqueda de producto ──────────────────────────────────────────────
   void onProductSearchChanged(String value) {
     productSearchQuery.value = value;
     isSearching.value = value.isNotEmpty;
@@ -134,19 +128,16 @@ class CreateQuoteController extends GetxController {
     );
   }
 
-  // ── Selección de cliente ──────────────────────────────────────────────
   void selectClient(String id, String name) {
     selectedClientId.value = id;
     selectedClientName.value = name;
   }
 
-  // ── Descuento global ──────────────────────────────────────────────────
   void applyGlobalDiscount(double value) {
     globalDiscount.value = value;
     globalDiscountCtrl.text = value > 0 ? value.toStringAsFixed(2) : '';
   }
 
-  // ── Fecha válida ──────────────────────────────────────────────────────
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
@@ -211,7 +202,6 @@ class CreateQuoteController extends GetxController {
 
       final response = await createQuotesUsecase.call(entity);
 
-      // ← NUEVO: guardamos el id y no cerramos la página
       createdQuoteId.value = response.id;
       await _quotesCtrl.fetchQuotes();
     } catch (e) {

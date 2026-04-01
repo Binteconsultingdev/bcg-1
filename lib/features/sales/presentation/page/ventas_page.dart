@@ -1,3 +1,4 @@
+import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/sales/domain/entities/point_sale_entity.dart';
 import 'package:bcg/features/sales/presentation/controller/sales_controller.dart';
@@ -68,7 +69,8 @@ class _VentasPageState extends State<VentasPage> {
         IconButton(
           icon: const Icon(Icons.settings_outlined,
               color: ThemeColor.textPrimaryColor, size: 22),
-          onPressed: () {},
+          onPressed: () {  AuthService authService = AuthService();
+            authService.logoutaler();},
         ),
       ],
       bottom: PreferredSize(

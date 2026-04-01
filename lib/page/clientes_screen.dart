@@ -1,3 +1,4 @@
+import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -101,7 +102,8 @@ class _ClientesScreenState extends State<ClientesScreen> {
         IconButton(
           icon: const Icon(Icons.settings_outlined,
               color: ThemeColor.textPrimaryColor, size: 22),
-          onPressed: () {},
+          onPressed: () {  AuthService authService = AuthService();
+            authService.logoutaler();},
         ),
       ],
       bottom: PreferredSize(
