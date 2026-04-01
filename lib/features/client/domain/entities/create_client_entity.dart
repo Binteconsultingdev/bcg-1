@@ -6,5 +6,5 @@ class CreateClientEntity {
  CreateClientEntity({
   required this.company,required this.name,
   required this.email,required this.phone
- }) 
+ }) ;
 }

@@ -1,21 +1,46 @@
+import 'package:bcg/common/errors/convert_message.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
+import 'package:bcg/features/client/domain/entities/create_client_entity.dart';
+import 'package:bcg/features/client/domain/usecase/create_client_usecase.dart';
 import 'package:bcg/features/client/domain/usecase/fetch_clients_usecase.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ClientController extends GetxController {
   final FetchClientsUsecase fetchClientsUsecase;
-  ClientController({required this.fetchClientsUsecase});
+  final CreateClientUsecase createClientUsecase;
+  ClientController({
+    required this.fetchClientsUsecase,
+    required this.createClientUsecase,
+  });
 
   // ── Scroll ────────────────────────────────────────────────────────────────
   final ScrollController scrollController = ScrollController();
 
-  // ── Estado ────────────────────────────────────────────────────────────────
+  // ── Estado lista ──────────────────────────────────────────────────────────
   final RxList<ClientEntity> clients = <ClientEntity>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMorePages = true.obs;
   final RxString errorMessage = ''.obs;
+
+  // ── Estado formulario nuevo cliente ───────────────────────────────────────
+  final empresaCtrl = TextEditingController();
+  final nombreCtrl = TextEditingController();
+  final telefonoCtrl = TextEditingController();
+  final emailCtrl = TextEditingController();
+
+  final empresaFocus = FocusNode();
+  final nombreFocus = FocusNode();
+  final telefonoFocus = FocusNode();
+  final emailFocus = FocusNode();
+
+  final RxBool isCreating = false.obs;
+  final RxString createError = ''.obs;
+
+  bool get isFormValid =>
+      empresaCtrl.text.trim().isNotEmpty &&
+      nombreCtrl.text.trim().isNotEmpty;
 
   // ── Filtros activos ───────────────────────────────────────────────────────
   final RxString clientFilter = ''.obs;
@@ -37,9 +62,53 @@ class ClientController extends GetxController {
   @override
   void onClose() {
     scrollController.dispose();
+    empresaCtrl.dispose();
+    nombreCtrl.dispose();
+    telefonoCtrl.dispose();
+    emailCtrl.dispose();
+    empresaFocus.dispose();
+    nombreFocus.dispose();
+    telefonoFocus.dispose();
+    emailFocus.dispose();
     super.onClose();
   }
 
+  // ── Limpiar formulario ────────────────────────────────────────────────────
+  void resetForm() {
+    empresaCtrl.clear();
+    nombreCtrl.clear();
+    telefonoCtrl.clear();
+    emailCtrl.clear();
+    createError.value = '';
+    isCreating.value = false;
+  }
+
+Future<void> createClient() async {
+  if (!isFormValid) return;
+  try {
+    isCreating.value = true;
+    createError.value = '';
+
+    await createClientUsecase.call(
+      CreateClientEntity(
+        company: empresaCtrl.text.trim(),
+        name: nombreCtrl.text.trim(),
+        phone: telefonoCtrl.text.trim(),
+        email: emailCtrl.text.trim(),
+      ),
+    );
+
+    resetForm();
+    Get.back(); // cierra el sheet desde el controller
+    await fetchClients();
+  } catch (e) {
+    createError.value = cleanExceptionMessage(e);
+    
+  } finally {
+    isCreating.value = false;
+  }
+}
+  // ── Scroll listener ───────────────────────────────────────────────────────
   void _onScroll() {
     final pos = scrollController.position;
     if (pos.pixels >= pos.maxScrollExtent - 200) {

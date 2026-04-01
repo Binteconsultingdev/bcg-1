@@ -5,7 +5,9 @@ import 'dart:io';
 
 import 'package:bcg/common/errors/api_errors.dart';
 import 'package:bcg/features/client/data/model/client_model.dart';
+import 'package:bcg/features/client/data/model/create_client_model.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
+import 'package:bcg/features/client/domain/entities/create_client_entity.dart';
 import 'package:http/http.dart' as http;
 
 class ClientDataSourcesImp {
@@ -51,35 +53,50 @@ class ClientDataSourcesImp {
     }
   }
 
-  Future<void> createClient(ClientEntity entity, String token) async {
-    try {
-      Uri url = Uri.parse('$defaultApiServer/Cliente');
+ Future<void> createClient(CreateClientEntity entity, String token) async {
+  try {
+    Uri url = Uri.parse('$defaultApiServer/Clientes');
 
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(ClientModel.fromEntity(entity).toJson()),
-      );
+    final body = jsonEncode(CreateClientModel.fromEntity(entity).toJson());
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return;
-      }
+    print('📤 URL: $url');
+    print('📤 BODY: $body');
+    print('📤 TOKEN: $token');
 
-      ApiExceptionCustom exception = ApiExceptionCustom(response: response);
-      exception.validateMesage();
-      throw exception;
-    } catch (e) {
-      if (e is SocketException ||
-          e is http.ClientException ||
-          e is TimeoutException) {
-        print('🌐 Error de red detectado');
-        throw Exception(convertMessageException(error: e));
-      }
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: body,
+    );
 
-      throw Exception('$e');
+    print('📥 STATUS CODE: ${response.statusCode}');
+    print('📥 RESPONSE BODY: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('✅ Cliente creado correctamente');
+      return;
     }
+
+    print('❌ Error en la petición');
+
+    ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+    exception.validateMesage();
+    throw exception;
+
+  } catch (e) {
+    print('🔥 EXCEPCIÓN: $e');
+
+    if (e is SocketException ||
+        e is http.ClientException ||
+        e is TimeoutException) {
+      print('🌐 Error de red detectado');
+      throw Exception(convertMessageException(error: e));
+    }
+
+    throw Exception('$e');
   }
+}
 }

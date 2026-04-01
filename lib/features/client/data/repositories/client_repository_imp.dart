@@ -1,6 +1,7 @@
 import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/features/client/data/datasources/client_data_sources_imp.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
+import 'package:bcg/features/client/domain/entities/create_client_entity.dart';
 import 'package:bcg/features/client/domain/repositories/client_repository.dart';
 
 class ClientRepositoryImp extends ClientRepository {
@@ -8,7 +9,7 @@ class ClientRepositoryImp extends ClientRepository {
   AuthService authService = AuthService();
   ClientRepositoryImp({required this.clientDataSourcesImp});
   @override
-  Future<void> createClient(ClientEntity entity) async {
+  Future<void> createClient(CreateClientEntity entity) async {
     final token =
         await authService.getToken() ??
         (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));

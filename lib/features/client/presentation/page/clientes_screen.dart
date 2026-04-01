@@ -29,20 +29,14 @@ class _ClientesScreenState extends State<ClientesScreen> {
     super.dispose();
   }
 
-  void _openNuevoCliente() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _NuevoClienteSheet(
-        onGuardar: (data) {
-          // TODO: llamar use case de crear cliente
-          Navigator.of(context).pop();
-        },
-      ),
-    );
-  }
-
+void _openNuevoCliente() {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _NuevoClienteSheet(controller: _ctrl),
+  );
+}
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -291,65 +285,44 @@ class _ClienteTile extends StatelessWidget {
     );
   }
 }
-
-// ── Bottom Sheet Nuevo Cliente (sin cambios) ──────────────────────────────────
 class _NuevoClienteSheet extends StatefulWidget {
-  final void Function(Map<String, String> data) onGuardar;
-  const _NuevoClienteSheet({required this.onGuardar});
+  final ClientController controller;
+  const _NuevoClienteSheet({required this.controller});
 
   @override
   State<_NuevoClienteSheet> createState() => _NuevoClienteSheetState();
 }
 
 class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
-  final _empresaCtrl = TextEditingController();
-  final _nombreCtrl = TextEditingController();
-  final _telefonoCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
+  ClientController get _ctrl => widget.controller;
 
-  final _empresaFocus = FocusNode();
-  final _nombreFocus = FocusNode();
-  final _telefonoFocus = FocusNode();
-  final _emailFocus = FocusNode();
+  // Reconstruye el botón cuando cambia el texto
+  void _onFieldChanged() => setState(() {});
 
-  bool _isLoading = false;
-
-  bool get _isValid =>
-      _empresaCtrl.text.trim().isNotEmpty &&
-      _nombreCtrl.text.trim().isNotEmpty;
+  @override
+  void initState() {
+    super.initState();
+    _ctrl.resetForm();
+    _ctrl.empresaCtrl.addListener(_onFieldChanged);
+    _ctrl.nombreCtrl.addListener(_onFieldChanged);
+  }
 
   @override
   void dispose() {
-    _empresaCtrl.dispose();
-    _nombreCtrl.dispose();
-    _telefonoCtrl.dispose();
-    _emailCtrl.dispose();
-    _empresaFocus.dispose();
-    _nombreFocus.dispose();
-    _telefonoFocus.dispose();
-    _emailFocus.dispose();
+    _ctrl.empresaCtrl.removeListener(_onFieldChanged);
+    _ctrl.nombreCtrl.removeListener(_onFieldChanged);
     super.dispose();
   }
 
-  Future<void> _onGuardar() async {
-    if (!_isValid) return;
-    FocusScope.of(context).unfocus();
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-    setState(() => _isLoading = false);
-    widget.onGuardar({
-      'empresa': _empresaCtrl.text.trim(),
-      'nombre': _nombreCtrl.text.trim(),
-      'telefono': _telefonoCtrl.text.trim(),
-      'email': _emailCtrl.text.trim(),
-    });
-  }
-
+Future<void> _onGuardar() async {
+  FocusScope.of(context).unfocus();
+  await _ctrl.createClient();
+}
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         decoration: BoxDecoration(
           color: ThemeColor.backgroundColor,
@@ -360,6 +333,7 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Handle
             Container(
               margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
               width: 40,
@@ -369,6 +343,8 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                 borderRadius: ThemeColor.circularBorderRadius,
               ),
             ),
+
+            // Header
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium,
@@ -388,8 +364,11 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                 ],
               ),
             ),
+
             Divider(height: 1, color: ThemeColor.dividerColor),
             const SizedBox(height: ThemeColor.paddingMedium),
+
+            // Formulario
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -408,67 +387,94 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                           style: ThemeColor.bodyMedium
                               .copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: ThemeColor.paddingMedium),
+
                       ThemeColor.createLabeledTextField(
                         label: 'Empresa',
-                        controller: _empresaCtrl,
-                        focusNode: _empresaFocus,
+                        controller: _ctrl.empresaCtrl,
+                        focusNode: _ctrl.empresaFocus,
                         borderRadius: ThemeColor.smallBorderRadius,
                         isRequired: true,
-                        onSubmitted: (_) => _nombreFocus.requestFocus(),
+                        onSubmitted: (_) =>
+                            _ctrl.nombreFocus.requestFocus(),
                       ),
                       const SizedBox(height: ThemeColor.paddingMedium),
+
                       ThemeColor.createLabeledTextField(
                         label: 'Nombre del Cliente o Representante',
-                        controller: _nombreCtrl,
-                        focusNode: _nombreFocus,
+                        controller: _ctrl.nombreCtrl,
+                        focusNode: _ctrl.nombreFocus,
                         borderRadius: ThemeColor.smallBorderRadius,
                         isRequired: true,
-                        onSubmitted: (_) => _telefonoFocus.requestFocus(),
+                        onSubmitted: (_) =>
+                            _ctrl.telefonoFocus.requestFocus(),
                       ),
                       const SizedBox(height: ThemeColor.paddingMedium),
+
                       ThemeColor.createLabeledTextField(
                         label: 'Teléfono',
-                        controller: _telefonoCtrl,
-                        focusNode: _telefonoFocus,
+                        controller: _ctrl.telefonoCtrl,
+                        focusNode: _ctrl.telefonoFocus,
                         keyboardType: TextInputType.phone,
                         borderRadius: ThemeColor.smallBorderRadius,
-                        onSubmitted: (_) => _emailFocus.requestFocus(),
+                        onSubmitted: (_) =>
+                            _ctrl.emailFocus.requestFocus(),
                       ),
                       const SizedBox(height: ThemeColor.paddingMedium),
+
                       ThemeColor.createLabeledTextField(
                         label: 'Email',
-                        controller: _emailCtrl,
-                        focusNode: _emailFocus,
+                        controller: _ctrl.emailCtrl,
+                        focusNode: _ctrl.emailFocus,
                         keyboardType: TextInputType.emailAddress,
                         borderRadius: ThemeColor.smallBorderRadius,
                         onSubmitted: (_) => _onGuardar(),
                       ),
+
+                      // Error de creación
+                      Obx(() {
+                        if (_ctrl.createError.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                              top: ThemeColor.paddingSmall),
+                          child: Text(
+                            _ctrl.createError.value,
+                            style: ThemeColor.bodySmall
+                                .copyWith(color: ThemeColor.errorColor),
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),
               ),
             ),
+
             const SizedBox(height: ThemeColor.paddingMedium),
+
+            // Botón guardar
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: ThemeColor.paddingMedium),
-              child: AnimatedOpacity(
-                opacity: _isValid ? 1.0 : 0.5,
-                duration: const Duration(milliseconds: 250),
-                child: ThemeColor.widgetButton(
-                  text: 'Guardar Cliente',
-                  isLoading: _isLoading,
-                  onPressed: _isValid ? _onGuardar : null,
-                  backgroundColor: ThemeColor.primaryColor,
-                  textColor: ThemeColor.textLightColor,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: ThemeColor.paddingSmall + 4),
-                  borderRadius: ThemeColor.smallRadius,
-                  customShadow: ThemeColor.darkShadow,
-                ),
-              ),
+              child: Obx(() => AnimatedOpacity(
+                    opacity: _ctrl.isFormValid ? 1.0 : 0.5,
+                    duration: const Duration(milliseconds: 250),
+                    child: ThemeColor.widgetButton(
+                      text: 'Guardar Cliente',
+                      isLoading: _ctrl.isCreating.value,
+                      onPressed:
+                          _ctrl.isFormValid ? _onGuardar : null,
+                      backgroundColor: ThemeColor.primaryColor,
+                      textColor: ThemeColor.textLightColor,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: ThemeColor.paddingSmall + 4),
+                      borderRadius: ThemeColor.smallRadius,
+                      customShadow: ThemeColor.darkShadow,
+                    ),
+                  )),
             ),
             const SizedBox(height: ThemeColor.paddingLarge),
           ],
