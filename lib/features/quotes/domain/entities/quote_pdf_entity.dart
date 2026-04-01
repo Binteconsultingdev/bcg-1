@@ -1,5 +1,6 @@
 
 class QuotePdfEntity {
-  final List<int> bytes; 
-  QuotePdfEntity({required this.bytes});
+  final String urlpdf;
+  final bool generated;
+  QuotePdfEntity({required this.urlpdf, required this.generated});
 }

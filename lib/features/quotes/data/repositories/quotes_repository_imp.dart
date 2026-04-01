@@ -4,6 +4,7 @@ import 'package:bcg/features/quotes/domain/entities/folito_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_pdf_entity.dart';
+import 'package:bcg/features/quotes/domain/entities/response_create_entity.dart';
 import 'package:bcg/features/quotes/domain/repositories/quotes_repository.dart';
 
 class QuotesRepositoryImp implements QuotesRepository {
@@ -11,7 +12,7 @@ class QuotesRepositoryImp implements QuotesRepository {
   AuthService authService = AuthService();
   QuotesRepositoryImp({required this.quotesDataSourcesImp});
   @override
-  Future<void> createQuote(QuoteEntity entity) async {
+  Future<ResponseCreateEntity> createQuote(QuoteEntity entity) async {
         final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
 
     return quotesDataSourcesImp.createQuote(entity, token);

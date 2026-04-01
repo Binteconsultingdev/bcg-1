@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:bcg/common/constants/constants.dart';
+import 'package:bcg/common/settings/routes_names.dart';
 import 'package:bcg/common/widgets/alert/custom_alert_type.dart';
 import 'package:bcg/features/auth/data/model/loginResponse/login_response_model.dart';
 import 'package:bcg/features/auth/domain/entities/response/login_response_entity.dart';
@@ -116,6 +117,7 @@ showCustomAlert(
 
       onConfirm: () {
        Get.back();
+       Get.offNamed(RoutesNames.loginPage);
        logout();
       },
 

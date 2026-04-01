@@ -1,23 +1,8 @@
 import 'package:bcg/common/theme/App_Theme.dart';
-import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
 import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
-import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../Inventory/domain/entities/inventory_entity.dart';
-import '../../domain/entities/quote_entity.dart';
-
-// ─── Modelo interno para item en la cotización ────────────────────────────
-
-
-
-// ─── Controller local de la pantalla ─────────────────────────────────────
-// Toda la lógica de UI y de creación vive aquí y delega en QuotesController
-// e InventoryController que ya existen en el árbol de GetX.
-
-
-// ─── Page ──────────────────────────────────────────────────────────────────
 
 class CreateQuotePage extends StatelessWidget {
   const CreateQuotePage({super.key});
@@ -927,7 +912,6 @@ class _CommentsSection extends StatelessWidget {
 }
 
 // ─── Botón inferior ───────────────────────────────────────────────────────
-
 class _BottomButton extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _BottomButton({required this.ctrl});
@@ -942,20 +926,62 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge,
       ),
-      child: SizedBox(
-        width: double.infinity,
-        child: Obx(() => ThemeColor.widgetButton(
-              text: 'Crear Cotización',
-              backgroundColor: ThemeColor.primaryColor,
-              textColor: ThemeColor.textLightColor,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              borderRadius: ThemeColor.mediumRadius,
-              isLoading: ctrl.isCreating.value,
-              onPressed: ctrl.createQuote,
-            )),
-      ),
+      child: Obx(() {
+        // ── Ya se creó la cotización ──────────────────────────────
+        if (ctrl.createdQuoteId.value != null) {
+          return Row(
+            children: [
+              // Botón "Cerrar"
+              Expanded(
+                child: ThemeColor.widgetButton(
+                  text: 'Cerrar',
+                  backgroundColor: ThemeColor.backgroundColor,
+                  textColor: ThemeColor.textPrimaryColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  borderRadius: ThemeColor.mediumRadius,
+                  isLoading: false,
+                  onPressed: () => Get.back(result: true),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Botón "Ver PDF"
+              Expanded(
+                flex: 2,
+                child: ThemeColor.widgetButton(
+                  text: 'Ver PDF',
+                  backgroundColor: ThemeColor.accentColor,
+                  textColor: ThemeColor.textLightColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  borderRadius: ThemeColor.mediumRadius,
+                  isLoading: ctrl.isLoadingPdf.value,
+                  onPressed: ctrl.generateAndOpenPdf,
+               
+                ),
+              ),
+            ],
+          );
+        }
+
+        // ── Aún no se ha creado ───────────────────────────────────
+        return SizedBox(
+          width: double.infinity,
+          child: ThemeColor.widgetButton(
+            text: 'Crear Cotización',
+            backgroundColor: ThemeColor.primaryColor,
+            textColor: ThemeColor.textLightColor,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            borderRadius: ThemeColor.mediumRadius,
+            isLoading: ctrl.isCreating.value,
+            onPressed: ctrl.createQuote,
+          ),
+        );
+      }),
     );
   }
 }

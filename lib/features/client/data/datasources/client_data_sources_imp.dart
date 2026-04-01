@@ -18,55 +18,49 @@ import 'package:http/http.dart' as http;
 class ClientDataSourcesImp {
   String defaultApiServer = AppConstants.serverBase;
 
-Future<List<ClientEntity>> fetchClients(
-    String token,) async {
-  try {
-    Uri url = Uri.parse(
-        '$defaultApiServer/Cliente');
+  Future<List<ClientEntity>> fetchClients(String token) async {
+    try {
+      Uri url = Uri.parse('$defaultApiServer/Cliente');
 
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+      if (response.statusCode == 200) {
+        final dataUTF8 = utf8.decode(response.bodyBytes);
 
-    if (response.statusCode == 200) {
-      final dataUTF8 = utf8.decode(response.bodyBytes);
-   
+        final responseData = jsonDecode(dataUTF8) as List;
 
-      final responseData = jsonDecode(dataUTF8) as List;
+        return responseData.map((json) => ClientModel.fromJson(json)).toList();
+      }
 
-      return responseData
-          .map((json) => ClientModel.fromJson(json))
-          .toList();
+      throw ApiExceptionCustom(response: response);
+    } catch (e) {
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is TimeoutException) {
+        throw Exception(convertMessageException(error: e));
+      }
+
+      throw Exception(e);
     }
-
-    throw ApiExceptionCustom(response: response);
-  } catch (e) {
-
-    if (e is SocketException ||
-        e is http.ClientException ||
-        e is TimeoutException) {
-      throw Exception(convertMessageException(error: e));
-    }
-
-    throw Exception(e);
   }
-}
 
-   Future<void> createClient(ClientEntity entity, String token) async {
+  Future<void> createClient(ClientEntity entity, String token) async {
     try {
       Uri url = Uri.parse('$defaultApiServer/Cliente');
 
       final response = await http.post(
         url,
- headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },        body: jsonEncode(ClientModel.fromEntity(entity).toJson()),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(ClientModel.fromEntity(entity).toJson()),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -87,6 +81,4 @@ Future<List<ClientEntity>> fetchClients(
       throw Exception('$e');
     }
   }
-
-
 }

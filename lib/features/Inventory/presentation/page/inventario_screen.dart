@@ -1,5 +1,6 @@
 
 
+import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
@@ -40,7 +41,10 @@ class InventarioScreen extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.settings_outlined,
               color: ThemeColor.textPrimaryColor),
-          onPressed: () {},
+          onPressed: () {
+            AuthService authService = AuthService();
+            authService.logoutaler();
+          },
         ),
       ],
       bottom: PreferredSize(
