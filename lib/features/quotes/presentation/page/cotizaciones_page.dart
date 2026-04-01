@@ -190,60 +190,90 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
   }
 
 
-  Widget _buildList() {
-    return Obx(() {
-      if (_ctrl.isLoading.value) {
-        return const Center(
-          child: CircularProgressIndicator(color: ThemeColor.primaryColor),
-        );
-      }
+ Widget _buildList() {
+  return Obx(() {
+    if (_ctrl.isLoading.value) {
+      return const Center(
+        child: CircularProgressIndicator(color: ThemeColor.primaryColor),
+      );
+    }
 
-      if (_ctrl.errorMessage.isNotEmpty) {
-        return Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _ctrl.errorMessage.value,
-                style: ThemeColor.bodyMedium
-                    .copyWith(color: ThemeColor.errorColor),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: _ctrl.fetchQuotes,
-                child: const Text('Reintentar'),
-              ),
-            ],
-          ),
-        );
-      }
+    if (_ctrl.errorMessage.isNotEmpty && _ctrl.quotes.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _ctrl.errorMessage.value,
+              style: ThemeColor.bodyMedium.copyWith(color: ThemeColor.errorColor),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _ctrl.fetchQuotes,
+              child: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      );
+    }
 
-      final items = _ctrl.filteredByTab(_selectedTab, _searchQuery);
+    final items = _ctrl.filteredByTab(_selectedTab, _searchQuery);
 
-      if (items.isEmpty) {
-        return Center(
-          child: Text(
-            'Sin cotizaciones',
-            style: ThemeColor.bodyMedium
-                .copyWith(color: ThemeColor.textSecondaryColor),
-          ),
-        );
-      }
+    if (items.isEmpty) {
+      return Center(
+        child: Text(
+          'Sin cotizaciones',
+          style: ThemeColor.bodyMedium.copyWith(color: ThemeColor.textSecondaryColor),
+        ),
+      );
+    }
 
-      return ListView.separated(
+    return RefreshIndicator(
+      onRefresh: _ctrl.fetchQuotes,
+      child: ListView.separated(
+        controller: _ctrl.scrollController,
         padding: const EdgeInsets.symmetric(
           horizontal: ThemeColor.paddingMedium,
           vertical: ThemeColor.paddingSmall,
         ),
-        itemCount: items.length,
-        separatorBuilder: (_, __) =>
-            Divider(height: 1, color: ThemeColor.dividerColor),
-        itemBuilder: (_, i) => _CotizacionTile(item: items[i]),
-      );
-    });
-  }
-
+        itemCount: items.length + 1,
+        separatorBuilder: (_, i) {
+          if (i == items.length - 1) return const SizedBox.shrink();
+          return Divider(height: 1, color: ThemeColor.dividerColor);
+        },
+        itemBuilder: (_, i) {
+          if (i == items.length) {
+            return Obx(() {
+              if (_ctrl.isLoadingMore.value) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: CircularProgressIndicator(color: ThemeColor.primaryColor),
+                  ),
+                );
+              }
+              if (!_ctrl.hasMorePages.value) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                    child: Text(
+                      'No hay más cotizaciones',
+                      style: ThemeColor.bodyMedium
+                          .copyWith(color: ThemeColor.textSecondaryColor),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox(height: 24);
+            });
+          }
+          return _CotizacionTile(item: items[i]);
+        },
+      ),
+    );
+  });
+}
   Widget _buildFab() {
     return FloatingActionButton(
       onPressed: () {

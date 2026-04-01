@@ -9,9 +9,9 @@ class SalesRepositoryImp extends SalesRepository {
   AuthService authService = AuthService();
   SalesRepositoryImp({required this.salesDataSourcesImp});
   @override
-  Future<List<PointSaleEntity>> pointSales(String startDate, String endDate, bool ignoreDates, String client, String statusPayment, String userToFilter) async {
+  Future<List<PointSaleEntity>> pointSales(String startDate, String endDate, bool ignoreDates, String client, String statusPayment, String userToFilter,int page,int pageSize) async {
     final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
-   return await salesDataSourcesImp.fetchQuote(token, startDate, endDate, ignoreDates, client, statusPayment, userToFilter);
+   return await salesDataSourcesImp.fetchQuote(token, startDate, endDate, ignoreDates, client, statusPayment, userToFilter,page,pageSize);
   }
 
   @override

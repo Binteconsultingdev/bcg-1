@@ -1,41 +1,67 @@
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
-import 'package:bcg/features/quotes/domain/usecase/create_quotes_usecase.dart';
-import 'package:bcg/features/quotes/domain/usecase/fetch_folio_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class QuotesController extends GetxController {
   final FetchQuoteUsecase fetchQuoteUsecase;
-  QuotesController({required this.fetchQuoteUsecase, });
+  QuotesController({required this.fetchQuoteUsecase});
 
-  // ── Estado ──────────────────────────────────────────────────────────────
+  // ── Scroll ────────────────────────────────────────────────────────────────
+  final ScrollController scrollController = ScrollController();
+
+  // ── Estado ────────────────────────────────────────────────────────────────
   final RxList<GetQuoteEntity> quotes = <GetQuoteEntity>[].obs;
   final RxBool isLoading = false.obs;
+  final RxBool isLoadingMore = false.obs;
+  final RxBool hasMorePages = true.obs;
   final RxString errorMessage = ''.obs;
 
-  // ── Filtros activos ──────────────────────────────────────────────────────
+  // ── Filtros activos ───────────────────────────────────────────────────────
   final RxString clientFilter = ''.obs;
-  final RxInt numParteFilter = 0.obs;
+  final RxString numParteFilter = ''.obs;
   final RxString dateFromFilter = ''.obs;
   final RxString dateUntilFilter = ''.obs;
+
+  // ── Paginación ────────────────────────────────────────────────────────────
+  int _currentPage = 1;
+  static const int _pageSize = 20;
 
   @override
   void onReady() {
     super.onReady();
     fetchQuotes();
+    scrollController.addListener(_onScroll);
   }
 
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
+  void _onScroll() {
+    final pos = scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 200) {
+      loadMoreQuotes();
+    }
+  }
+
+  // ── Fetch página 1 (reset) ────────────────────────────────────────────────
   Future<void> fetchQuotes({
     String client = '',
-    int numParte = 0,
+    String numParte = '',
     String dateFrom = '',
     String dateUntil = '',
   }) async {
+    if (isLoading.value) return;
     try {
       isLoading.value = true;
+      isLoadingMore.value = false;
       errorMessage.value = '';
+      _currentPage = 1;
+      hasMorePages.value = true;
 
-      // Guardar filtros activos
       clientFilter.value = client;
       numParteFilter.value = numParte;
       dateFromFilter.value = dateFrom;
@@ -46,26 +72,56 @@ class QuotesController extends GetxController {
         numParte,
         dateFrom,
         dateUntil,
+        _currentPage,_pageSize
       );
 
       quotes.assignAll(result);
+      if (result.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al cargar cotizaciones: $e';
     } finally {
       isLoading.value = false;
     }
   }
-// ── Helper: convierte "dd/MM/yyyy" → "yyyy-MM-ddT00:00:00" ─────────────
-String _toIso(String ddMMyyyy, {bool endOfDay = false}) {
-  if (ddMMyyyy.isEmpty) return '';
-  final parts = ddMMyyyy.split('/');
-  if (parts.length != 3) return '';
-  final day   = parts[0];
-  final month = parts[1];
-  final year  = parts[2];
-  final time  = endOfDay ? '23:59:59' : '00:00:00';
-  return '$year-$month-${day}T$time';
-}
+
+  // ── Cargar siguiente página ───────────────────────────────────────────────
+  Future<void> loadMoreQuotes() async {
+    if (isLoadingMore.value || !hasMorePages.value || isLoading.value) return;
+    try {
+      isLoadingMore.value = true;
+      _currentPage++;
+
+      final result = await fetchQuoteUsecase.cal(
+        clientFilter.value,
+        numParteFilter.value,
+        dateFromFilter.value,
+        dateUntilFilter.value,
+        _currentPage,
+        _pageSize
+      );
+
+      if (result.isEmpty || result.length < _pageSize) {
+        hasMorePages.value = false;
+      }
+      quotes.addAll(result);
+    } catch (e) {
+      _currentPage--;
+      errorMessage.value = 'Error al cargar más cotizaciones: $e';
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+
+  // ── Helper: convierte "dd/MM/yyyy" → "yyyy-MM-ddTHH:mm:ss" ───────────────
+  String _toIso(String ddMMyyyy, {bool endOfDay = false}) {
+    if (ddMMyyyy.isEmpty) return '';
+    final parts = ddMMyyyy.split('/');
+    if (parts.length != 3) return '';
+    final time = endOfDay ? '23:59:59' : '00:00:00';
+    return '${parts[2]}-${parts[1]}-${parts[0]}T$time';
+  }
+
+  // ── Aplicar filtros (resetea a página 1) ──────────────────────────────────
   void applyFilters({
     required String client,
     required String dateFrom,
@@ -74,16 +130,14 @@ String _toIso(String ddMMyyyy, {bool endOfDay = false}) {
     fetchQuotes(
       client: client,
       numParte: numParteFilter.value,
-     dateFrom: _toIso(dateFrom),              // → "yyyy-MM-ddT00:00:00"
-    dateUntil: _toIso(dateUntil, endOfDay: true), // → "yyyy-MM-ddT23:59:59"
+      dateFrom: _toIso(dateFrom),
+      dateUntil: _toIso(dateUntil, endOfDay: true),
     );
   }
 
-  void clearFilters() {
-    fetchQuotes();
-  }
+  void clearFilters() => fetchQuotes();
 
-  // ── Filtro local por tab ─────────────────────────────────────────────────
+  // ── Filtro local por tab + búsqueda ──────────────────────────────────────
   List<GetQuoteEntity> filteredByTab(int tab, String search) {
     return quotes.where((q) {
       final matchTab = tab == 0 ||

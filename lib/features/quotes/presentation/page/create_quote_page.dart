@@ -44,7 +44,6 @@ class CreateQuotePage extends StatelessWidget {
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
 
-// ─── AppBar ────────────────────────────────────────────────────────────────
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final CreateQuoteController ctrl;
@@ -89,7 +88,6 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-// ─── Sección superior: cliente / precio / producto ─────────────────────────
 
 class _TopSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -113,7 +111,6 @@ class _TopSection extends StatelessWidget {
             label: 'Producto',
             child: _ProductSearchField(ctrl: ctrl),
           ),
-          // Resultados inline
           Obx(() {
             if (!ctrl.isSearching.value) return const SizedBox.shrink();
             final results = ctrl.searchResults;
@@ -171,7 +168,7 @@ class _TopSection extends StatelessWidget {
   }
 }
 
-// ─── Row field helper ──────────────────────────────────────────────────────
+
 
 class _RowField extends StatelessWidget {
   final String label;
@@ -201,7 +198,7 @@ class _RowField extends StatelessWidget {
   }
 }
 
-// ─── Cliente selector ──────────────────────────────────────────────────────
+
 class _ClientSelector extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _ClientSelector({required this.ctrl});
@@ -210,7 +207,6 @@ class _ClientSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // ── Input de texto libre ──────────────────────────────────────
         Expanded(
           child: Obx(() {
             final hasText = ctrl.clienteName.value.trim().isNotEmpty;
@@ -269,16 +265,9 @@ class _ClientSelector extends StatelessWidget {
           }),
         ),
         const SizedBox(width: 8),
-        // ── Botón buscar cliente (listo para el futuro endpoint) ──────
         GestureDetector(
           onTap: () {
-            // TODO: cuando tengas el endpoint descomenta esto:
-            // Get.to(() => ClientSelectorPage())?.then((name) {
-            //   if (name != null) {
-            //     ctrl.clienteName.value = name;
-            //     ctrl.clienteController.text = name;
-            //   }
-            // });
+         
             Get.snackbar(
               'Próximamente',
               'El buscador de clientes estará disponible pronto',
@@ -308,7 +297,6 @@ class _ClientSelector extends StatelessWidget {
   }
 }
 
-// ─── Precio selector ──────────────────────────────────────────────────────
 
 class _PriceSelector extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -393,7 +381,7 @@ class _PriceBottomSheet extends StatelessWidget {
   }
 }
 
-// ─── Búsqueda de producto ─────────────────────────────────────────────────
+
 
 class _ProductSearchField extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -445,7 +433,6 @@ class _ProductSearchField extends StatelessWidget {
   }
 }
 
-// ─── Lista de productos ───────────────────────────────────────────────────
 
 class _ProductList extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -550,7 +537,7 @@ class _ProductItem extends StatelessWidget {
   }
 }
 
-// ─── Quantity input con StatefulWidget para evitar rebuild del cursor ──────
+
 
 class _QuantityInput extends StatefulWidget {
   final QuoteItem item;
@@ -617,7 +604,7 @@ class _QuantityInputState extends State<_QuantityInput> {
   }
 }
 
-// ─── Item options bottom sheet ─────────────────────────────────────────────
+
 
 class _ItemOptionsSheet extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -666,7 +653,7 @@ class _ItemOptionsSheet extends StatelessWidget {
   }
 }
 
-// ─── Sección de totales ───────────────────────────────────────────────────
+
 
 class _TotalsSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -802,7 +789,7 @@ class _TotalRow extends StatelessWidget {
   }
 }
 
-// ─── Válida hasta ─────────────────────────────────────────────────────────
+
 
 class _ValidUntilSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -857,7 +844,6 @@ class _ValidUntilSection extends StatelessWidget {
       '${d.year}';
 }
 
-// ─── Comentarios ──────────────────────────────────────────────────────────
 
 class _CommentsSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -911,7 +897,6 @@ class _CommentsSection extends StatelessWidget {
   }
 }
 
-// ─── Botón inferior ───────────────────────────────────────────────────────
 class _BottomButton extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _BottomButton({required this.ctrl});
@@ -927,11 +912,9 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingLarge,
       ),
       child: Obx(() {
-        // ── Ya se creó la cotización ──────────────────────────────
         if (ctrl.createdQuoteId.value != null) {
           return Row(
             children: [
-              // Botón "Cerrar"
               Expanded(
                 child: ThemeColor.widgetButton(
                   text: 'Cerrar',
@@ -946,7 +929,6 @@ class _BottomButton extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              // Botón "Ver PDF"
               Expanded(
                 flex: 2,
                 child: ThemeColor.widgetButton(
@@ -966,7 +948,6 @@ class _BottomButton extends StatelessWidget {
           );
         }
 
-        // ── Aún no se ha creado ───────────────────────────────────
         return SizedBox(
           width: double.infinity,
           child: ThemeColor.widgetButton(
@@ -986,7 +967,6 @@ class _BottomButton extends StatelessWidget {
   }
 }
 
-// ─── Thumbnail helper ─────────────────────────────────────────────────────
 
 class _ProductThumbnail extends StatelessWidget {
   final String? imageUrl;

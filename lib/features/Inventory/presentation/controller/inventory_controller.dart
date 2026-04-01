@@ -1,9 +1,10 @@
-// inventory_controller.dart
+
 import 'package:bcg/features/Inventory/domain/entities/inventory_category_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_familias_usecase.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_inventario_usecase.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_subfamilias_usecase.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class InventoryController extends GetxController {
@@ -17,21 +18,25 @@ class InventoryController extends GetxController {
     required this.fetchFamiliasUsecase,
   });
 
-  // ── Estado ────────────────────────────────────────────────────────────────
+  final ScrollController scrollController = ScrollController();
+
   final RxList<InventoryEntity> inventario = <InventoryEntity>[].obs;
   final RxList<InventoryCategoryEntity> familias = <InventoryCategoryEntity>[].obs;
   final RxList<InventoryCategoryEntity> subfamilias = <InventoryCategoryEntity>[].obs;
 
   final RxBool isLoadingInventario = false.obs;
+  final RxBool isLoadingMore = false.obs; // loader del footer
   final RxBool isLoadingCategorias = false.obs;
+  final RxBool hasMorePages = true.obs;
   final RxString errorMessage = ''.obs;
 
-  // Filtros activos
+  int _currentPage = 1;
+  static const int _pageSize = 20;
+
   final Rx<String?> selectedFamilia = Rx<String?>(null);
   final Rx<String?> selectedSubfamilia = Rx<String?>(null);
   final RxString searchQuery = ''.obs;
 
-  // ── Computed ──────────────────────────────────────────────────────────────
   List<InventoryEntity> get filtered {
     final q = searchQuery.value.toLowerCase();
     if (q.isEmpty) return inventario;
@@ -47,18 +52,30 @@ class InventoryController extends GetxController {
           .where((v) => v != null)
           .length;
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
   @override
   void onInit() {
     super.onInit();
     _loadInitialData();
+    scrollController.addListener(_onScroll);
   }
 
-  // ── Carga inicial (categorías + inventario sin filtros) ───────────────────
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
+  void _onScroll() {
+    final position = scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 200) {
+      loadMoreInventario();
+    }
+  }
+
   Future<void> _loadInitialData() async {
     await Future.wait([
       _fetchCategorias(),
-      fetchInventario(), // familia y subfamilia vacíos en primer load
+      fetchInventario(),
     ]);
   }
 
@@ -78,16 +95,24 @@ class InventoryController extends GetxController {
     }
   }
 
-  // ── Fetch inventario (con o sin filtros) ──────────────────────────────────
   Future<void> fetchInventario() async {
+    if (isLoadingInventario.value) return;
     try {
       isLoadingInventario.value = true;
+      isLoadingMore.value = false;
       errorMessage.value = '';
+      _currentPage = 1;
+      hasMorePages.value = true;
+
       final result = await fetchInventarioUsecase.call(
         selectedFamilia.value ?? '',
         selectedSubfamilia.value ?? '',
+        _currentPage,_pageSize
       );
+
       inventario.assignAll(result);
+
+      if (result.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al cargar inventario: $e';
     } finally {
@@ -95,17 +120,41 @@ class InventoryController extends GetxController {
     }
   }
 
-  // ── Aplicar filtros desde el BottomSheet ──────────────────────────────────
+  Future<void> loadMoreInventario() async {
+    if (isLoadingMore.value || !hasMorePages.value || isLoadingInventario.value) return;
+
+    try {
+      isLoadingMore.value = true;
+      _currentPage++;
+
+      final result = await fetchInventarioUsecase.call(
+        selectedFamilia.value ?? '',
+        selectedSubfamilia.value ?? '',
+        _currentPage,_pageSize
+      );
+
+      if (result.isEmpty || result.length < _pageSize) {
+        hasMorePages.value = false;
+      }
+
+      inventario.addAll(result);
+    } catch (e) {
+      _currentPage--; 
+      errorMessage.value = 'Error al cargar más productos: $e';
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+
   Future<void> applyFilters({
     required String? familia,
     required String? subfamilia,
   }) async {
     selectedFamilia.value = familia;
     selectedSubfamilia.value = subfamilia;
-    await fetchInventario();
+    await fetchInventario(); // siempre desde página 1
   }
 
-  // ── Limpiar filtros ───────────────────────────────────────────────────────
   Future<void> clearFilters() async {
     selectedFamilia.value = null;
     selectedSubfamilia.value = null;

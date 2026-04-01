@@ -8,7 +8,7 @@ abstract class SalesRepository {
     bool ignoreDates,
     String client,
     String statusPayment,
-    String userToFilter,
+    String userToFilter,int page,int pageSize
   );
   Future<void>generateSales(CreateSalesEntity entity);
 }

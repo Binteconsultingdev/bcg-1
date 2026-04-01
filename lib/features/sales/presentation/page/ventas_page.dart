@@ -184,46 +184,47 @@ class _VentasPageState extends State<VentasPage> {
     );
   }
 
-  Widget _buildList() {
-    return Obx(() {
-      if (_ctrl.isLoading.value) {
-        return const Center(
-          child: CircularProgressIndicator(color: ThemeColor.primaryColor),
-        );
-      }
+ Widget _buildList() {
+  return Obx(() {
+    if (_ctrl.isLoading.value) {
+      return const Center(
+        child: CircularProgressIndicator(color: ThemeColor.primaryColor),
+      );
+    }
 
-      if (_ctrl.errorMessage.isNotEmpty) {
-        return Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _ctrl.errorMessage.value,
-                style: ThemeColor.bodyMedium
-                    .copyWith(color: ThemeColor.errorColor),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: _ctrl.fetchSales,
-                child: const Text('Reintentar'),
-              ),
-            ],
-          ),
-        );
-      }
+    if (_ctrl.errorMessage.isNotEmpty && _ctrl.sales.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _ctrl.errorMessage.value,
+              style: ThemeColor.bodyMedium.copyWith(color: ThemeColor.errorColor),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _ctrl.fetchSales,
+              child: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      );
+    }
 
-      final items = _ctrl.filteredByTab(_selectedTab, _searchQuery);
+    final items = _ctrl.filteredByTab(_selectedTab, _searchQuery);
 
-      if (items.isEmpty) {
-        return Center(
-          child: Text('Sin ventas',
-              style: ThemeColor.bodyMedium
-                  .copyWith(color: ThemeColor.textSecondaryColor)),
-        );
-      }
+    if (items.isEmpty) {
+      return Center(
+        child: Text('Sin ventas',
+            style: ThemeColor.bodyMedium
+                .copyWith(color: ThemeColor.textSecondaryColor)),
+      );
+    }
 
-      return Container(
+    return RefreshIndicator(
+      onRefresh: _ctrl.fetchSales,
+      child: Container(
         margin: const EdgeInsets.symmetric(
           horizontal: ThemeColor.paddingMedium,
           vertical: ThemeColor.paddingSmall,
@@ -235,19 +236,50 @@ class _VentasPageState extends State<VentasPage> {
           boxShadow: [ThemeColor.cardShadow],
         ),
         child: ListView.separated(
-          shrinkWrap: true,
+          controller: _ctrl.scrollController,
           padding: const EdgeInsets.symmetric(
             horizontal: ThemeColor.paddingMedium,
             vertical: ThemeColor.paddingSmall,
           ),
-          itemCount: items.length,
-          separatorBuilder: (_, __) =>
-              Divider(height: 1, color: ThemeColor.dividerColor),
-          itemBuilder: (_, i) => _VentaTile(item: items[i]),
+          itemCount: items.length + 1,
+          separatorBuilder: (_, i) {
+            if (i == items.length - 1) return const SizedBox.shrink();
+            return Divider(height: 1, color: ThemeColor.dividerColor);
+          },
+          itemBuilder: (_, i) {
+            if (i == items.length) {
+              return Obx(() {
+                if (_ctrl.isLoadingMore.value) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                          color: ThemeColor.primaryColor),
+                    ),
+                  );
+                }
+                if (!_ctrl.hasMorePages.value) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Center(
+                      child: Text(
+                        'No hay más ventas',
+                        style: ThemeColor.bodyMedium.copyWith(
+                            color: ThemeColor.textSecondaryColor),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox(height: 24);
+              });
+            }
+            return _VentaTile(item: items[i]);
+          },
         ),
-      );
-    });
-  }
+      ),
+    );
+  });
+}
 
   Widget _buildFab() {
     return FloatingActionButton(
@@ -259,9 +291,7 @@ class _VentasPageState extends State<VentasPage> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tile de venta
-// ─────────────────────────────────────────────────────────────────────────────
+
 class _VentaTile extends StatelessWidget {
   final PointSaleEntity item;
   const _VentaTile({required this.item});
@@ -331,9 +361,6 @@ class _VentaTile extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom Sheet Filtros
-// ─────────────────────────────────────────────────────────────────────────────
 class _VentaFilterSheet extends StatefulWidget {
   final SalesController controller;
   const _VentaFilterSheet({required this.controller});
@@ -423,7 +450,6 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle
             Container(
               margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
               width: 40,
@@ -434,7 +460,6 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
               ),
             ),
 
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium,
@@ -458,7 +483,6 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
             Divider(height: 1, color: ThemeColor.dividerColor),
             const SizedBox(height: ThemeColor.paddingMedium),
 
-            // Bloque 1: Fechas + Cliente
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -512,7 +536,6 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
 
             const SizedBox(height: ThemeColor.paddingSmall),
 
-            // Bloque 2: Método de Pago
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -532,7 +555,6 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
 
             const SizedBox(height: ThemeColor.paddingSmall),
 
-            // Bloque 3: Pago
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -553,7 +575,6 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
 
             const SizedBox(height: ThemeColor.paddingSmall),
 
-            // Bloque 4: Entrega
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,7 +595,6 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
 
             const SizedBox(height: ThemeColor.paddingMedium),
 
-            // Botones
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: ThemeColor.paddingMedium),
@@ -606,7 +626,6 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
                           dateFrom: _desdeCtrl.text,
                           dateUntil: _hastaCtrl.text,
                           client: _cliente ?? '',
-                          // El toggle Pago mapea al statusPayment que espera la API
                           statusPayment: _pagoPorCobrar ? 'pendiente' : 'pagado',
                         );
                         Navigator.of(context).pop();
@@ -632,9 +651,7 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Widgets auxiliares (sin cambios respecto al original)
-// ─────────────────────────────────────────────────────────────────────────────
+
 class _FilterCard extends StatelessWidget {
   final Widget child;
   const _FilterCard({required this.child});

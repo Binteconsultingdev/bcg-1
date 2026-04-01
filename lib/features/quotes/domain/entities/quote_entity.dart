@@ -29,7 +29,7 @@ class QuoteEntity {
 class ProductoEntity {
   final String codigo;
   final String descripcion;
-  final int disponible;
+  final num disponible;
   final String unidad;
   final double precio;
   final int cantidad;

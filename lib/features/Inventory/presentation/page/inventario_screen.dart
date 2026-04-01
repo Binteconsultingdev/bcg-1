@@ -1,5 +1,3 @@
-
-
 import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
@@ -31,7 +29,6 @@ class InventarioScreen extends StatelessWidget {
     );
   }
 
-
   PreferredSizeWidget _buildAppBar(InventoryController controller) {
     return AppBar(
       backgroundColor: ThemeColor.surfaceColor,
@@ -55,7 +52,6 @@ class InventarioScreen extends StatelessWidget {
     );
   }
 
-  // ── Barra búsqueda + filtros ──────────────────────────────────────────────
   Widget _buildSearchBar(InventoryController controller, BuildContext context) {
     return Container(
       color: ThemeColor.surfaceColor,
@@ -91,8 +87,6 @@ class InventarioScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: ThemeColor.paddingSmall),
-
-          // Badge con contador de filtros activos
           Obx(() => GestureDetector(
                 onTap: () => _openFilters(context, controller),
                 child: Stack(
@@ -137,24 +131,28 @@ class InventarioScreen extends StatelessWidget {
     );
   }
 
-  // ── Body con estados ──────────────────────────────────────────────────────
   Widget _buildBody(InventoryController controller) {
     return Obx(() {
+      // ── Cargando primera página ────────────────────────────────────────────
       if (controller.isLoadingInventario.value) {
         return const Center(child: CircularProgressIndicator());
       }
 
-      if (controller.errorMessage.isNotEmpty) {
+      // ── Error sin datos ────────────────────────────────────────────────────
+      if (controller.errorMessage.isNotEmpty && controller.inventario.isEmpty) {
         return Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, color: ThemeColor.errorColor, size: 40),
+              Icon(Icons.error_outline,
+                  color: ThemeColor.errorColor, size: 40),
               const SizedBox(height: 8),
-              Text(controller.errorMessage.value,
-                  style: ThemeColor.bodyMedium
-                      .copyWith(color: ThemeColor.textSecondaryColor),
-                  textAlign: TextAlign.center),
+              Text(
+                controller.errorMessage.value,
+                style: ThemeColor.bodyMedium
+                    .copyWith(color: ThemeColor.textSecondaryColor),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: controller.fetchInventario,
@@ -166,28 +164,71 @@ class InventarioScreen extends StatelessWidget {
       }
 
       final products = controller.filtered;
+
+      // ── Lista vacía ────────────────────────────────────────────────────────
       if (products.isEmpty) {
         return Center(
-          child: Text('Sin resultados',
-              style: ThemeColor.bodyMedium
-                  .copyWith(color: ThemeColor.textSecondaryColor)),
+          child: Text(
+            'Sin resultados',
+            style: ThemeColor.bodyMedium
+                .copyWith(color: ThemeColor.textSecondaryColor),
+          ),
         );
       }
 
-      return ListView.separated(
-        padding: const EdgeInsets.symmetric(
-          horizontal: ThemeColor.paddingMedium,
-          vertical: ThemeColor.paddingSmall,
+      // ── Lista con infinite scroll ──────────────────────────────────────────
+      return RefreshIndicator(
+        onRefresh: controller.fetchInventario,
+        child: ListView.separated(
+          controller: controller.scrollController,
+          padding: const EdgeInsets.symmetric(
+            horizontal: ThemeColor.paddingMedium,
+            vertical: ThemeColor.paddingSmall,
+          ),
+          // +1 para el footer (loader / fin de lista)
+          itemCount: products.length + 1,
+          separatorBuilder: (_, i) {
+            // No dibujar separador antes del footer
+            if (i == products.length - 1) return const SizedBox.shrink();
+            return Divider(height: 1, color: ThemeColor.dividerColor);
+          },
+          itemBuilder: (_, i) {
+            // ── Footer ───────────────────────────────────────────────────────
+            if (i == products.length) {
+              return Obx(() {
+                // Cargando más
+                if (controller.isLoadingMore.value) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                // Ya no hay más páginas
+                if (!controller.hasMorePages.value) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Center(
+                      child: Text(
+                        'No hay más productos',
+                        style: ThemeColor.bodyMedium.copyWith(
+                            color: ThemeColor.textSecondaryColor),
+                      ),
+                    ),
+                  );
+                }
+                // Hay más pero aún no se disparó (espacio extra)
+                return const SizedBox(height: 24);
+              });
+            }
+
+            // ── Item normal ──────────────────────────────────────────────────
+            return _ProductTile(product: products[i]);
+          },
         ),
-        itemCount: products.length,
-        separatorBuilder: (_, __) =>
-            Divider(height: 1, color: ThemeColor.dividerColor),
-        itemBuilder: (_, i) => _ProductTile(product: products[i]),
       );
     });
   }
 
-  // ── Abrir filtros ─────────────────────────────────────────────────────────
   void _openFilters(BuildContext context, InventoryController controller) {
     showModalBottomSheet(
       context: context,
@@ -197,6 +238,8 @@ class InventarioScreen extends StatelessWidget {
     );
   }
 }
+
+// ── Logo de licencia ──────────────────────────────────────────────────────────
 class _LicenseLogo extends StatelessWidget {
   final double size;
   const _LicenseLogo({this.size = 52});
@@ -214,19 +257,21 @@ class _LicenseLogo extends StatelessWidget {
         logoUrl,
         width: size,
         height: size,
-        fit: BoxFit.contain,   // ← contain para que no se recorte el logo
+        fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => const SizedBox.shrink(),
       ),
     );
   }
 }
+
+// ── Tile de producto ──────────────────────────────────────────────────────────
 class _ProductTile extends StatelessWidget {
   final InventoryEntity product;
   const _ProductTile({required this.product});
 
   @override
   Widget build(BuildContext context) {
-final hasImage = (product.imageUrl?.isNotEmpty ?? false);
+    final hasImage = (product.imageUrl?.isNotEmpty ?? false);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: ThemeColor.paddingSmall),
@@ -240,31 +285,29 @@ final hasImage = (product.imageUrl?.isNotEmpty ?? false);
               borderRadius: ThemeColor.smallBorderRadius,
               border: Border.all(color: ThemeColor.dividerColor),
             ),
-             child: hasImage
-    ? ClipRRect(
-        borderRadius: ThemeColor.smallBorderRadius,
-        child: Image.network(
-          product.imageUrl!,
-          fit: BoxFit.cover,
-          // Si la URL existe pero la imagen falla → logo de licencia
-          errorBuilder: (_, __, ___) => _LicenseLogo(),
-          loadingBuilder: (_, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return const Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 1.5,
-                  color: ThemeColor.accentColor,
-                ),
-              ),
-            );
-          },
-        ),
-      )
-    // Si no hay URL → logo de licencia
-    : _LicenseLogo(),
+            child: hasImage
+                ? ClipRRect(
+                    borderRadius: ThemeColor.smallBorderRadius,
+                    child: Image.network(
+                      product.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const _LicenseLogo(),
+                      loadingBuilder: (_, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.5,
+                              color: ThemeColor.accentColor,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : const _LicenseLogo(),
           ),
           const SizedBox(width: ThemeColor.paddingMedium),
           Expanded(
@@ -316,9 +359,7 @@ final hasImage = (product.imageUrl?.isNotEmpty ?? false);
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BottomSheet de filtros — consume categorías del controller
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Filter Bottom Sheet ───────────────────────────────────────────────────────
 class _FilterBottomSheet extends StatefulWidget {
   final InventoryController controller;
   const _FilterBottomSheet({required this.controller});
@@ -334,7 +375,6 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
   @override
   void initState() {
     super.initState();
-    // Iniciar con los filtros activos actuales
     _familia = widget.controller.selectedFamilia.value;
     _subfamilia = widget.controller.selectedSubfamilia.value;
   }
@@ -357,12 +397,10 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final familiaItems = widget.controller.familias
-        .map((e) => e.category)
-        .toList();
-    final subfamiliaItems = widget.controller.subfamilias
-        .map((e) => e.category)
-        .toList();
+    final familiaItems =
+        widget.controller.familias.map((e) => e.category).toList();
+    final subfamiliaItems =
+        widget.controller.subfamilias.map((e) => e.category).toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -384,7 +422,6 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
               borderRadius: ThemeColor.circularBorderRadius,
             ),
           ),
-       
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -406,8 +443,6 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
           ),
           Divider(height: 1, color: ThemeColor.dividerColor),
           const SizedBox(height: ThemeColor.paddingMedium),
-
-
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium),
@@ -438,8 +473,6 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
             ),
           ),
           const SizedBox(height: ThemeColor.paddingLarge),
-
-
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium),

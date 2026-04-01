@@ -19,11 +19,11 @@ Future<List<PointSaleEntity>> fetchQuote(
     bool ignoreDates,
     String client,
     String statusPayment,
-    String userToFilter
+    String userToFilter,int page,int pageSize
     ) async {
   try {
     Uri url = Uri.parse(
-        '$defaultApiServer/VentaSalida/filtrar?FechaInicio=$startDate&FechaFin=$endDate&IgnorarFechas=$ignoreDates&Cliente=$client&StatusPago=$statusPayment&UsuarioAFiltrar=$userToFilter');
+        '$defaultApiServer/VentaSalida/filtrar?FechaInicio=$startDate&FechaFin=$endDate&IgnorarFechas=$ignoreDates&Cliente=$client&StatusPago=$statusPayment&UsuarioAFiltrar=$userToFilter&pagina=$page&tamanoPagina=$pageSize');
 
 
     final response = await http.get(

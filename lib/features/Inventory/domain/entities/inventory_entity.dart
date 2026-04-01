@@ -4,7 +4,7 @@ class InventoryEntity {
   final String? description;
   final String? family;
   final String? subfamily;
-  final int? availableQuantity;
+  final num? availableQuantity;
   final num? price;
   final String? imageUrl;
 

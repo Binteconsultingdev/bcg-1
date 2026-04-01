@@ -19,9 +19,9 @@ class QuotesRepositoryImp implements QuotesRepository {
   }
 
   @override
-  Future<List<GetQuoteEntity>> fetchQuote(String client,int numParte,String dateFrom,String dateUntil) async {
+  Future<List<GetQuoteEntity>> fetchQuote(String client,String numParte,String dateFrom,String dateUntil,int page,int pageSize) async {
     final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
-    return quotesDataSourcesImp.fetchQuote(token, client, numParte, dateFrom, dateUntil);
+    return quotesDataSourcesImp.fetchQuote(token, client, numParte, dateFrom, dateUntil,page,pageSize);
   }
 
   @override

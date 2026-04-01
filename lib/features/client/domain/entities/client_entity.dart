@@ -1,8 +1,10 @@
 class ClientEntity {
   final String id;
-  final String name;
+  final String? displayName;
+  final num? owes;
   ClientEntity({
     required this.id,
-    required this.name,
+     this.displayName,
+     this.owes
   });
 }

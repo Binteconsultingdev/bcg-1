@@ -22,13 +22,13 @@ class QuotesDataSourcesImp {
   Future<List<GetQuoteEntity>> fetchQuote(
     String token,
     String client,
-    int numParte,
+    String numParte,
     String dateFrom,
-    String dateUntil,
+    String dateUntil,int page,int pageSize
   ) async {
     try {
       Uri url = Uri.parse(
-        '$defaultApiServer/Cotizaciones?cliente=$client&numParte=$numParte&fechaDesde=$dateFrom&fechaHasta=$dateUntil',
+        '$defaultApiServer/Cotizaciones?cliente=$client&numParte=$numParte&fechaDesde=$dateFrom&fechaHasta=$dateUntil&pagina=$page&tamanoPagina=$pageSize',
       );
 
       final response = await http.get(
