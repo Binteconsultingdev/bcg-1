@@ -1,5 +1,5 @@
 // lib/features/start/start_controller.dart
-import 'package:bcg/page/clientes_screen.dart';
+import 'package:bcg/features/client/presentation/page/clientes_screen.dart';
 import 'package:bcg/features/quotes/presentation/page/cotizaciones_page.dart';
 import 'package:bcg/features/Inventory/presentation/page/inventario_screen.dart';
 import 'package:bcg/features/sales/presentation/page/ventas_page.dart';

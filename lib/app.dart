@@ -7,6 +7,7 @@ import 'package:bcg/features/Inventory/presentation/controller/inventory_control
 import 'package:bcg/features/auth/presentation/page/Splash/splash_controller.dart';
 import 'package:bcg/features/auth/presentation/page/login/license_controller.dart';
 import 'package:bcg/features/auth/presentation/page/login/login_controller.dart';
+import 'package:bcg/features/client/presentation/controller/client_controller.dart';
 import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
 import 'package:bcg/features/sales/presentation/controller/sales_controller.dart';
@@ -51,6 +52,7 @@ class App extends StatelessWidget {
         Get.lazyPut(() => QuotesController(fetchQuoteUsecase: Get.find(),),fenix: true);
         Get.lazyPut(() => CreateQuoteController(createQuotesUsecase: Get.find(), fetchFolioUsecase: Get.find(), generatePdfUsecase: Get.find(),),fenix: true);
         Get.lazyPut(() => SalesController(pointSalesUsecase:Get.find()),fenix: true);
+        Get.lazyPut(() => ClientController(fetchClientsUsecase:Get.find()),fenix: true);
 
       }),
 

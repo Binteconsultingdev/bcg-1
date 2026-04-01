@@ -1,31 +1,11 @@
 import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
+import 'package:bcg/features/client/domain/entities/client_entity.dart';
+import 'package:bcg/features/client/presentation/controller/client_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-// import 'package:tu_app/core/theme/theme_color.dart';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Modelo
-// ─────────────────────────────────────────────────────────────────────────────
-class ClienteItem {
-  final String nombre;
-  final String fecha;
-  final double totalVentas;
-  final double adeudo;
-
-  const ClienteItem({
-    required this.nombre,
-    required this.fecha,
-    required this.totalVentas,
-    this.adeudo = 0,
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Pantalla Clientes
-// ─────────────────────────────────────────────────────────────────────────────
 class ClientesScreen extends StatefulWidget {
   const ClientesScreen({super.key});
 
@@ -35,21 +15,19 @@ class ClientesScreen extends StatefulWidget {
 
 class _ClientesScreenState extends State<ClientesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
+  late final ClientController _ctrl;
 
-  final List<ClienteItem> _clientes = const [
-    ClienteItem(
-      nombre: '(48) AUTOTRANSPORTES LA FLECHA',
-      fecha: '03/03/2026',
-      totalVentas: 350.00,
-      adeudo: 566.00,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.find<ClientController>();
+  }
 
-  List<ClienteItem> get _filtered => _clientes
-      .where((c) =>
-          c.nombre.toLowerCase().contains(_searchQuery.toLowerCase()))
-      .toList();
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   void _openNuevoCliente() {
     showModalBottomSheet(
@@ -58,17 +36,11 @@ class _ClientesScreenState extends State<ClientesScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => _NuevoClienteSheet(
         onGuardar: (data) {
-          // TODO: agregar cliente a la lista / controlador GetX
+          // TODO: llamar use case de crear cliente
           Navigator.of(context).pop();
         },
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
@@ -91,7 +63,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
     );
   }
 
-  // ── AppBar ──────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: ThemeColor.surfaceColor,
@@ -102,8 +73,10 @@ class _ClientesScreenState extends State<ClientesScreen> {
         IconButton(
           icon: const Icon(Icons.settings_outlined,
               color: ThemeColor.textPrimaryColor, size: 22),
-          onPressed: () {  AuthService authService = AuthService();
-            authService.logoutaler();},
+          onPressed: () {
+            AuthService authService = AuthService();
+            authService.logoutaler();
+          },
         ),
       ],
       bottom: PreferredSize(
@@ -113,7 +86,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
     );
   }
 
-  // ── Barra búsqueda ──────────────────────────────────────────────────────
   Widget _buildSearchBar() {
     return Container(
       color: ThemeColor.surfaceColor,
@@ -130,7 +102,8 @@ class _ClientesScreenState extends State<ClientesScreen> {
         ),
         child: TextField(
           controller: _searchController,
-          onChanged: (v) => setState(() => _searchQuery = v),
+          // Busca en servidor al cambiar (debounce opcional)
+          onChanged: (v) => _ctrl.fetchClients(client: v),
           style: ThemeColor.bodyMedium,
           decoration: InputDecoration(
             hintText: 'Buscar cliente',
@@ -148,11 +121,10 @@ class _ClientesScreenState extends State<ClientesScreen> {
     );
   }
 
-  // ── Botón Agregar Cliente ───────────────────────────────────────────────
   Widget _buildAgregarBtn() {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: ThemeColor.paddingMedium),
+      padding:
+          const EdgeInsets.symmetric(horizontal: ThemeColor.paddingMedium),
       child: ThemeColor.widgetButton(
         text: 'Agregar Cliente',
         onPressed: _openNuevoCliente,
@@ -168,38 +140,106 @@ class _ClientesScreenState extends State<ClientesScreen> {
     );
   }
 
-  // ── Lista de clientes ───────────────────────────────────────────────────
   Widget _buildList() {
-    final items = _filtered;
-    if (items.isEmpty) {
-      return Center(
-        child: Text('Sin clientes',
-            style: ThemeColor.bodyMedium
-                .copyWith(color: ThemeColor.textSecondaryColor)),
+    return Obx(() {
+      // ── Cargando primera página ──────────────────────────────────────────
+      if (_ctrl.isLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(color: ThemeColor.primaryColor),
+        );
+      }
+
+      // ── Error ────────────────────────────────────────────────────────────
+      if (_ctrl.errorMessage.isNotEmpty && _ctrl.clients.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _ctrl.errorMessage.value,
+                style: ThemeColor.bodyMedium
+                    .copyWith(color: ThemeColor.errorColor),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _ctrl.fetchClients,
+                child: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        );
+      }
+
+      // ── Vacío ────────────────────────────────────────────────────────────
+      if (_ctrl.clients.isEmpty) {
+        return Center(
+          child: Text('Sin clientes',
+              style: ThemeColor.bodyMedium
+                  .copyWith(color: ThemeColor.textSecondaryColor)),
+        );
+      }
+
+      // ── Lista con infinite scroll ────────────────────────────────────────
+      return RefreshIndicator(
+        onRefresh: _ctrl.fetchClients,
+        child: ListView.separated(
+          controller: _ctrl.scrollController,
+          padding: const EdgeInsets.symmetric(
+            horizontal: ThemeColor.paddingMedium,
+            vertical: ThemeColor.paddingSmall,
+          ),
+          itemCount: _ctrl.clients.length + 1,
+          separatorBuilder: (_, i) {
+            if (i == _ctrl.clients.length - 1) return const SizedBox.shrink();
+            return Divider(height: 1, color: ThemeColor.dividerColor);
+          },
+          itemBuilder: (_, i) {
+            // ── Footer ─────────────────────────────────────────────────────
+            if (i == _ctrl.clients.length) {
+              return Obx(() {
+                if (_ctrl.isLoadingMore.value) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                          color: ThemeColor.primaryColor),
+                    ),
+                  );
+                }
+                if (!_ctrl.hasMorePages.value) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Center(
+                      child: Text(
+                        'No hay más clientes',
+                        style: ThemeColor.bodyMedium.copyWith(
+                            color: ThemeColor.textSecondaryColor),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox(height: 24);
+              });
+            }
+
+            return _ClienteTile(cliente: _ctrl.clients[i]);
+          },
+        ),
       );
-    }
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingSmall,
-      ),
-      itemCount: items.length,
-      separatorBuilder: (_, __) =>
-          Divider(height: 1, color: ThemeColor.dividerColor),
-      itemBuilder: (_, i) => _ClienteTile(cliente: items[i]),
-    );
+    });
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Tile de cliente
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Tile de cliente ───────────────────────────────────────────────────────────
 class _ClienteTile extends StatelessWidget {
-  final ClienteItem cliente;
+  final ClientEntity cliente;
   const _ClienteTile({required this.cliente});
 
   @override
   Widget build(BuildContext context) {
+    final tieneAdeudo = (cliente.owes ?? 0) > 0;
+
     return Padding(
       padding: const EdgeInsets.symmetric(
           vertical: ThemeColor.paddingSmall + 2),
@@ -210,29 +250,25 @@ class _ClienteTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nombre en azul
                 Text(
-                  cliente.nombre,
+                  cliente.displayName ?? '—',
                   style: ThemeColor.bodyMedium.copyWith(
                     color: ThemeColor.infoColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(cliente.fecha,
-                    style: ThemeColor.caption
-                        .copyWith(color: ThemeColor.textSecondaryColor)),
-                const SizedBox(height: 4),
-                Text(
-                  '\$${cliente.totalVentas.toStringAsFixed(2)}',
-                  style: ThemeColor.bodyMedium
-                      .copyWith(fontWeight: FontWeight.w500),
-                ),
+                if (tieneAdeudo) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '\$${cliente.owes!.toStringAsFixed(2)}',
+                    style: ThemeColor.bodyMedium
+                        .copyWith(fontWeight: FontWeight.w500),
+                  ),
+                ],
               ],
             ),
           ),
-          // Badge adeudo (solo si tiene adeudo)
-          if (cliente.adeudo > 0)
+          if (tieneAdeudo)
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingSmall + 2,
@@ -243,7 +279,7 @@ class _ClienteTile extends StatelessWidget {
                 borderRadius: ThemeColor.circularBorderRadius,
               ),
               child: Text(
-                '\$${cliente.adeudo.toStringAsFixed(2)} adeudo',
+                '\$${cliente.owes!.toStringAsFixed(2)} adeudo',
                 style: ThemeColor.caption.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -256,9 +292,7 @@ class _ClienteTile extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom Sheet Nuevo Cliente
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Bottom Sheet Nuevo Cliente (sin cambios) ──────────────────────────────────
 class _NuevoClienteSheet extends StatefulWidget {
   final void Function(Map<String, String> data) onGuardar;
   const _NuevoClienteSheet({required this.onGuardar});
@@ -314,8 +348,8 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         decoration: BoxDecoration(
           color: ThemeColor.backgroundColor,
@@ -326,17 +360,15 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle
             Container(
               margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                 color: ThemeColor.dividerColor,
                 borderRadius: ThemeColor.circularBorderRadius,
               ),
             ),
-
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium,
@@ -356,11 +388,8 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                 ],
               ),
             ),
-
             Divider(height: 1, color: ThemeColor.dividerColor),
             const SizedBox(height: ThemeColor.paddingMedium),
-
-            // Formulario
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -376,44 +405,36 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Información del Cliente',
-                          style: ThemeColor.bodyMedium.copyWith(
-                            fontWeight: FontWeight.w700,
-                          )),
+                          style: ThemeColor.bodyMedium
+                              .copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: ThemeColor.paddingMedium),
-
                       ThemeColor.createLabeledTextField(
                         label: 'Empresa',
                         controller: _empresaCtrl,
                         focusNode: _empresaFocus,
                         borderRadius: ThemeColor.smallBorderRadius,
                         isRequired: true,
-                        onSubmitted: (_) =>
-                            _nombreFocus.requestFocus(),
+                        onSubmitted: (_) => _nombreFocus.requestFocus(),
                       ),
                       const SizedBox(height: ThemeColor.paddingMedium),
-
                       ThemeColor.createLabeledTextField(
-                        label: 'Nombre del Cliente o Respresentante',
+                        label: 'Nombre del Cliente o Representante',
                         controller: _nombreCtrl,
                         focusNode: _nombreFocus,
                         borderRadius: ThemeColor.smallBorderRadius,
                         isRequired: true,
-                        onSubmitted: (_) =>
-                            _telefonoFocus.requestFocus(),
+                        onSubmitted: (_) => _telefonoFocus.requestFocus(),
                       ),
                       const SizedBox(height: ThemeColor.paddingMedium),
-
                       ThemeColor.createLabeledTextField(
                         label: 'Teléfono',
                         controller: _telefonoCtrl,
                         focusNode: _telefonoFocus,
                         keyboardType: TextInputType.phone,
                         borderRadius: ThemeColor.smallBorderRadius,
-                        onSubmitted: (_) =>
-                            _emailFocus.requestFocus(),
+                        onSubmitted: (_) => _emailFocus.requestFocus(),
                       ),
                       const SizedBox(height: ThemeColor.paddingMedium),
-
                       ThemeColor.createLabeledTextField(
                         label: 'Email',
                         controller: _emailCtrl,
@@ -427,10 +448,7 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                 ),
               ),
             ),
-
             const SizedBox(height: ThemeColor.paddingMedium),
-
-            // Botón guardar
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: ThemeColor.paddingMedium),

@@ -16,10 +16,10 @@ class ClientRepositoryImp extends ClientRepository {
   }
 
   @override
-  Future<List<ClientEntity>> fetchClients() async {
+  Future<List<ClientEntity>> fetchClients(String client,String company,String rfc,String email,int page,int pageSize) async {
     final token =
         await authService.getToken() ??
         (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
-    return await clientDataSourcesImp.fetchClients(token);
+    return await clientDataSourcesImp.fetchClients(token, client, company, rfc, email, page, pageSize);
   }
 }

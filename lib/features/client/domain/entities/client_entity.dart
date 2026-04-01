@@ -1,5 +1,5 @@
 class ClientEntity {
-  final String id;
+  final int id;
   final String? displayName;
   final num? owes;
   ClientEntity({

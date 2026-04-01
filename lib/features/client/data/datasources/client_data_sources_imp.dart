@@ -3,24 +3,27 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:bcg/common/constants/constants.dart';
 import 'package:bcg/common/errors/api_errors.dart';
 import 'package:bcg/features/client/data/model/client_model.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
-import 'package:bcg/features/quotes/data/model/folio_model.dart';
-import 'package:bcg/features/quotes/data/model/get_quote_model.dart';
-import 'package:bcg/features/quotes/data/model/quote_model.dart';
-import 'package:bcg/features/quotes/domain/entities/folito_entity.dart';
-import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
-import 'package:bcg/features/quotes/domain/entities/quote_entity.dart';
 import 'package:http/http.dart' as http;
 
 class ClientDataSourcesImp {
   String defaultApiServer = AppConstants.serverBase;
 
-  Future<List<ClientEntity>> fetchClients(String token) async {
+  Future<List<ClientEntity>> fetchClients(
+    String token,
+    String client,
+    String company,
+    String rfc,
+    String email,
+    int page,
+    int pageSize,
+  ) async {
     try {
-      Uri url = Uri.parse('$defaultApiServer/Cliente');
+      Uri url = Uri.parse(
+        '$defaultApiServer/Clientes?cliente=$client&empresa=$company&RFC=$rfc&correo=$email&pagina=$page&tamanoPagina=$pageSize',
+      );
 
       final response = await http.get(
         url,
@@ -30,13 +33,11 @@ class ClientDataSourcesImp {
         },
       );
 
-      if (response.statusCode == 200) {
-        final dataUTF8 = utf8.decode(response.bodyBytes);
-
-        final responseData = jsonDecode(dataUTF8) as List;
-
-        return responseData.map((json) => ClientModel.fromJson(json)).toList();
-      }
+  if (response.statusCode == 200) {
+  return (jsonDecode(utf8.decode(response.bodyBytes))['items'] as List? ?? [])
+      .map((json) => ClientModel.fromJson(json))
+      .toList();
+}
 
       throw ApiExceptionCustom(response: response);
     } catch (e) {
