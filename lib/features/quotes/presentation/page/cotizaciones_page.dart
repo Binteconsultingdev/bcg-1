@@ -81,61 +81,129 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      color: ThemeColor.surfaceColor,
-      padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingSmall,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: ThemeColor.backgroundColor,
-                borderRadius: ThemeColor.mediumBorderRadius,
-                border: Border.all(color: ThemeColor.dividerColor),
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (v) => setState(() => _searchQuery = v),
-                style: ThemeColor.bodyMedium,
-                decoration: InputDecoration(
-                  hintText: 'Buscar cotizaciones',
-                  hintStyle: ThemeColor.bodyMedium
-                      .copyWith(color: ThemeColor.textSecondaryColor),
-                  prefixIcon: Icon(Icons.search,
-                      color: ThemeColor.textSecondaryColor, size: 20),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 10),
+Widget _buildSearchBar() {
+  return Container(
+    color: ThemeColor.surfaceColor,
+    padding: const EdgeInsets.symmetric(
+      horizontal: ThemeColor.paddingMedium,
+      vertical: ThemeColor.paddingSmall,
+    ),
+    child: Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 40,
+                decoration: BoxDecoration(
+                  color: ThemeColor.backgroundColor,
+                  borderRadius: ThemeColor.mediumBorderRadius,
+                  border: Border.all(color: ThemeColor.dividerColor),
+                ),
+                child: TextField(
+                  controller: _ctrl.searchController,
+                  onChanged: (v) => _ctrl.searchInput.value = v,
+                  onSubmitted: (_) => _ctrl.searchQuotes(),
+                  textInputAction: TextInputAction.search,
+                  keyboardType: TextInputType.number,
+                  style: ThemeColor.bodyMedium,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar...',
+                    hintStyle: ThemeColor.bodyMedium.copyWith(
+                      color: ThemeColor.textSecondaryColor,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: ThemeColor.paddingSmall),
-          GestureDetector(
-            onTap: _openFilters,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: ThemeColor.backgroundColor,
-                borderRadius: ThemeColor.mediumBorderRadius,
-                border: Border.all(color: ThemeColor.dividerColor),
+            const SizedBox(width: ThemeColor.paddingSmall),
+            GestureDetector(
+              onTap: _ctrl.searchQuotes,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: ThemeColor.primaryColor,
+                  borderRadius: ThemeColor.mediumBorderRadius,
+                ),
+                child: const Icon(Icons.search, color: Colors.white, size: 20),
               ),
-              child: const Icon(Icons.tune,
-                  color: ThemeColor.textPrimaryColor, size: 20),
             ),
-          ),
-        ],
+            const SizedBox(width: ThemeColor.paddingSmall),
+            GestureDetector(
+              onTap: _openFilters,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: ThemeColor.backgroundColor,
+                  borderRadius: ThemeColor.mediumBorderRadius,
+                  border: Border.all(color: ThemeColor.dividerColor),
+                ),
+                child: const Icon(Icons.tune,
+                    color: ThemeColor.textPrimaryColor, size: 20),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: ThemeColor.paddingSmall),
+        // Toggle folio / id
+        Obx(() => Row(
+          children: [
+            _toggleChip(
+              label: 'Folio',
+              selected: _ctrl.searchByFolio.value,
+              onTap: () => _ctrl.searchByFolio.value = true,
+            ),
+            const SizedBox(width: ThemeColor.paddingSmall),
+            _toggleChip(
+              label: 'ID',
+              selected: !_ctrl.searchByFolio.value,
+              onTap: () => _ctrl.searchByFolio.value = false,
+            ),
+          ],
+        )),
+      ],
+    ),
+  );
+}
+
+Widget _toggleChip({
+  required String label,
+  required bool selected,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: selected ? ThemeColor.primaryColor : Colors.transparent,
+        borderRadius: ThemeColor.circularBorderRadius,
+        border: Border.all(
+          color: selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
+        ),
       ),
-    );
-  }
+      child: Text(
+        label,
+        style: ThemeColor.bodySmall.copyWith(
+          color: selected
+              ? ThemeColor.textLightColor
+              : ThemeColor.textSecondaryColor,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+        ),
+      ),
+    ),
+  );
+}
 
   Widget _buildTabs() {
     const labels = ['Todas', 'Vencidas', 'Vendidas'];
@@ -218,7 +286,7 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
       );
     }
 
-    final items = _ctrl.filteredByTab(_selectedTab, _searchQuery);
+final items = _ctrl.filteredByTab(_selectedTab);
 
     if (items.isEmpty) {
       return Center(

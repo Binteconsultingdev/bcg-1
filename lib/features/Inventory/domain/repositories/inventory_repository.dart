@@ -4,6 +4,6 @@ import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 abstract class InventoryRepository {
   Future<List<InventoryCategoryEntity>> fetchSubfamilias();
   Future<List<InventoryCategoryEntity>> fetchFamilias();
-  Future<List<InventoryEntity>> fetchInventario(String familia, String subfamilia,int page,int pageSize);
+  Future<List<InventoryEntity>> fetchInventario(String description,String familia, String subfamilia,int page,int pageSize);
 
 }

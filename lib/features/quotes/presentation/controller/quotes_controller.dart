@@ -20,8 +20,22 @@ class QuotesController extends GetxController {
   final RxString dateFromFilter = ''.obs;
   final RxString dateUntilFilter = ''.obs;
 
+  // Búsqueda
+  final RxString searchInput = ''.obs;
+  final RxBool searchByFolio = true.obs; // true = folio, false = id
+  final TextEditingController searchController = TextEditingController();
+
   int _currentPage = 1;
   static const int _pageSize = 20;
+
+  int? get _parsedId =>
+      searchByFolio.value ? null : int.tryParse(searchInput.value.trim());
+
+  String? get _parsedFolio {
+    final trimmed = searchInput.value.trim();
+    if (trimmed.isEmpty || !searchByFolio.value) return null;
+    return trimmed;
+  }
 
   @override
   void onReady() {
@@ -33,6 +47,7 @@ class QuotesController extends GetxController {
   @override
   void onClose() {
     scrollController.dispose();
+    searchController.dispose();
     super.onClose();
   }
 
@@ -41,6 +56,14 @@ class QuotesController extends GetxController {
     if (pos.pixels >= pos.maxScrollExtent - 200) {
       loadMoreQuotes();
     }
+  }
+
+  String _toIso(String ddMMyyyy, {bool endOfDay = false}) {
+    if (ddMMyyyy.isEmpty) return '';
+    final parts = ddMMyyyy.split('/');
+    if (parts.length != 3) return '';
+    final time = endOfDay ? '23:59:59' : '00:00:00';
+    return '${parts[2]}-${parts[1]}-${parts[0]}T$time';
   }
 
   Future<void> fetchQuotes({
@@ -67,13 +90,44 @@ class QuotesController extends GetxController {
         numParte,
         dateFrom,
         dateUntil,
-        _currentPage,_pageSize
+        _currentPage,
+        _pageSize,
+        folio: _parsedFolio,
+        id: _parsedId,
       );
 
       quotes.assignAll(result);
       if (result.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al cargar cotizaciones: $e';
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> searchQuotes() async {
+    if (isLoading.value) return;
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      _currentPage = 1;
+      hasMorePages.value = true;
+
+      final result = await fetchQuoteUsecase.cal(
+        clientFilter.value,
+        numParteFilter.value,
+        dateFromFilter.value,
+        dateUntilFilter.value,
+        _currentPage,
+        _pageSize,
+        folio: _parsedFolio,
+        id: _parsedId,
+      );
+
+      quotes.assignAll(result);
+      if (result.length < _pageSize) hasMorePages.value = false;
+    } catch (e) {
+      errorMessage.value = 'Error al buscar: $e';
     } finally {
       isLoading.value = false;
     }
@@ -91,7 +145,9 @@ class QuotesController extends GetxController {
         dateFromFilter.value,
         dateUntilFilter.value,
         _currentPage,
-        _pageSize
+        _pageSize,
+        folio: _parsedFolio,
+        id: _parsedId,
       );
 
       if (result.isEmpty || result.length < _pageSize) {
@@ -104,14 +160,6 @@ class QuotesController extends GetxController {
     } finally {
       isLoadingMore.value = false;
     }
-  }
-
-  String _toIso(String ddMMyyyy, {bool endOfDay = false}) {
-    if (ddMMyyyy.isEmpty) return '';
-    final parts = ddMMyyyy.split('/');
-    if (parts.length != 3) return '';
-    final time = endOfDay ? '23:59:59' : '00:00:00';
-    return '${parts[2]}-${parts[1]}-${parts[0]}T$time';
   }
 
   void applyFilters({
@@ -127,17 +175,18 @@ class QuotesController extends GetxController {
     );
   }
 
-  void clearFilters() => fetchQuotes();
+  void clearFilters() {
+    searchController.clear();
+    searchInput.value = '';
+    searchByFolio.value = true;
+    fetchQuotes();
+  }
 
-  List<GetQuoteEntity> filteredByTab(int tab, String search) {
+  List<GetQuoteEntity> filteredByTab(int tab) {
     return quotes.where((q) {
-      final matchTab = tab == 0 ||
+      return tab == 0 ||
           (tab == 1 && q.status?.toLowerCase() == 'vencida') ||
           (tab == 2 && q.status?.toLowerCase() == 'vendida');
-      final matchSearch = search.isEmpty ||
-          (q.client?.toLowerCase().contains(search.toLowerCase()) ?? false) ||
-          (q.folito?.toLowerCase().contains(search.toLowerCase()) ?? false);
-      return matchTab && matchSearch;
     }).toList();
   }
 }

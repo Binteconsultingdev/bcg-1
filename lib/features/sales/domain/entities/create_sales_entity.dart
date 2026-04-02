@@ -11,7 +11,7 @@ class CreateSalesEntity {
   final bool incIVA;
   final String folioPre;
   final double descuento;
-  final List<Partida> partidas;
+  final List<PartidaEntity> partidas;
 
   CreateSalesEntity({
     required this.numCliente,
@@ -28,10 +28,9 @@ class CreateSalesEntity {
     required this.descuento,
     required this.partidas,
   });
-
 }
 
-class Partida {
+class PartidaEntity {
   final String numParte;
   final String descripcion;
   final double cantidad;
@@ -39,7 +38,7 @@ class Partida {
   final String claveSat;
   final String um;
 
-  Partida({
+  PartidaEntity({
     required this.numParte,
     required this.descripcion,
     required this.cantidad,

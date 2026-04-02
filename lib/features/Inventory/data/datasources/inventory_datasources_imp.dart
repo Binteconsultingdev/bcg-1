@@ -38,12 +38,12 @@ class InventoryDatasourcesImp {
     }
   }
 
-  Future<List<InventoryEntity>> fetchInventario(String token,
+  Future<List<InventoryEntity>> fetchInventario(String token,String description,
     String familia,
     String subfamilia,int page,int pageSize) async {
     try {
       Uri url = Uri.parse(
-        '$defaultApiServer/inventario/buscar?familia=$familia&subfamilia=$subfamilia&pagina=$page&tamanoPagina=$pageSize',
+        '$defaultApiServer/inventario/buscar?familia=$familia&descripcion=$description&subfamilia=$subfamilia&pagina=$page&tamanoPagina=$pageSize',
       );
       final response = await http.get(
         url,

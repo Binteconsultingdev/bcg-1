@@ -72,7 +72,7 @@ class CreateSalesModel extends CreateSalesEntity {
   }
 }
 
-class PartidaModel extends Partida {
+class PartidaModel extends PartidaEntity {
   PartidaModel({
     required super.numParte,
     required super.descripcion,

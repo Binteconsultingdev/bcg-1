@@ -24,12 +24,27 @@ class QuotesDataSourcesImp {
     String client,
     String numParte,
     String dateFrom,
-    String dateUntil,int page,int pageSize
-  ) async {
+    String dateUntil,
+    int page,
+    int pageSize, {
+    String? folio,
+    int? id,
+  }) async {
     try {
+      final queryParams = {
+        'cliente': client,
+        'numParte': numParte,
+        'fechaDesde': dateFrom,
+        'fechaHasta': dateUntil,
+        'pagina': page.toString(),
+        'tamanoPagina': pageSize.toString(),
+        if (folio != null && folio.isNotEmpty) 'folio': folio,
+        if (id != null) 'id': id.toString(),
+      };
+
       Uri url = Uri.parse(
-        '$defaultApiServer/Cotizaciones?cliente=$client&numParte=$numParte&fechaDesde=$dateFrom&fechaHasta=$dateUntil&pagina=$page&tamanoPagina=$pageSize',
-      );
+        '$defaultApiServer/Cotizaciones',
+      ).replace(queryParameters: queryParams);
 
       final response = await http.get(
         url,
@@ -41,9 +56,7 @@ class QuotesDataSourcesImp {
 
       if (response.statusCode == 200) {
         final dataUTF8 = utf8.decode(response.bodyBytes);
-
         final responseData = jsonDecode(dataUTF8) as List;
-
         return responseData
             .map((json) => GetQuoteModel.fromJson(json))
             .toList();
@@ -56,7 +69,6 @@ class QuotesDataSourcesImp {
           e is TimeoutException) {
         throw Exception(convertMessageException(error: e));
       }
-
       throw Exception(e);
     }
   }

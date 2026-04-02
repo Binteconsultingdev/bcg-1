@@ -1,4 +1,3 @@
-
 import 'package:bcg/features/Inventory/domain/entities/inventory_category_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_familias_usecase.dart';
@@ -25,7 +24,7 @@ class InventoryController extends GetxController {
   final RxList<InventoryCategoryEntity> subfamilias = <InventoryCategoryEntity>[].obs;
 
   final RxBool isLoadingInventario = false.obs;
-  final RxBool isLoadingMore = false.obs; 
+  final RxBool isLoadingMore = false.obs;
   final RxBool isLoadingCategorias = false.obs;
   final RxBool hasMorePages = true.obs;
   final RxString errorMessage = ''.obs;
@@ -35,22 +34,20 @@ class InventoryController extends GetxController {
 
   final Rx<String?> selectedFamilia = Rx<String?>(null);
   final Rx<String?> selectedSubfamilia = Rx<String?>(null);
-  final RxString searchQuery = ''.obs;
 
-  List<InventoryEntity> get filtered {
-    final q = searchQuery.value.toLowerCase();
-    if (q.isEmpty) return inventario;
-    return inventario
-        .where((p) =>
-            p.description!.toLowerCase().contains(q) ||
-            p.partNumber!.toLowerCase().contains(q))
-        .toList();
-  }
+  // Búsqueda por description via API
+  final RxString searchInput = ''.obs;
+  final TextEditingController searchController = TextEditingController();
 
   int get activeFiltersCount =>
       [selectedFamilia.value, selectedSubfamilia.value]
           .where((v) => v != null)
           .length;
+
+  String? get _parsedDescription {
+    final trimmed = searchInput.value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
 
   @override
   void onInit() {
@@ -62,6 +59,7 @@ class InventoryController extends GetxController {
   @override
   void onClose() {
     scrollController.dispose();
+    searchController.dispose();
     super.onClose();
   }
 
@@ -105,13 +103,14 @@ class InventoryController extends GetxController {
       hasMorePages.value = true;
 
       final result = await fetchInventarioUsecase.call(
+        _parsedDescription ?? '',
         selectedFamilia.value ?? '',
         selectedSubfamilia.value ?? '',
-        _currentPage,_pageSize
+        _currentPage,
+        _pageSize,
       );
 
       inventario.assignAll(result);
-
       if (result.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al cargar inventario: $e';
@@ -120,26 +119,51 @@ class InventoryController extends GetxController {
     }
   }
 
+  Future<void> searchInventario() async {
+    if (isLoadingInventario.value) return;
+    try {
+      isLoadingInventario.value = true;
+      errorMessage.value = '';
+      _currentPage = 1;
+      hasMorePages.value = true;
+
+      final result = await fetchInventarioUsecase.call(
+        _parsedDescription ?? '',
+        selectedFamilia.value ?? '',
+        selectedSubfamilia.value ?? '',
+        _currentPage,
+        _pageSize,
+      );
+
+      inventario.assignAll(result);
+      if (result.length < _pageSize) hasMorePages.value = false;
+    } catch (e) {
+      errorMessage.value = 'Error al buscar: $e';
+    } finally {
+      isLoadingInventario.value = false;
+    }
+  }
+
   Future<void> loadMoreInventario() async {
     if (isLoadingMore.value || !hasMorePages.value || isLoadingInventario.value) return;
-
     try {
       isLoadingMore.value = true;
       _currentPage++;
 
       final result = await fetchInventarioUsecase.call(
+        _parsedDescription ?? '',
         selectedFamilia.value ?? '',
         selectedSubfamilia.value ?? '',
-        _currentPage,_pageSize
+        _currentPage,
+        _pageSize,
       );
 
       if (result.isEmpty || result.length < _pageSize) {
         hasMorePages.value = false;
       }
-
       inventario.addAll(result);
     } catch (e) {
-      _currentPage--; 
+      _currentPage--;
       errorMessage.value = 'Error al cargar más productos: $e';
     } finally {
       isLoadingMore.value = false;
@@ -156,10 +180,10 @@ class InventoryController extends GetxController {
   }
 
   Future<void> clearFilters() async {
+    searchController.clear();
+    searchInput.value = '';
     selectedFamilia.value = null;
     selectedSubfamilia.value = null;
     await fetchInventario();
   }
-
-  void onSearchChanged(String value) => searchQuery.value = value;
 }

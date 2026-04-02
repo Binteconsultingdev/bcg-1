@@ -13,27 +13,53 @@ class QuotesRepositoryImp implements QuotesRepository {
   QuotesRepositoryImp({required this.quotesDataSourcesImp});
   @override
   Future<ResponseCreateEntity> createQuote(QuoteEntity entity) async {
-        final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
+    final token =
+        await authService.getToken() ??
+        (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
 
     return quotesDataSourcesImp.createQuote(entity, token);
   }
 
   @override
-  Future<List<GetQuoteEntity>> fetchQuote(String client,String numParte,String dateFrom,String dateUntil,int page,int pageSize) async {
-    final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
-    return quotesDataSourcesImp.fetchQuote(token, client, numParte, dateFrom, dateUntil,page,pageSize);
+  Future<List<GetQuoteEntity>> fetchQuote(
+    String client,
+    String numParte,
+    String dateFrom,
+    String dateUntil,
+    int page,
+    int pageSize,{
+  String? folio,
+  int? id,
+}) async {
+    final token =
+        await authService.getToken() ??
+        (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
+    return quotesDataSourcesImp.fetchQuote(
+      token,
+      client,
+      numParte,
+      dateFrom,
+      dateUntil,
+      page,
+    pageSize,
+    folio: folio,
+    id: id,
+    );
   }
 
   @override
   Future<FolioEntity> getfolio() async {
-    final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
+    final token =
+        await authService.getToken() ??
+        (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
     return await quotesDataSourcesImp.fetchFolio(token);
   }
 
   @override
-  Future<QuotePdfEntity> generatePdf(int folio) async  {
-    final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
+  Future<QuotePdfEntity> generatePdf(int folio) async {
+    final token =
+        await authService.getToken() ??
+        (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
     return await quotesDataSourcesImp.generatePdf(folio, token);
   }
-
 }

@@ -22,8 +22,22 @@ class SalesController extends GetxController {
   final RxString userFilter = ''.obs;
   final RxBool ignoreDatesFilter = true.obs;
 
+  // Búsqueda
+  final RxString searchInput = ''.obs;
+  final RxBool searchByFolio = true.obs; // true = folio, false = id
+  final TextEditingController searchController = TextEditingController();
+
   int _currentPage = 1;
   static const int _pageSize = 20;
+
+  int? get _parsedId =>
+      searchByFolio.value ? null : int.tryParse(searchInput.value.trim());
+
+  String? get _parsedFolio {
+    final trimmed = searchInput.value.trim();
+    if (trimmed.isEmpty || !searchByFolio.value) return null;
+    return trimmed;
+  }
 
   @override
   void onReady() {
@@ -35,6 +49,7 @@ class SalesController extends GetxController {
   @override
   void onClose() {
     scrollController.dispose();
+    searchController.dispose();
     super.onClose();
   }
 
@@ -83,13 +98,46 @@ class SalesController extends GetxController {
         client,
         statusPayment,
         userToFilter,
-        _currentPage,_pageSize
+        _currentPage,
+        _pageSize,
+        folio: _parsedFolio,
+        id: _parsedId,
       );
 
       sales.assignAll(result);
       if (result.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al cargar ventas: $e';
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> searchSales() async {
+    if (isLoading.value) return;
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      _currentPage = 1;
+      hasMorePages.value = true;
+
+      final result = await pointSalesUsecase.call(
+        _toIso(dateFromFilter.value),
+        _toIso(dateUntilFilter.value, endOfDay: true),
+        ignoreDatesFilter.value,
+        clientFilter.value,
+        statusPaymentFilter.value,
+        userFilter.value,
+        _currentPage,
+        _pageSize,
+        folio: _parsedFolio,
+        id: _parsedId,
+      );
+
+      sales.assignAll(result);
+      if (result.length < _pageSize) hasMorePages.value = false;
+    } catch (e) {
+      errorMessage.value = 'Error al buscar: $e';
     } finally {
       isLoading.value = false;
     }
@@ -108,7 +156,10 @@ class SalesController extends GetxController {
         clientFilter.value,
         statusPaymentFilter.value,
         userFilter.value,
-        _currentPage,_pageSize
+        _currentPage,
+        _pageSize,
+        folio: _parsedFolio,
+        id: _parsedId,
       );
 
       if (result.isEmpty || result.length < _pageSize) {
@@ -140,16 +191,16 @@ class SalesController extends GetxController {
     );
   }
 
-  void clearFilters() => fetchSales(ignoreDates: true);
+  void clearFilters() {
+    searchController.clear();
+    searchInput.value = '';
+    searchByFolio.value = true;
+    fetchSales(ignoreDates: true);
+  }
 
-  List<PointSaleEntity> filteredByTab(int tab, String search) {
+  List<PointSaleEntity> filteredByTab(int tab) {
     return sales.where((s) {
-      final matchTab = tab == 0 ||
-          (tab == 1 && s.status?.toLowerCase() == 'pendiente');
-      final matchSearch = search.isEmpty ||
-          (s.client?.toLowerCase().contains(search.toLowerCase()) ?? false) ||
-          (s.folito?.toLowerCase().contains(search.toLowerCase()) ?? false);
-      return matchTab && matchSearch;
+      return tab == 0 || (tab == 1 && s.status?.toLowerCase() == 'pendiente');
     }).toList();
   }
 }
