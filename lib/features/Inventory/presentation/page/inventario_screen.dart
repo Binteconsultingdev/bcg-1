@@ -133,12 +133,10 @@ class InventarioScreen extends StatelessWidget {
 
   Widget _buildBody(InventoryController controller) {
     return Obx(() {
-      // ── Cargando primera página ────────────────────────────────────────────
       if (controller.isLoadingInventario.value) {
         return const Center(child: CircularProgressIndicator());
       }
 
-      // ── Error sin datos ────────────────────────────────────────────────────
       if (controller.errorMessage.isNotEmpty && controller.inventario.isEmpty) {
         return Center(
           child: Column(
@@ -165,7 +163,6 @@ class InventarioScreen extends StatelessWidget {
 
       final products = controller.filtered;
 
-      // ── Lista vacía ────────────────────────────────────────────────────────
       if (products.isEmpty) {
         return Center(
           child: Text(
@@ -176,7 +173,6 @@ class InventarioScreen extends StatelessWidget {
         );
       }
 
-      // ── Lista con infinite scroll ──────────────────────────────────────────
       return RefreshIndicator(
         onRefresh: controller.fetchInventario,
         child: ListView.separated(
@@ -185,25 +181,20 @@ class InventarioScreen extends StatelessWidget {
             horizontal: ThemeColor.paddingMedium,
             vertical: ThemeColor.paddingSmall,
           ),
-          // +1 para el footer (loader / fin de lista)
           itemCount: products.length + 1,
           separatorBuilder: (_, i) {
-            // No dibujar separador antes del footer
             if (i == products.length - 1) return const SizedBox.shrink();
             return Divider(height: 1, color: ThemeColor.dividerColor);
           },
           itemBuilder: (_, i) {
-            // ── Footer ───────────────────────────────────────────────────────
             if (i == products.length) {
               return Obx(() {
-                // Cargando más
                 if (controller.isLoadingMore.value) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
-                // Ya no hay más páginas
                 if (!controller.hasMorePages.value) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
@@ -216,12 +207,10 @@ class InventarioScreen extends StatelessWidget {
                     ),
                   );
                 }
-                // Hay más pero aún no se disparó (espacio extra)
                 return const SizedBox(height: 24);
               });
             }
 
-            // ── Item normal ──────────────────────────────────────────────────
             return _ProductTile(product: products[i]);
           },
         ),
@@ -239,7 +228,6 @@ class InventarioScreen extends StatelessWidget {
   }
 }
 
-// ── Logo de licencia ──────────────────────────────────────────────────────────
 class _LicenseLogo extends StatelessWidget {
   final double size;
   const _LicenseLogo({this.size = 52});
@@ -264,7 +252,6 @@ class _LicenseLogo extends StatelessWidget {
   }
 }
 
-// ── Tile de producto ──────────────────────────────────────────────────────────
 class _ProductTile extends StatelessWidget {
   final InventoryEntity product;
   const _ProductTile({required this.product});
@@ -359,7 +346,6 @@ class _ProductTile extends StatelessWidget {
   }
 }
 
-// ── Filter Bottom Sheet ───────────────────────────────────────────────────────
 class _FilterBottomSheet extends StatefulWidget {
   final InventoryController controller;
   const _FilterBottomSheet({required this.controller});

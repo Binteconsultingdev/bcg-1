@@ -3,11 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-// import 'package:tu_app/core/theme/theme_color.dart';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Modelos
-// ─────────────────────────────────────────────────────────────────────────────
 class ProductoLinea {
   final String nombre;
   final double precioUnitario;
@@ -51,9 +46,6 @@ class CotizacionDetalle {
   double get total => subtotalProductos - descuento + iva;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Pantalla Ver Cotización
-// ─────────────────────────────────────────────────────────────────────────────
 class VerCotizacionScreen extends StatefulWidget {
   final CotizacionDetalle? cotizacion;
   const VerCotizacionScreen({super.key, this.cotizacion});
@@ -149,7 +141,6 @@ class _VerCotizacionScreenState extends State<VerCotizacionScreen> {
     );
   }
 
-  // ── AppBar ────────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: ThemeColor.surfaceColor,
@@ -177,7 +168,6 @@ class _VerCotizacionScreenState extends State<VerCotizacionScreen> {
 
   Widget _div() => Divider(height: ThemeColor.paddingLarge, color: ThemeColor.dividerColor);
 
-  // ── Estado ────────────────────────────────────────────────────────────────
   Widget _buildEstado() {
     return Row(
       children: [
@@ -198,7 +188,6 @@ class _VerCotizacionScreenState extends State<VerCotizacionScreen> {
     );
   }
 
-  // ── Cliente ───────────────────────────────────────────────────────────────
   Widget _buildCliente() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,7 +214,6 @@ class _VerCotizacionScreenState extends State<VerCotizacionScreen> {
     );
   }
 
-  // ── Productos ─────────────────────────────────────────────────────────────
   Widget _buildProductos() {
     return Column(
       children: _cot.productos.asMap().entries.map((e) {
@@ -245,7 +233,6 @@ class _VerCotizacionScreenState extends State<VerCotizacionScreen> {
     );
   }
 
-  // ── Totales ───────────────────────────────────────────────────────────────
   Widget _buildTotales() {
     return Column(
       children: [
@@ -277,7 +264,6 @@ class _VerCotizacionScreenState extends State<VerCotizacionScreen> {
     );
   }
 
-  // ── Dirección ─────────────────────────────────────────────────────────────
   Widget _buildDireccion() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,7 +281,6 @@ class _VerCotizacionScreenState extends State<VerCotizacionScreen> {
     );
   }
 
-  // ── Comentarios ───────────────────────────────────────────────────────────
   Widget _buildComentarios() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,9 +311,6 @@ class _VerCotizacionScreenState extends State<VerCotizacionScreen> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Fila de producto
-// ─────────────────────────────────────────────────────────────────────────────
 class _ProductoRow extends StatelessWidget {
   final ProductoLinea producto;
   const _ProductoRow({required this.producto});
@@ -372,9 +354,6 @@ class _ProductoRow extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Fila de total
-// ─────────────────────────────────────────────────────────────────────────────
 class _TotalRow extends StatelessWidget {
   final String label;
   final String value;
@@ -397,9 +376,6 @@ class _TotalRow extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom Sheet Acciones
-// ─────────────────────────────────────────────────────────────────────────────
 class _AccionesSheet extends StatelessWidget {
   final VoidCallback onVender;
   final VoidCallback onWhatsApp;
@@ -424,7 +400,6 @@ class _AccionesSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
           Container(
             margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
             width: 40, height: 4,
@@ -433,7 +408,6 @@ class _AccionesSheet extends StatelessWidget {
               borderRadius: ThemeColor.circularBorderRadius,
             ),
           ),
-          // Header
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -456,7 +430,6 @@ class _AccionesSheet extends StatelessWidget {
           Divider(height: 1, color: ThemeColor.dividerColor),
           const SizedBox(height: ThemeColor.paddingMedium),
 
-          // Opciones
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium),
@@ -478,7 +451,6 @@ class _AccionesSheet extends StatelessWidget {
           Divider(height: 1, color: ThemeColor.dividerColor),
           const SizedBox(height: ThemeColor.paddingMedium),
 
-          // Eliminar / Editar
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium),
@@ -525,9 +497,6 @@ class _AccionesSheet extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Botón de opción individual
-// ─────────────────────────────────────────────────────────────────────────────
 class _AccionBtn extends StatelessWidget {
   final String label;
   final VoidCallback onTap;

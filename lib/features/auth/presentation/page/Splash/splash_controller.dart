@@ -18,7 +18,6 @@ class SplashController extends GetxController {
 
   Future<void> checkUserSession() async {
     try {
-      // ✅ 1. Verificar si hay licencia válida
       final hasLicense = await _licenseService.hasValidLicense();
 
       if (!hasLicense) {
@@ -29,7 +28,6 @@ class SplashController extends GetxController {
 
       print('✅ Licencia encontrada → base: ${await _licenseService.getBase()}');
 
-      // ✅ 2. Verificar si hay sesión activa
       final isLoggedIn = await _authService.isLoggedIn();
 
       if (isLoggedIn) {

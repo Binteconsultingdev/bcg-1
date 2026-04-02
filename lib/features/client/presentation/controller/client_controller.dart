@@ -15,17 +15,14 @@ class ClientController extends GetxController {
     required this.createClientUsecase,
   });
 
-  // ── Scroll ────────────────────────────────────────────────────────────────
   final ScrollController scrollController = ScrollController();
 
-  // ── Estado lista ──────────────────────────────────────────────────────────
   final RxList<ClientEntity> clients = <ClientEntity>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMorePages = true.obs;
   final RxString errorMessage = ''.obs;
 
-  // ── Estado formulario nuevo cliente ───────────────────────────────────────
   final empresaCtrl = TextEditingController();
   final nombreCtrl = TextEditingController();
   final telefonoCtrl = TextEditingController();
@@ -42,13 +39,11 @@ class ClientController extends GetxController {
   bool get isFormValid =>
       empresaCtrl.text.trim().isNotEmpty && nombreCtrl.text.trim().isNotEmpty;
 
-  // ── Filtros activos ───────────────────────────────────────────────────────
   final RxString clientFilter = ''.obs;
   final RxString companyFilter = ''.obs;
   final RxString rfcFilter = ''.obs;
   final RxString emailFilter = ''.obs;
 
-  // ── Paginación ────────────────────────────────────────────────────────────
   int _currentPage = 1;
   static const int _pageSize = 20;
 
@@ -73,7 +68,6 @@ class ClientController extends GetxController {
     super.onClose();
   }
 
-  // ── Limpiar formulario ────────────────────────────────────────────────────
   void resetForm() {
     empresaCtrl.clear();
     nombreCtrl.clear();
@@ -99,7 +93,7 @@ class ClientController extends GetxController {
       );
 
       resetForm();
-      Get.back(); // cierra el sheet desde el controller
+      Get.back(); 
       await fetchClients();
       showSuccessSnackbar('Cliente creado correctamente');
     } catch (e) {
@@ -109,7 +103,6 @@ class ClientController extends GetxController {
     }
   }
 
-  // ── Scroll listener ───────────────────────────────────────────────────────
   void _onScroll() {
     final pos = scrollController.position;
     if (pos.pixels >= pos.maxScrollExtent - 200) {
@@ -117,7 +110,6 @@ class ClientController extends GetxController {
     }
   }
 
-  // ── Fetch página 1 (reset) ────────────────────────────────────────────────
   Future<void> fetchClients({
     String client = '',
     String company = '',
@@ -155,7 +147,6 @@ class ClientController extends GetxController {
     }
   }
 
-  // ── Cargar siguiente página ───────────────────────────────────────────────
   Future<void> loadMoreClients() async {
     if (isLoadingMore.value || !hasMorePages.value || isLoading.value) return;
     try {

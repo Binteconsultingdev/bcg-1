@@ -27,7 +27,6 @@ class QuoteItem {
 }
 
 class CreateQuoteController extends GetxController {
-  // ── Dependencias ──────────────────────────────────────────────────────
 
   final CreateQuotesUsecase createQuotesUsecase;
   final FetchFolioUsecase fetchFolioUsecase;
@@ -39,7 +38,6 @@ class CreateQuoteController extends GetxController {
   });
   late final InventoryController _inventoryCtrl = Get.find<InventoryController>(); 
   late final QuotesController _quotesCtrl = Get.find<QuotesController>();
-  // ── Estado del formulario ─────────────────────────────────────────────
   final folio = ''.obs;
   final selectedClientId = Rxn<String>();
   final selectedClientName = Rxn<String>();

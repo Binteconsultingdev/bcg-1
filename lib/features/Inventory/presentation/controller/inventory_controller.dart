@@ -25,7 +25,7 @@ class InventoryController extends GetxController {
   final RxList<InventoryCategoryEntity> subfamilias = <InventoryCategoryEntity>[].obs;
 
   final RxBool isLoadingInventario = false.obs;
-  final RxBool isLoadingMore = false.obs; // loader del footer
+  final RxBool isLoadingMore = false.obs; 
   final RxBool isLoadingCategorias = false.obs;
   final RxBool hasMorePages = true.obs;
   final RxString errorMessage = ''.obs;
@@ -152,7 +152,7 @@ class InventoryController extends GetxController {
   }) async {
     selectedFamilia.value = familia;
     selectedSubfamilia.value = subfamilia;
-    await fetchInventario(); // siempre desde página 1
+    await fetchInventario();
   }
 
   Future<void> clearFilters() async {

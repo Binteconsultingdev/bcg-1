@@ -7,23 +7,19 @@ class QuotesController extends GetxController {
   final FetchQuoteUsecase fetchQuoteUsecase;
   QuotesController({required this.fetchQuoteUsecase});
 
-  // ── Scroll ────────────────────────────────────────────────────────────────
   final ScrollController scrollController = ScrollController();
 
-  // ── Estado ────────────────────────────────────────────────────────────────
   final RxList<GetQuoteEntity> quotes = <GetQuoteEntity>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMorePages = true.obs;
   final RxString errorMessage = ''.obs;
 
-  // ── Filtros activos ───────────────────────────────────────────────────────
   final RxString clientFilter = ''.obs;
   final RxString numParteFilter = ''.obs;
   final RxString dateFromFilter = ''.obs;
   final RxString dateUntilFilter = ''.obs;
 
-  // ── Paginación ────────────────────────────────────────────────────────────
   int _currentPage = 1;
   static const int _pageSize = 20;
 
@@ -47,7 +43,6 @@ class QuotesController extends GetxController {
     }
   }
 
-  // ── Fetch página 1 (reset) ────────────────────────────────────────────────
   Future<void> fetchQuotes({
     String client = '',
     String numParte = '',
@@ -84,7 +79,6 @@ class QuotesController extends GetxController {
     }
   }
 
-  // ── Cargar siguiente página ───────────────────────────────────────────────
   Future<void> loadMoreQuotes() async {
     if (isLoadingMore.value || !hasMorePages.value || isLoading.value) return;
     try {
@@ -112,7 +106,6 @@ class QuotesController extends GetxController {
     }
   }
 
-  // ── Helper: convierte "dd/MM/yyyy" → "yyyy-MM-ddTHH:mm:ss" ───────────────
   String _toIso(String ddMMyyyy, {bool endOfDay = false}) {
     if (ddMMyyyy.isEmpty) return '';
     final parts = ddMMyyyy.split('/');
@@ -121,7 +114,6 @@ class QuotesController extends GetxController {
     return '${parts[2]}-${parts[1]}-${parts[0]}T$time';
   }
 
-  // ── Aplicar filtros (resetea a página 1) ──────────────────────────────────
   void applyFilters({
     required String client,
     required String dateFrom,
@@ -137,7 +129,6 @@ class QuotesController extends GetxController {
 
   void clearFilters() => fetchQuotes();
 
-  // ── Filtro local por tab + búsqueda ──────────────────────────────────────
   List<GetQuoteEntity> filteredByTab(int tab, String search) {
     return quotes.where((q) {
       final matchTab = tab == 0 ||

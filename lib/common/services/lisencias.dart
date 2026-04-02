@@ -21,9 +21,6 @@ LicenseEntity? getLicenseSync() => _cachedLicense;
     return this;
   }
 
-  // ================================
-  // Obtener datos de licencia
-  // ================================
 Future<LicenseEntity?> getLicenseData() async {
   if (_cachedLicense != null) return _cachedLicense;
 
@@ -34,7 +31,6 @@ Future<LicenseEntity?> getLicenseData() async {
     );
 
     if (licenseJson != null && licenseJson.isNotEmpty) {
-      // ✅ Verificar que sea JSON válido antes de parsear
       if (!licenseJson.trimLeft().startsWith('{')) {
         print('⚠️ Valor en prefs no es JSON válido, limpiando...');
         await _prefsUser.clearOnePreference(key: AppConstants.licenseKey);
@@ -50,15 +46,10 @@ Future<LicenseEntity?> getLicenseData() async {
     return null;
   } catch (e) {
     print('❌ Error al obtener licencia: $e');
-    // ✅ Si falla el parse, limpiar el valor corrupto
     await _prefsUser.clearOnePreference(key: AppConstants.licenseKey);
     return null;
   }
 }
-
-  // ================================
-  // Helpers
-  // ================================
   Future<String?> getBase() async {
     final license = await getLicenseData();
     return license?.base;
@@ -79,14 +70,10 @@ Future<LicenseEntity?> getLicenseData() async {
     return license?.id;
   }
 
-  // ================================
-  // Guardar licencia
-  // ================================
 Future<bool> saveLicense(LicenseEntity licenseEntity) async {
   try {
     _cachedLicense = licenseEntity;
 
-    // ✅ Convertir el Map a String JSON antes de guardar
     final String jsonString = jsonEncode(
       LicenseModel.fromEntity(licenseEntity).toJson(),
     );
@@ -106,17 +93,11 @@ Future<bool> saveLicense(LicenseEntity licenseEntity) async {
   }
 }
 
-  // ================================
-  // Estado de licencia
-  // ================================
   Future<bool> hasValidLicense() async {
     final license = await getLicenseData();
     return license != null && license.base.isNotEmpty;
   }
 
-  // ================================
-  // Limpiar licencia
-  // ================================
   Future<bool> clearLicense() async {
     try {
       _cachedLicense = null;

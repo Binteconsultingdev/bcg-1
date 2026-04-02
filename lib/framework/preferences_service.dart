@@ -15,7 +15,6 @@ class PreferencesUser {
     _prefs = await SharedPreferences.getInstance();
   }
 
-  // ✅ ahora es async con await
   Future<void> savePrefs({
     required dynamic type,
     required String key,

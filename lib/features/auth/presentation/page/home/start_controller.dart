@@ -1,4 +1,4 @@
-// lib/features/start/start_controller.dart
+
 import 'package:bcg/features/client/presentation/page/clientes_screen.dart';
 import 'package:bcg/features/quotes/presentation/page/cotizaciones_page.dart';
 import 'package:bcg/features/Inventory/presentation/page/inventario_screen.dart';
@@ -50,9 +50,6 @@ class StartController extends GetxController {
     super.onInit();
   }
 
-  // ==========================================
-  // VERIFICAR PERFIL COMPLETO
-  // ==========================================
 
   @override
   void onClose() {

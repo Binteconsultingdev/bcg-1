@@ -34,7 +34,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      useSafeArea: false, // dejarlo en false para controlar manualmente
+      useSafeArea: false,
 
       builder: (_) => _NuevoClienteSheet(controller: _ctrl),
     );
@@ -102,7 +102,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
         ),
         child: TextField(
           controller: _searchController,
-          // Busca en servidor al cambiar (debounce opcional)
           onChanged: (v) => _ctrl.fetchClients(client: v),
           style: ThemeColor.bodyMedium,
           decoration: InputDecoration(
@@ -146,14 +145,12 @@ class _ClientesScreenState extends State<ClientesScreen> {
 
   Widget _buildList() {
     return Obx(() {
-      // ── Cargando primera página ──────────────────────────────────────────
       if (_ctrl.isLoading.value) {
         return const Center(
           child: CircularProgressIndicator(color: ThemeColor.primaryColor),
         );
       }
 
-      // ── Error ────────────────────────────────────────────────────────────
       if (_ctrl.errorMessage.isNotEmpty && _ctrl.clients.isEmpty) {
         return Center(
           child: Column(
@@ -176,7 +173,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
         );
       }
 
-      // ── Vacío ────────────────────────────────────────────────────────────
       if (_ctrl.clients.isEmpty) {
         return Center(
           child: Text(
@@ -188,7 +184,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
         );
       }
 
-      // ── Lista con infinite scroll ────────────────────────────────────────
       return RefreshIndicator(
         onRefresh: _ctrl.fetchClients,
         child: ListView.separated(
@@ -203,7 +198,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
             return Divider(height: 1, color: ThemeColor.dividerColor);
           },
           itemBuilder: (_, i) {
-            // ── Footer ─────────────────────────────────────────────────────
             if (i == _ctrl.clients.length) {
               return Obx(() {
                 if (_ctrl.isLoadingMore.value) {
@@ -241,7 +235,6 @@ class _ClientesScreenState extends State<ClientesScreen> {
   }
 }
 
-// ── Tile de cliente ───────────────────────────────────────────────────────────
 class _ClienteTile extends StatelessWidget {
   final ClientEntity cliente;
   const _ClienteTile({required this.cliente});
@@ -315,7 +308,6 @@ class _NuevoClienteSheet extends StatefulWidget {
 class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
   ClientController get _ctrl => widget.controller;
 
-  // Reconstruye el botón cuando cambia el texto
   void _onFieldChanged() => setState(() {});
 
   @override
@@ -355,7 +347,6 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle
             Container(
               margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
               width: 40,
@@ -366,7 +357,6 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
               ),
             ),
 
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium,
@@ -393,7 +383,6 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
             Divider(height: 1, color: ThemeColor.dividerColor),
             const SizedBox(height: ThemeColor.paddingMedium),
 
-            // Formulario
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -456,7 +445,6 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                         onSubmitted: (_) => _onGuardar(),
                       ),
 
-                      // Error de creación
                       Obx(() {
                         if (_ctrl.createError.isEmpty) {
                           return const SizedBox.shrink();
@@ -481,7 +469,6 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
 
             const SizedBox(height: ThemeColor.paddingMedium),
 
-            // Botón guardar
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium,

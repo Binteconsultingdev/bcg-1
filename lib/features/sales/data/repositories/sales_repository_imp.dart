@@ -16,7 +16,7 @@ class SalesRepositoryImp extends SalesRepository {
 
   @override
   Future<void> generateSales(CreateSalesEntity entity) {
-    // TODO: implement generateSales
+
     throw UnimplementedError();
   }
 }
