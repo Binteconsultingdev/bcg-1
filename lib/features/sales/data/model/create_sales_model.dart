@@ -36,23 +36,33 @@ class CreateSalesModel extends CreateSalesEntity {
           .toList(),
     );
   }
-  factory CreateSalesModel.fromEntity(CreateSalesEntity entity) {
-    return CreateSalesModel(
-      numCliente: entity.numCliente,
-      cliente: entity.cliente,
-      vendedor: entity.vendedor,
-      user: entity.user,
-      metodoEmb: entity.metodoEmb,
-      comentarios: entity.comentarios,
-      refe: entity.refe,
-      fechaEntrega: entity.fechaEntrega,
-      tc: entity.tc,
-      incIVA: entity.incIVA,
-      folioPre: entity.folioPre,
-      descuento: entity.descuento,
-      partidas: entity.partidas,
-    );
-  }
+factory CreateSalesModel.fromEntity(CreateSalesEntity entity) {
+  return CreateSalesModel(
+    numCliente: entity.numCliente,
+    cliente: entity.cliente,
+    vendedor: entity.vendedor,
+    user: entity.user,
+    metodoEmb: entity.metodoEmb,
+    comentarios: entity.comentarios,
+    refe: entity.refe,
+    fechaEntrega: entity.fechaEntrega,
+    tc: entity.tc,
+    incIVA: entity.incIVA,
+    folioPre: entity.folioPre,
+    descuento: entity.descuento,
+    // ✅ Convierte cada PartidaEntity a PartidaModel aquí
+    partidas: entity.partidas
+        .map((p) => PartidaModel(
+              numParte: p.numParte,
+              descripcion: p.descripcion,
+              cantidad: p.cantidad,
+              precio: p.precio,
+              claveSat: p.claveSat,
+              um: p.um,
+            ))
+        .toList(),
+  );
+}
   Map<String, dynamic> toJson() {
     return {
       "numCliente": numCliente,

@@ -10,6 +10,7 @@ import 'package:bcg/features/auth/presentation/page/login/login_controller.dart'
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
 import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
+import 'package:bcg/features/sales/presentation/controller/create_sales_controller.dart';
 import 'package:bcg/features/sales/presentation/controller/sales_controller.dart';
 import 'package:bcg/usecase_config.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +40,7 @@ class App extends StatelessWidget {
         Get.put(usecaseConfig.createQuotesUsecase! ,permanent: true);
         Get.put(usecaseConfig.fetchQuoteUsecase!,permanent: true);
         Get.put(usecaseConfig.pointSalesUsecase!, permanent: true);
+        Get.put(usecaseConfig.generateSalesUsecase!, permanent: true);
         Get.put(usecaseConfig.fetchFolioUsecase!, permanent: true);
         Get.put(usecaseConfig.fetchClientsUsecase!, permanent:  true);
         Get.put(usecaseConfig.createClientUsecase! , permanent:  true);
@@ -53,6 +55,7 @@ class App extends StatelessWidget {
         Get.lazyPut(() => CreateQuoteController(createQuotesUsecase: Get.find(), fetchFolioUsecase: Get.find(), generatePdfUsecase: Get.find(),),fenix: true);
         Get.lazyPut(() => SalesController(pointSalesUsecase:Get.find()),fenix: true);
         Get.lazyPut(() => ClientController(fetchClientsUsecase:Get.find(), createClientUsecase: Get.find()),fenix: true);
+        Get.lazyPut(() => CreateSalesController(generateSalesUsecase:  Get.find()),fenix: true);
 
       }),
 

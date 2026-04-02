@@ -31,8 +31,9 @@ Future<List<PointSaleEntity>> pointSales(
 }
 
   @override
-  Future<void> generateSales(CreateSalesEntity entity) {
+  Future<void> generateSales(CreateSalesEntity entity) async {
+  final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
 
-    throw UnimplementedError();
+   return await salesDataSourcesImp.generateSales(entity,token);
   }
 }

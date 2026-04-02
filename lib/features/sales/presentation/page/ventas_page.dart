@@ -1,4 +1,5 @@
 import 'package:bcg/common/services/auth_service.dart';
+import 'package:bcg/common/settings/routes_names.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/sales/domain/entities/point_sale_entity.dart';
 import 'package:bcg/features/sales/presentation/controller/sales_controller.dart';
@@ -400,7 +401,8 @@ final items = _ctrl.filteredByTab(_selectedTab);
 
   Widget _buildFab() {
     return FloatingActionButton(
-      onPressed: () {},
+      onPressed: () {        Get.toNamed(RoutesNames.createSalesPage);
+},
       backgroundColor: ThemeColor.accentColor,
       elevation: ThemeColor.elevationMedium,
       child: const Icon(Icons.add, color: ThemeColor.textDarkColor, size: 28),

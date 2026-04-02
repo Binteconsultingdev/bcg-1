@@ -68,10 +68,15 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
       title: Text('Cotizaciones', style: ThemeColor.headingSmall),
       actions: [
         IconButton(
-          icon: const Icon(Icons.settings_outlined,
-              color: ThemeColor.textPrimaryColor, size: 22),
-          onPressed: () {  AuthService authService = AuthService();
-            authService.logoutaler();},
+          icon: const Icon(
+            Icons.settings_outlined,
+            color: ThemeColor.textPrimaryColor,
+            size: 22,
+          ),
+          onPressed: () {
+            AuthService authService = AuthService();
+            authService.logoutaler();
+          },
         ),
       ],
       bottom: PreferredSize(
@@ -81,129 +86,138 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
     );
   }
 
-Widget _buildSearchBar() {
-  return Container(
-    color: ThemeColor.surfaceColor,
-    padding: const EdgeInsets.symmetric(
-      horizontal: ThemeColor.paddingMedium,
-      vertical: ThemeColor.paddingSmall,
-    ),
-    child: Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 40,
-                decoration: BoxDecoration(
-                  color: ThemeColor.backgroundColor,
-                  borderRadius: ThemeColor.mediumBorderRadius,
-                  border: Border.all(color: ThemeColor.dividerColor),
-                ),
-                child: TextField(
-                  controller: _ctrl.searchController,
-                  onChanged: (v) => _ctrl.searchInput.value = v,
-                  onSubmitted: (_) => _ctrl.searchQuotes(),
-                  textInputAction: TextInputAction.search,
-                  keyboardType: TextInputType.number,
-                  style: ThemeColor.bodyMedium,
-                  decoration: InputDecoration(
-                    hintText: 'Buscar...',
-                    hintStyle: ThemeColor.bodyMedium.copyWith(
-                      color: ThemeColor.textSecondaryColor,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
+  Widget _buildSearchBar() {
+    return Container(
+      color: ThemeColor.surfaceColor,
+      padding: const EdgeInsets.symmetric(
+        horizontal: ThemeColor.paddingMedium,
+        vertical: ThemeColor.paddingSmall,
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: ThemeColor.backgroundColor,
+                    borderRadius: ThemeColor.mediumBorderRadius,
+                    border: Border.all(color: ThemeColor.dividerColor),
+                  ),
+                  child: TextField(
+                    controller: _ctrl.searchController,
+                    onChanged: (v) => _ctrl.searchInput.value = v,
+                    onSubmitted: (_) => _ctrl.searchQuotes(),
+                    textInputAction: TextInputAction.search,
+                    keyboardType: TextInputType.number,
+                    style: ThemeColor.bodyMedium,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar...',
+                      hintStyle: ThemeColor.bodyMedium.copyWith(
+                        color: ThemeColor.textSecondaryColor,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: ThemeColor.paddingSmall),
-            GestureDetector(
-              onTap: _ctrl.searchQuotes,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: ThemeColor.primaryColor,
-                  borderRadius: ThemeColor.mediumBorderRadius,
+              const SizedBox(width: ThemeColor.paddingSmall),
+              GestureDetector(
+                onTap: _ctrl.searchQuotes,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: ThemeColor.primaryColor,
+                    borderRadius: ThemeColor.mediumBorderRadius,
+                  ),
+                  child: const Icon(
+                    Icons.search,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
-                child: const Icon(Icons.search, color: Colors.white, size: 20),
               ),
-            ),
-            const SizedBox(width: ThemeColor.paddingSmall),
-            GestureDetector(
-              onTap: _openFilters,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: ThemeColor.backgroundColor,
-                  borderRadius: ThemeColor.mediumBorderRadius,
-                  border: Border.all(color: ThemeColor.dividerColor),
+              const SizedBox(width: ThemeColor.paddingSmall),
+              GestureDetector(
+                onTap: _openFilters,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: ThemeColor.backgroundColor,
+                    borderRadius: ThemeColor.mediumBorderRadius,
+                    border: Border.all(color: ThemeColor.dividerColor),
+                  ),
+                  child: const Icon(
+                    Icons.tune,
+                    color: ThemeColor.textPrimaryColor,
+                    size: 20,
+                  ),
                 ),
-                child: const Icon(Icons.tune,
-                    color: ThemeColor.textPrimaryColor, size: 20),
               ),
+            ],
+          ),
+          const SizedBox(height: ThemeColor.paddingSmall),
+          // Toggle folio / id
+          Obx(
+            () => Row(
+              children: [
+                _toggleChip(
+                  label: 'Folio',
+                  selected: _ctrl.searchByFolio.value,
+                  onTap: () => _ctrl.searchByFolio.value = true,
+                ),
+                const SizedBox(width: ThemeColor.paddingSmall),
+                _toggleChip(
+                  label: 'ID',
+                  selected: !_ctrl.searchByFolio.value,
+                  onTap: () => _ctrl.searchByFolio.value = false,
+                ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: ThemeColor.paddingSmall),
-        // Toggle folio / id
-        Obx(() => Row(
-          children: [
-            _toggleChip(
-              label: 'Folio',
-              selected: _ctrl.searchByFolio.value,
-              onTap: () => _ctrl.searchByFolio.value = true,
-            ),
-            const SizedBox(width: ThemeColor.paddingSmall),
-            _toggleChip(
-              label: 'ID',
-              selected: !_ctrl.searchByFolio.value,
-              onTap: () => _ctrl.searchByFolio.value = false,
-            ),
-          ],
-        )),
-      ],
-    ),
-  );
-}
+          ),
+        ],
+      ),
+    );
+  }
 
-Widget _toggleChip({
-  required String label,
-  required bool selected,
-  required VoidCallback onTap,
-}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: selected ? ThemeColor.primaryColor : Colors.transparent,
-        borderRadius: ThemeColor.circularBorderRadius,
-        border: Border.all(
-          color: selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
+  Widget _toggleChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        decoration: BoxDecoration(
+          color: selected ? ThemeColor.primaryColor : Colors.transparent,
+          borderRadius: ThemeColor.circularBorderRadius,
+          border: Border.all(
+            color: selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
+          ),
+        ),
+        child: Text(
+          label,
+          style: ThemeColor.bodySmall.copyWith(
+            color: selected
+                ? ThemeColor.textLightColor
+                : ThemeColor.textSecondaryColor,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          ),
         ),
       ),
-      child: Text(
-        label,
-        style: ThemeColor.bodySmall.copyWith(
-          color: selected
-              ? ThemeColor.textLightColor
-              : ThemeColor.textSecondaryColor,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-        ),
-      ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildTabs() {
     const labels = ['Todas', 'Vencidas', 'Vendidas'];
@@ -244,9 +258,7 @@ Widget _toggleChip({
                     color: selected
                         ? ThemeColor.textLightColor
                         : ThemeColor.textSecondaryColor,
-                    fontWeight: selected
-                        ? FontWeight.w600
-                        : FontWeight.normal,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ),
@@ -257,91 +269,98 @@ Widget _toggleChip({
     );
   }
 
+  Widget _buildList() {
+    return Obx(() {
+      if (_ctrl.isLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(color: ThemeColor.primaryColor),
+        );
+      }
 
- Widget _buildList() {
-  return Obx(() {
-    if (_ctrl.isLoading.value) {
-      return const Center(
-        child: CircularProgressIndicator(color: ThemeColor.primaryColor),
-      );
-    }
+      if (_ctrl.errorMessage.isNotEmpty && _ctrl.quotes.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _ctrl.errorMessage.value,
+                style: ThemeColor.bodyMedium.copyWith(
+                  color: ThemeColor.errorColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _ctrl.fetchQuotes,
+                child: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        );
+      }
 
-    if (_ctrl.errorMessage.isNotEmpty && _ctrl.quotes.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _ctrl.errorMessage.value,
-              style: ThemeColor.bodyMedium.copyWith(color: ThemeColor.errorColor),
-              textAlign: TextAlign.center,
+      final items = _ctrl.filteredByTab(_selectedTab);
+
+      if (items.isEmpty) {
+        return Center(
+          child: Text(
+            'Sin cotizaciones',
+            style: ThemeColor.bodyMedium.copyWith(
+              color: ThemeColor.textSecondaryColor,
             ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: _ctrl.fetchQuotes,
-              child: const Text('Reintentar'),
-            ),
-          ],
-        ),
-      );
-    }
+          ),
+        );
+      }
 
-final items = _ctrl.filteredByTab(_selectedTab);
-
-    if (items.isEmpty) {
-      return Center(
-        child: Text(
-          'Sin cotizaciones',
-          style: ThemeColor.bodyMedium.copyWith(color: ThemeColor.textSecondaryColor),
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _ctrl.fetchQuotes,
-      child: ListView.separated(
-        controller: _ctrl.scrollController,
-        padding: const EdgeInsets.symmetric(
-          horizontal: ThemeColor.paddingMedium,
-          vertical: ThemeColor.paddingSmall,
-        ),
-        itemCount: items.length + 1,
-        separatorBuilder: (_, i) {
-          if (i == items.length - 1) return const SizedBox.shrink();
-          return Divider(height: 1, color: ThemeColor.dividerColor);
-        },
-        itemBuilder: (_, i) {
-          if (i == items.length) {
-            return Obx(() {
-              if (_ctrl.isLoadingMore.value) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(
-                    child: CircularProgressIndicator(color: ThemeColor.primaryColor),
-                  ),
-                );
-              }
-              if (!_ctrl.hasMorePages.value) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Center(
-                    child: Text(
-                      'No hay más cotizaciones',
-                      style: ThemeColor.bodyMedium
-                          .copyWith(color: ThemeColor.textSecondaryColor),
+      return RefreshIndicator(
+        onRefresh: _ctrl.fetchQuotes,
+        child: ListView.separated(
+          controller: _ctrl.scrollController,
+          padding: const EdgeInsets.symmetric(
+            horizontal: ThemeColor.paddingMedium,
+            vertical: ThemeColor.paddingSmall,
+          ),
+          itemCount: items.length + 1,
+          separatorBuilder: (_, i) {
+            if (i == items.length - 1) return const SizedBox.shrink();
+            return Divider(height: 1, color: ThemeColor.dividerColor);
+          },
+          itemBuilder: (_, i) {
+            if (i == items.length) {
+              return Obx(() {
+                if (_ctrl.isLoadingMore.value) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: ThemeColor.primaryColor,
+                      ),
                     ),
-                  ),
-                );
-              }
-              return const SizedBox(height: 24);
-            });
-          }
-          return _CotizacionTile(item: items[i]);
-        },
-      ),
-    );
-  });
-}
+                  );
+                }
+                if (!_ctrl.hasMorePages.value) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Center(
+                      child: Text(
+                        'No hay más cotizaciones',
+                        style: ThemeColor.bodyMedium.copyWith(
+                          color: ThemeColor.textSecondaryColor,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox(height: 24);
+              });
+            }
+            return _CotizacionTile(item: items[i]);
+          },
+        ),
+      );
+    });
+  }
+
   Widget _buildFab() {
     return FloatingActionButton(
       onPressed: () {
@@ -373,7 +392,8 @@ class _CotizacionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-          vertical: ThemeColor.paddingSmall + 2),
+        vertical: ThemeColor.paddingSmall + 2,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -428,13 +448,13 @@ class _CotizacionTile extends StatelessWidget {
     );
   }
 }
+
 class _CotizacionFilterSheet extends StatefulWidget {
   final QuotesController controller;
   const _CotizacionFilterSheet({required this.controller});
 
   @override
-  State<_CotizacionFilterSheet> createState() =>
-      _CotizacionFilterSheetState();
+  State<_CotizacionFilterSheet> createState() => _CotizacionFilterSheetState();
 }
 
 class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
@@ -509,10 +529,11 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
           top: Radius.circular(ThemeColor.largeRadius),
         ),
       ),
-      padding:EdgeInsets.only(
-    bottom: MediaQuery.of(context).viewInsets.bottom +
-            MediaQuery.of(context).padding.bottom, 
-  ),
+      padding: EdgeInsets.only(
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -526,7 +547,6 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
             ),
           ),
 
-   
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -541,8 +561,9 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                   onTap: () => Navigator.of(context).pop(),
                   child: Text(
                     'X',
-                    style: ThemeColor.subtitleLarge
-                        .copyWith(fontWeight: FontWeight.w700),
+                    style: ThemeColor.subtitleLarge.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -624,21 +645,27 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                       border: Border.all(color: ThemeColor.dividerColor),
                     ),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: ThemeColor.paddingSmall),
+                      horizontal: ThemeColor.paddingSmall,
+                    ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _cliente,
                         isExpanded: true,
-                        icon: const Icon(Icons.keyboard_arrow_down,
-                            color: ThemeColor.textSecondaryColor, size: 20),
-                        style: ThemeColor.bodyMedium
-                            .copyWith(color: ThemeColor.textPrimaryColor),
+                        icon: const Icon(
+                          Icons.keyboard_arrow_down,
+                          color: ThemeColor.textSecondaryColor,
+                          size: 20,
+                        ),
+                        style: ThemeColor.bodyMedium.copyWith(
+                          color: ThemeColor.textPrimaryColor,
+                        ),
                         dropdownColor: ThemeColor.surfaceColor,
                         borderRadius: ThemeColor.smallBorderRadius,
                         hint: const SizedBox.shrink(),
                         items: _clientes
-                            .map((e) =>
-                                DropdownMenuItem(value: e, child: Text(e)))
+                            .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)),
+                            )
                             .toList(),
                         onChanged: (v) => setState(() {
                           _cliente = v;
@@ -656,7 +683,8 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
 
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: ThemeColor.paddingMedium),
+              horizontal: ThemeColor.paddingMedium,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -668,7 +696,8 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     padding: const EdgeInsets.symmetric(
-                        vertical: ThemeColor.paddingMedium),
+                      vertical: ThemeColor.paddingMedium,
+                    ),
                     borderRadius: ThemeColor.smallRadius,
                     borderColor: ThemeColor.dividerColor,
                     borderWidth: 1.5,
@@ -693,7 +722,8 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     padding: const EdgeInsets.symmetric(
-                        vertical: ThemeColor.paddingMedium),
+                      vertical: ThemeColor.paddingMedium,
+                    ),
                     borderRadius: ThemeColor.smallRadius,
                     customShadow: ThemeColor.darkShadow,
                   ),
@@ -738,8 +768,11 @@ class _DateField extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(Icons.calendar_today_outlined,
-                size: 14, color: ThemeColor.textSecondaryColor),
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 14,
+              color: ThemeColor.textSecondaryColor,
+            ),
           ],
         ),
       ),
