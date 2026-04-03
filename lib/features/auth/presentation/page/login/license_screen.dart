@@ -3,6 +3,7 @@ import 'package:bcg/features/auth/presentation/page/login/license_controller.dar
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class _PasteAwareFormatter extends TextInputFormatter {
   final int fieldIndex;
@@ -218,51 +219,72 @@ class _LicenseScreenState extends State<LicenseScreen>
       },
     );
   }
-  Widget _buildPrivacyCheckbox() {
-    return Obx(() => Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: _controller.togglePrivacy,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
+ Widget _buildPrivacyCheckbox() {
+  return Obx(() => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            onTap: _controller.togglePrivacy,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                color: _controller.acceptPrivacy.value
+                    ? ThemeColor.primaryColor
+                    : ThemeColor.surfaceColor,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
                   color: _controller.acceptPrivacy.value
                       ? ThemeColor.primaryColor
-                      : ThemeColor.surfaceColor,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: _controller.acceptPrivacy.value
-                        ? ThemeColor.primaryColor
-                        : ThemeColor.dividerColor,
-                    width: 1.5,
+                      : ThemeColor.dividerColor,
+                  width: 1.5,
+                ),
+                boxShadow: [ThemeColor.lightShadow],
+              ),
+              child: _controller.acceptPrivacy.value
+                  ? const Icon(Icons.check, size: 14,
+                      color: ThemeColor.accentColor)
+                  : null,
+            ),
+          ),
+          const SizedBox(width: ThemeColor.paddingSmall),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: _controller.togglePrivacy,
+                child: Text(
+                  'Aceptar ',
+                  style: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.textSecondaryColor,
                   ),
-                  boxShadow: [ThemeColor.lightShadow],
-                ),
-                child: _controller.acceptPrivacy.value
-                    ? const Icon(
-                        Icons.check,
-                        size: 14,
-                        color: ThemeColor.accentColor,
-                      )
-                    : null,
-              ),
-            ),
-            const SizedBox(width: ThemeColor.paddingSmall),
-            GestureDetector(
-              onTap: _controller.togglePrivacy,
-              child: Text(
-                'Aceptar aviso de privacidad',
-                style: ThemeColor.bodyMedium.copyWith(
-                  color: ThemeColor.textSecondaryColor,
                 ),
               ),
-            ),
-          ],
-        ));
-  }
+              // ✅ Solo "aviso de privacidad" es clickeable y abre el webview
+             GestureDetector(
+  onTap: () async {
+    final uri = Uri.parse(
+        'https://binteconsulting.com/aviso-privacidad-bcg.html');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.inAppWebView);
+    }
+  },
+  child: Text(
+    'aviso de privacidad',
+    style: ThemeColor.bodyMedium.copyWith(
+      color: ThemeColor.primaryColor,
+      fontWeight: FontWeight.w600,
+      decoration: TextDecoration.underline,
+      decorationColor: ThemeColor.primaryColor,
+    ),
+  ),
+),
+            ],
+          ),
+        ],
+      ));
+}
 
   Widget _buildContinueButton() {
     return Obx(() {

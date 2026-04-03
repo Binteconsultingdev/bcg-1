@@ -127,10 +127,7 @@ Future<void> sendWhatsApp() async {
   } finally {
     isLoadingPdf.value = false;
   }
-}
-
-
-Future<void> downloadPdf() async {
+}Future<void> downloadPdf() async {
   final url = pdfUrl.value;
   if (url == null || url.isEmpty) return;
 
@@ -138,29 +135,20 @@ Future<void> downloadPdf() async {
     isDownloading.value = true;
     downloadProgress.value = 0;
 
-    // Pide permiso en Android
-    if (Platform.isAndroid) {
-      final status = await Permission.storage.request();
-      if (!status.isGranted) {
-        showErrorSnackbar('Se necesita permiso para guardar archivos');
-        return;
-      }
-    }
-
     final response = await http.get(Uri.parse(url));
     if (response.statusCode != 200) {
       showErrorSnackbar('No se pudo descargar el PDF');
       return;
     }
 
-    final fileName = 'cotizacion_${folio.value}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final fileName =
+        'cotizacion_${folio.value}_${DateTime.now().millisecondsSinceEpoch}.pdf';
     String savePath;
 
     if (Platform.isAndroid) {
-      // Carpeta Downloads visible en Android
+      // Android 10+ no necesita permiso para escribir en Downloads
       savePath = '/storage/emulated/0/Download/$fileName';
     } else {
-      // iOS: documentos de la app
       final dir = await getApplicationDocumentsDirectory();
       savePath = '${dir.path}/$fileName';
     }
@@ -168,7 +156,7 @@ Future<void> downloadPdf() async {
     final file = File(savePath);
     await file.writeAsBytes(response.bodyBytes);
 
-    showSuccessSnackbar('PDF guardado en Descargas: $fileName');
+    showSuccessSnackbar('PDF guardado en Descargas');
   } catch (e) {
     showErrorSnackbar('Error al descargar PDF: $e');
   } finally {

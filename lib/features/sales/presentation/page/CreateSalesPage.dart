@@ -1006,13 +1006,15 @@ class _BottomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+        final bottomPadding = MediaQuery.of(context).padding.bottom; 
+
     return Container(
       color: ThemeColor.surfaceColor,
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         ThemeColor.paddingMedium,
         ThemeColor.paddingSmall,
         ThemeColor.paddingMedium,
-        ThemeColor.paddingLarge,
+        ThemeColor.paddingLarge + bottomPadding, 
       ),
       child: Obx(() => SizedBox(
             width: double.infinity,
