@@ -1,4 +1,4 @@
-package com.example.bcg
+package bcgmovil.binteconsulting.com
 
 import io.flutter.embedding.android.FlutterActivity
 

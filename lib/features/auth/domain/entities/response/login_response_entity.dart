@@ -1,10 +1,18 @@
 class LoginResponseEntity {
   final String token;
- final int userId;
+  final int userId;
+  final String nombre;
+  final String usuario;
+  final String area;
+  final String? logoUrl;
 
   LoginResponseEntity({
     required this.token,
     required this.userId,
+    required this.nombre,
+    required this.usuario,
+    required this.area,
+    this.logoUrl,
   });
 }
 

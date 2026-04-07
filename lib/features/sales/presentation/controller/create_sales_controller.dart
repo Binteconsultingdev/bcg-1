@@ -1,3 +1,4 @@
+import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
@@ -29,6 +30,7 @@ class SaleItem {
 class CreateSalesController extends GetxController {
   final GenerateSalesUsecase generateSalesUsecase;
   CreateSalesController({required this.generateSalesUsecase});
+  final AuthService _authService = AuthService(); // ✅ agrega esto
 
   late final InventoryController _inventoryCtrl =
       Get.find<InventoryController>();
@@ -174,11 +176,15 @@ void addProduct(InventoryEntity product) {
       isCreating.value = true;
       errorMessage.value = '';
 
+      // ✅ Obtiene el nombre del usuario logueado
+      final userData = await _authService.getUserData();
+      final vendedorName = userData?.nombre ?? '';
+
       final entity = CreateSalesEntity(
         numCliente: selectedClientId.value ?? 0,
         cliente: clienteName.value.trim(),
-        vendedor: vendedorCtrl.text.trim(),
-        user: vendedorCtrl.text.trim(),
+        vendedor: vendedorName,
+        user: vendedorName,    
         metodoEmb: metodoEmbarque.value,
         comentarios: commentsCtrl.text.trim(),
         refe: referenciaCtrl.text.trim(),
@@ -208,14 +214,12 @@ void addProduct(InventoryEntity product) {
       isCreating.value = false;
     }
   }
-
   @override
   void onClose() {
     clienteController.dispose();
     commentsCtrl.dispose();
     productSearchCtrl.dispose();
     globalDiscountCtrl.dispose();
-    vendedorCtrl.dispose();
     referenciaCtrl.dispose();
     tipoCambioCtrl.dispose();
     super.onClose();

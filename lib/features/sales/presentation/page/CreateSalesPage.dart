@@ -848,9 +848,6 @@ class _DeliverySection extends StatelessWidget {
       '${d.month.toString().padLeft(2, '0')}/'
       '${d.year}';
 }
-
-// ── Extra Fields ─────────────────────────────────────────────────────────────
-
 class _ExtraFieldsSection extends StatelessWidget {
   final CreateSalesController ctrl;
   const _ExtraFieldsSection({required this.ctrl});
@@ -864,14 +861,7 @@ class _ExtraFieldsSection extends StatelessWidget {
           vertical: ThemeColor.paddingMedium),
       child: Column(
         children: [
-          _RowField(
-            label: 'Vendedor',
-            child: _SimpleTextField(
-              controller: ctrl.vendedorCtrl,
-              hint: 'Nombre del vendedor',
-            ),
-          ),
-          Divider(height: 1, color: ThemeColor.dividerColor),
+          // ✅ Vendedor eliminado
           _RowField(
             label: 'Referencia',
             child: _SimpleTextField(
@@ -898,7 +888,6 @@ class _ExtraFieldsSection extends StatelessWidget {
     );
   }
 }
-
 class _SimpleTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
