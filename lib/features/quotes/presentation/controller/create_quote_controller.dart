@@ -10,24 +10,21 @@ import 'package:bcg/features/quotes/domain/usecase/fetch_folio_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/generate_pdf_usecase.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
 import 'package:bcg/features/quotes/presentation/widget/pdf_options_sheet.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 
 class QuoteItem {
   final InventoryEntity product;
   final RxInt quantity;
-  final RxDouble discount; 
+  final RxDouble discount;
 
   QuoteItem({required this.product, int initialQty = 1})
-    : quantity = initialQty.obs,
-      discount = 0.0.obs;
+      : quantity = initialQty.obs,
+        discount = 0.0.obs;
 
   double get unitPrice => (product.price ?? 0).toDouble();
   double get subtotal => unitPrice * quantity.value;
@@ -36,47 +33,64 @@ class QuoteItem {
 }
 
 class CreateQuoteController extends GetxController {
-
   final CreateQuotesUsecase createQuotesUsecase;
   final FetchFolioUsecase fetchFolioUsecase;
   final GeneratePdfUsecase generatePdfUsecase;
+
   CreateQuoteController({
     required this.createQuotesUsecase,
     required this.fetchFolioUsecase,
     required this.generatePdfUsecase,
   });
-  late final InventoryController _inventoryCtrl = Get.find<InventoryController>(); 
+
+  late final InventoryController _inventoryCtrl =
+      Get.find<InventoryController>();
   late final QuotesController _quotesCtrl = Get.find<QuotesController>();
   late final ClientController _clientCtrl = Get.find<ClientController>();
-final RxBool isDownloading = false.obs;
-final RxDouble downloadProgress = 0.0.obs;
-  final folio = ''.obs;
-  final selectedClientId = Rxn<String>();
-  final selectedClientName = Rxn<String>();
-  final createdQuoteId = Rxn<int>();
+
+  // PDF
+  final RxBool isDownloading = false.obs;
+  final RxDouble downloadProgress = 0.0.obs;
   final pdfUrl = Rxn<String>();
   final isLoadingPdf = false.obs;
+  final createdQuoteId = Rxn<int>();
+
+  // Folio
+  final folio = ''.obs;
+  final isLoadingFolio = false.obs;
+
+  // Cliente
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
-  final selectedPriceType = 'Regular'.obs;
+  final selectedClientId = Rxn<String>();
+  final selectedClientName = Rxn<String>();
+
+  // Precio
+  final selectedPriceType = 'REGULAR'.obs;
+  final List<String> priceOptions = ['REGULAR', 'MEDIO M', 'PAQUETE','MAYOREO', 'ESPECIAL','REGULAR','MAYOREO'];
+
+  // Fecha
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
+
+  // Productos
   final items = <QuoteItem>[].obs;
-  final globalDiscount = 0.0.obs;
-  final referencia = ''.obs;
-
-  final isCreating = false.obs;
-  final isLoadingFolio = false.obs;
-  final errorMessage = ''.obs;
-
   final productSearchQuery = ''.obs;
   final isSearching = false.obs;
 
+  // Descuento
+  final globalDiscount = 0.0.obs;
+  final globalDiscountType = 'monto'.obs; // 'monto' o 'porcentaje'
+  final globalDiscountPercent = 0.0.obs;
+  final referencia = ''.obs;
+
+  // Estado
+  final isCreating = false.obs;
+  final errorMessage = ''.obs;
+
+  // Controllers
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
-  void onClienteChanged(String value) => clienteName.value = value;
-
-  final List<String> priceOptions = ['Regular', 'Mayoreo', 'Especial'];
 
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;
@@ -100,69 +114,7 @@ final RxDouble downloadProgress = 0.0.obs;
     super.onInit();
     _loadFolio();
   }
-Future<void> sendWhatsApp() async {
-  final url = pdfUrl.value;
-  if (url == null || url.isEmpty) return;
 
-  try {
-    isLoadingPdf.value = true;
-
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final directory = await getTemporaryDirectory();
-      final fileName = 'cotizacion_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      final file = File('${directory.path}/$fileName');
-      await file.writeAsBytes(response.bodyBytes);
-
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        subject: 'Cotización ${folio.value}',
-        text: 'Te comparto la cotización ${folio.value}',
-      );
-    } else {
-      showErrorSnackbar('No se pudo descargar el PDF');
-    }
-  } catch (e) {
-    showErrorSnackbar('Error al compartir PDF');
-  } finally {
-    isLoadingPdf.value = false;
-  }
-}Future<void> downloadPdf() async {
-  final url = pdfUrl.value;
-  if (url == null || url.isEmpty) return;
-
-  try {
-    isDownloading.value = true;
-    downloadProgress.value = 0;
-
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode != 200) {
-      showErrorSnackbar('No se pudo descargar el PDF');
-      return;
-    }
-
-    final fileName =
-        'cotizacion_${folio.value}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    String savePath;
-
-    if (Platform.isAndroid) {
-      // Android 10+ no necesita permiso para escribir en Downloads
-      savePath = '/storage/emulated/0/Download/$fileName';
-    } else {
-      final dir = await getApplicationDocumentsDirectory();
-      savePath = '${dir.path}/$fileName';
-    }
-
-    final file = File(savePath);
-    await file.writeAsBytes(response.bodyBytes);
-
-    showSuccessSnackbar('PDF guardado en Descargas');
-  } catch (e) {
-    showErrorSnackbar('Error al descargar PDF: $e');
-  } finally {
-    isDownloading.value = false;
-  }
-}
   Future<void> _loadFolio() async {
     try {
       isLoadingFolio.value = true;
@@ -175,58 +127,24 @@ Future<void> sendWhatsApp() async {
     }
   }
 
-  void onProductSearchChanged(String value) {
-    productSearchQuery.value = value;
-    isSearching.value = value.isNotEmpty;
-  }
+  // ── Cliente ────────────────────────────────────────────────────────────────
 
-void addProduct(InventoryEntity product) {
-  // Bloquea precio 0
-  if ((product.price ?? 0) <= 0) {
-    showErrorSnackbar('Este producto no tiene precio asignado');
-    return;
-  }
+  void onClienteChanged(String value) => clienteName.value = value;
 
-  // Si ya existe solo suma cantidad
-  final existing = items.firstWhereOrNull((i) => i.product.id == product.id);
-  if (existing != null) {
-    existing.quantity.value++;
-  } else {
-    items.add(QuoteItem(product: product));
-  }
-
-  productSearchCtrl.clear();
-  productSearchQuery.value = '';
-  isSearching.value = false;
-}
-Future<void> generateAndOpenPdf(BuildContext context) async {
-  final id = createdQuoteId.value;
-  if (id == null) return;
-
-  try {
-    isLoadingPdf.value = true;
-    final result = await generatePdfUsecase.call(id);
-    pdfUrl.value = result.urlpdf;
-
-    if (result.generated && result.urlpdf.isNotEmpty) {
-      isLoadingPdf.value = false;
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (_) => PdfOptionsSheet(),
-      );
-    }
-  } catch (e) {
-    showErrorSnackbar('Error al generar PDF');
-  } finally {
-    isLoadingPdf.value = false;
-  }
-}
-  void removeItem(QuoteItem item) => items.remove(item);
-
-  void duplicateItem(QuoteItem item) {
-    items.add(
-      QuoteItem(product: item.product, initialQty: item.quantity.value),
+  void openClientSearch(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ClientSearchSheet(
+        clientCtrl: _clientCtrl,
+        onSelected: (client) {
+          clienteController.text = client.displayName ?? '';
+          clienteName.value = client.displayName ?? '';
+          selectedClientId.value = client.id.toString();
+          selectedClientName.value = client.displayName;
+        },
+      ),
     );
   }
 
@@ -235,10 +153,52 @@ Future<void> generateAndOpenPdf(BuildContext context) async {
     selectedClientName.value = name;
   }
 
-  void applyGlobalDiscount(double value) {
-    globalDiscount.value = value;
-    globalDiscountCtrl.text = value > 0 ? value.toStringAsFixed(2) : '';
+  // ── Productos ──────────────────────────────────────────────────────────────
+
+  void onProductSearchChanged(String value) {
+    productSearchQuery.value = value;
+    isSearching.value = value.isNotEmpty;
   }
+
+  void addProduct(InventoryEntity product) {
+    if ((product.price ?? 0) <= 0) {
+      showErrorSnackbar('Este producto no tiene precio asignado');
+      return;
+    }
+    final existing = items.firstWhereOrNull((i) => i.product.id == product.id);
+    if (existing != null) {
+      existing.quantity.value++;
+    } else {
+      items.add(QuoteItem(product: product));
+    }
+    productSearchCtrl.clear();
+    productSearchQuery.value = '';
+    isSearching.value = false;
+  }
+
+  void removeItem(QuoteItem item) => items.remove(item);
+
+  void duplicateItem(QuoteItem item) {
+    items.add(QuoteItem(product: item.product, initialQty: item.quantity.value));
+  }
+
+  // ── Descuento ──────────────────────────────────────────────────────────────
+
+  void applyGlobalDiscount(double value, {bool isPercent = false}) {
+    if (isPercent) {
+      globalDiscountType.value = 'porcentaje';
+      globalDiscountPercent.value = value;
+      globalDiscount.value = subtotal * (value / 100);
+    } else {
+      globalDiscountType.value = 'monto';
+      globalDiscountPercent.value = 0;
+      globalDiscount.value = value;
+    }
+    globalDiscountCtrl.text =
+        globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
+  }
+
+  // ── Fecha ──────────────────────────────────────────────────────────────────
 
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -258,6 +218,8 @@ Future<void> generateAndOpenPdf(BuildContext context) async {
     );
     if (picked != null) validUntil.value = picked;
   }
+
+  // ── Crear cotización ───────────────────────────────────────────────────────
 
   Future<void> createQuote() async {
     if (clienteName.value.trim().isEmpty) {
@@ -303,7 +265,6 @@ Future<void> generateAndOpenPdf(BuildContext context) async {
       );
 
       final response = await createQuotesUsecase.call(entity);
-
       createdQuoteId.value = response.id;
       await _quotesCtrl.fetchQuotes();
     } catch (e) {
@@ -314,26 +275,100 @@ Future<void> generateAndOpenPdf(BuildContext context) async {
     }
   }
 
+  // ── PDF ────────────────────────────────────────────────────────────────────
 
-void openClientSearch(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => ClientSearchSheet(
-      clientCtrl: _clientCtrl,
-      onSelected: (client) {
-        clienteController.text = client.displayName ?? '';
-        clienteName.value = client.displayName ?? '';
-        selectedClientId.value = client.id.toString();
-        selectedClientName.value = client.displayName;
-      },
-    ),
-  );
-}
+  Future<void> generateAndOpenPdf(BuildContext context) async {
+    final id = createdQuoteId.value;
+    if (id == null) return;
+
+    try {
+      isLoadingPdf.value = true;
+      final result = await generatePdfUsecase.call(id);
+      pdfUrl.value = result.urlpdf;
+
+      if (result.generated && result.urlpdf.isNotEmpty) {
+        isLoadingPdf.value = false;
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (_) => PdfOptionsSheet(),
+        );
+      }
+    } catch (e) {
+      showErrorSnackbar('Error al generar PDF');
+    } finally {
+      isLoadingPdf.value = false;
+    }
+  }
+
+  Future<void> sendWhatsApp() async {
+    final url = pdfUrl.value;
+    if (url == null || url.isEmpty) return;
+
+    try {
+      isLoadingPdf.value = true;
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final directory = await getTemporaryDirectory();
+        final fileName =
+            'cotizacion_${DateTime.now().millisecondsSinceEpoch}.pdf';
+        final file = File('${directory.path}/$fileName');
+        await file.writeAsBytes(response.bodyBytes);
+
+        await Share.shareXFiles(
+          [XFile(file.path)],
+          subject: 'Cotización ${folio.value}',
+          text: 'Te comparto la cotización ${folio.value}',
+        );
+      } else {
+        showErrorSnackbar('No se pudo descargar el PDF');
+      }
+    } catch (e) {
+      showErrorSnackbar('Error al compartir PDF');
+    } finally {
+      isLoadingPdf.value = false;
+    }
+  }
+
+  Future<void> downloadPdf() async {
+    final url = pdfUrl.value;
+    if (url == null || url.isEmpty) return;
+
+    try {
+      isDownloading.value = true;
+      downloadProgress.value = 0;
+
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode != 200) {
+        showErrorSnackbar('No se pudo descargar el PDF');
+        return;
+      }
+
+      final fileName =
+          'cotizacion_${folio.value}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      String savePath;
+
+      if (Platform.isAndroid) {
+        savePath = '/storage/emulated/0/Download/$fileName';
+      } else {
+        final dir = await getApplicationDocumentsDirectory();
+        savePath = '${dir.path}/$fileName';
+      }
+
+      final file = File(savePath);
+      await file.writeAsBytes(response.bodyBytes);
+
+      showSuccessSnackbar('PDF guardado en Descargas');
+    } catch (e) {
+      showErrorSnackbar('Error al descargar PDF: $e');
+    } finally {
+      isDownloading.value = false;
+    }
+  }
 
   @override
   void onClose() {
+    clienteController.dispose();
     commentsCtrl.dispose();
     productSearchCtrl.dispose();
     globalDiscountCtrl.dispose();

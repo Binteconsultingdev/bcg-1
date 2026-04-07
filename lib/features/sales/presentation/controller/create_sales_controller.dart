@@ -30,10 +30,10 @@ class SaleItem {
 class CreateSalesController extends GetxController {
   final GenerateSalesUsecase generateSalesUsecase;
   CreateSalesController({required this.generateSalesUsecase});
-  final AuthService _authService = AuthService(); // ✅ agrega esto
 
-  late final InventoryController _inventoryCtrl =
-      Get.find<InventoryController>();
+  final AuthService _authService = AuthService();
+
+  late final InventoryController _inventoryCtrl = Get.find<InventoryController>();
   late final SalesController _salesCtrl = Get.find<SalesController>();
   late final ClientController _clientCtrl = Get.find<ClientController>();
 
@@ -43,12 +43,12 @@ class CreateSalesController extends GetxController {
   final selectedClientId = Rxn<int>();
 
   // Campos de venta
-  final vendedor = ''.obs;
-  final referencia = ''.obs;
-  final metodoEmbarque = 'Terrestre'.obs;
+  final metodoEmbarque = 'CAMIONETA'.obs;
   final incIVA = true.obs;
   final tipoCambio = 1.0.obs;
   final globalDiscount = 0.0.obs;
+  final globalDiscountType = 'monto'.obs; // 'monto' o 'porcentaje'
+  final globalDiscountPercent = 0.0.obs;
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
 
   // Productos
@@ -65,7 +65,6 @@ class CreateSalesController extends GetxController {
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
-  final vendedorCtrl = TextEditingController();
   final referenciaCtrl = TextEditingController();
   final tipoCambioCtrl = TextEditingController(text: '1.00');
 
@@ -116,21 +115,21 @@ class CreateSalesController extends GetxController {
     isSearching.value = value.isNotEmpty;
   }
 
-void addProduct(InventoryEntity product) {
-  if ((product.price ?? 0) <= 0) {
-    showErrorSnackbar('Este producto no tiene precio asignado');
-    return;
+  void addProduct(InventoryEntity product) {
+    if ((product.price ?? 0) <= 0) {
+      showErrorSnackbar('Este producto no tiene precio asignado');
+      return;
+    }
+    final existing = items.firstWhereOrNull((i) => i.product.id == product.id);
+    if (existing != null) {
+      existing.quantity.value++;
+    } else {
+      items.add(SaleItem(product: product));
+    }
+    productSearchCtrl.clear();
+    productSearchQuery.value = '';
+    isSearching.value = false;
   }
-  final existing = items.firstWhereOrNull((i) => i.product.id == product.id);
-  if (existing != null) {
-    existing.quantity.value++;
-  } else {
-    items.add(SaleItem(product: product));
-  }
-  productSearchCtrl.clear();
-  productSearchQuery.value = '';
-  isSearching.value = false;
-}
 
   void removeItem(SaleItem item) => items.remove(item);
 
@@ -138,9 +137,18 @@ void addProduct(InventoryEntity product) {
     items.add(SaleItem(product: item.product, initialQty: item.quantity.value));
   }
 
-  void applyGlobalDiscount(double value) {
-    globalDiscount.value = value;
-    globalDiscountCtrl.text = value > 0 ? value.toStringAsFixed(2) : '';
+  void applyGlobalDiscount(double value, {bool isPercent = false}) {
+    if (isPercent) {
+      globalDiscountType.value = 'porcentaje';
+      globalDiscountPercent.value = value;
+      globalDiscount.value = subtotal * (value / 100);
+    } else {
+      globalDiscountType.value = 'monto';
+      globalDiscountPercent.value = 0;
+      globalDiscount.value = value;
+    }
+    globalDiscountCtrl.text =
+        globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
   }
 
   Future<void> pickDate(BuildContext context) async {
@@ -176,7 +184,6 @@ void addProduct(InventoryEntity product) {
       isCreating.value = true;
       errorMessage.value = '';
 
-      // ✅ Obtiene el nombre del usuario logueado
       final userData = await _authService.getUserData();
       final vendedorName = userData?.nombre ?? '';
 
@@ -184,7 +191,7 @@ void addProduct(InventoryEntity product) {
         numCliente: selectedClientId.value ?? 0,
         cliente: clienteName.value.trim(),
         vendedor: vendedorName,
-        user: vendedorName,    
+        user: vendedorName,
         metodoEmb: metodoEmbarque.value,
         comentarios: commentsCtrl.text.trim(),
         refe: referenciaCtrl.text.trim(),
@@ -193,14 +200,18 @@ void addProduct(InventoryEntity product) {
         incIVA: incIVA.value,
         folioPre: '',
         descuento: globalDiscount.value,
-        partidas: items.map((i) => PartidaEntity(
-          numParte: i.product.partNumber ?? '',
-          descripcion: i.product.description ?? '',
-          cantidad: i.quantity.value.toDouble(),
-          precio: i.unitPrice,
-          claveSat: '',
-          um: 'PZA',
-        )).toList(),
+        partidas: items
+            .map(
+              (i) => PartidaEntity(
+                numParte: i.product.partNumber ?? '',
+                descripcion: i.product.description ?? '',
+                cantidad: i.quantity.value.toDouble(),
+                precio: i.unitPrice,
+                claveSat: '',
+                um: 'PZA',
+              ),
+            )
+            .toList(),
       );
 
       await generateSalesUsecase.call(entity);
@@ -214,6 +225,7 @@ void addProduct(InventoryEntity product) {
       isCreating.value = false;
     }
   }
+
   @override
   void onClose() {
     clienteController.dispose();

@@ -3,13 +3,12 @@ import 'package:bcg/features/quotes/presentation/controller/create_quote_control
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
 class CreateQuotePage extends StatelessWidget {
   const CreateQuotePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final CreateQuoteController ctrl =  Get.find<CreateQuoteController>();
+    final CreateQuoteController ctrl = Get.find<CreateQuoteController>();
 
     return Scaffold(
       backgroundColor: ThemeColor.backgroundColor,
@@ -44,6 +43,7 @@ class CreateQuotePage extends StatelessWidget {
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
 
+// ── AppBar ───────────────────────────────────────────────────────────────────
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final CreateQuoteController ctrl;
@@ -60,11 +60,8 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       leading: GestureDetector(
         onTap: () => Get.back(),
-        child: const Icon(
-          Icons.arrow_back_ios_new,
-          color: ThemeColor.textPrimaryColor,
-          size: 20,
-        ),
+        child: const Icon(Icons.arrow_back_ios_new,
+            color: ThemeColor.textPrimaryColor, size: 20),
       ),
       title: Obx(() => Column(
             mainAxisSize: MainAxisSize.min,
@@ -74,8 +71,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                 Text(
                   'Folio: ${ctrl.folio.value}',
                   style: ThemeColor.caption.copyWith(
-                    color: ThemeColor.textSecondaryColor,
-                  ),
+                      color: ThemeColor.textSecondaryColor),
                 ),
             ],
           )),
@@ -88,6 +84,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+// ── Top Section ──────────────────────────────────────────────────────────────
 
 class _TopSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -107,10 +104,7 @@ class _TopSection extends StatelessWidget {
           Divider(height: 1, color: ThemeColor.dividerColor),
           _RowField(label: 'Precio', child: _PriceSelector(ctrl: ctrl)),
           Divider(height: 1, color: ThemeColor.dividerColor),
-          _RowField(
-            label: 'Producto',
-            child: ProductSearchField(ctrl: ctrl),
-          ),
+          _RowField(label: 'Producto', child: ProductSearchField(ctrl: ctrl)),
           Obx(() {
             if (!ctrl.isSearching.value) return const SizedBox.shrink();
             final results = ctrl.searchResults;
@@ -139,23 +133,18 @@ class _TopSection extends StatelessWidget {
                   final p = results[i];
                   return ListTile(
                     dense: true,
-                    leading: _ProductThumbnail(
-                        imageUrl: p.imageUrl, size: 36),
-                    title: Text(
-                      p.description ?? '',
-                      style: ThemeColor.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    leading:
+                        _ProductThumbnail(imageUrl: p.imageUrl, size: 36),
+                    title: Text(p.description ?? '',
+                        style: ThemeColor.bodyMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
                     subtitle: Text(
                       '${p.partNumber ?? ''} · \$${(p.price ?? 0).toStringAsFixed(2)}',
                       style: ThemeColor.caption,
                     ),
-                    trailing: const Icon(
-                      Icons.add_circle_outline,
-                      color: ThemeColor.accentColor,
-                      size: 20,
-                    ),
+                    trailing: const Icon(Icons.add_circle_outline,
+                        color: ThemeColor.accentColor, size: 20),
                     onTap: () => ctrl.addProduct(p),
                   );
                 },
@@ -168,7 +157,7 @@ class _TopSection extends StatelessWidget {
   }
 }
 
-
+// ── Row Field ─────────────────────────────────────────────────────────────────
 
 class _RowField extends StatelessWidget {
   final String label;
@@ -183,13 +172,10 @@ class _RowField extends StatelessWidget {
         children: [
           SizedBox(
             width: 72,
-            child: Text(
-              label,
-              style: ThemeColor.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-                color: ThemeColor.textPrimaryColor,
-              ),
-            ),
+            child: Text(label,
+                style: ThemeColor.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: ThemeColor.textPrimaryColor)),
           ),
           Expanded(child: child),
         ],
@@ -197,12 +183,15 @@ class _RowField extends StatelessWidget {
     );
   }
 }
+
+// ── Client Selector ───────────────────────────────────────────────────────────
+
 class _ClientSelector extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _ClientSelector({required this.ctrl});
 
   @override
-  Widget build(BuildContext context) {  // <-- context ya está disponible aquí
+  Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
@@ -219,10 +208,8 @@ class _ClientSelector extends StatelessWidget {
                 hintStyle: ThemeColor.bodyMedium
                     .copyWith(color: ThemeColor.textSecondaryColor),
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 filled: true,
                 fillColor: ThemeColor.backgroundColor,
                 suffixIcon: hasText
@@ -231,11 +218,8 @@ class _ClientSelector extends StatelessWidget {
                           ctrl.clienteController.clear();
                           ctrl.onClienteChanged('');
                         },
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: ThemeColor.textSecondaryColor,
-                        ),
+                        child: const Icon(Icons.close,
+                            size: 16, color: ThemeColor.textSecondaryColor),
                       )
                     : null,
                 enabledBorder: OutlineInputBorder(
@@ -250,9 +234,7 @@ class _ClientSelector extends StatelessWidget {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: ThemeColor.extraLargeBorderRadius,
                   borderSide: const BorderSide(
-                    color: ThemeColor.accentColor,
-                    width: 1.5,
-                  ),
+                      color: ThemeColor.accentColor, width: 1.5),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: ThemeColor.extraLargeBorderRadius,
@@ -263,7 +245,6 @@ class _ClientSelector extends StatelessWidget {
           }),
         ),
         const SizedBox(width: 8),
-        // ✅ Aquí va el cambio — reemplaza el GestureDetector con el snackbar
         GestureDetector(
           onTap: () => ctrl.openClientSearch(context),
           child: Container(
@@ -273,17 +254,17 @@ class _ClientSelector extends StatelessWidget {
               color: ThemeColor.primaryColor,
               borderRadius: ThemeColor.smallBorderRadius,
             ),
-            child: const Icon(
-              Icons.person_search_outlined,
-              color: ThemeColor.textLightColor,
-              size: 18,
-            ),
+            child: const Icon(Icons.person_search_outlined,
+                color: ThemeColor.textLightColor, size: 18),
           ),
         ),
       ],
     );
   }
 }
+
+// ── Price Selector ────────────────────────────────────────────────────────────
+
 class _PriceSelector extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _PriceSelector({required this.ctrl});
@@ -296,8 +277,7 @@ class _PriceSelector extends StatelessWidget {
             isScrollControlled: true,
           ),
           child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               color: ThemeColor.backgroundColor,
               borderRadius: ThemeColor.extraLargeBorderRadius,
@@ -305,18 +285,12 @@ class _PriceSelector extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    ctrl.selectedPriceType.value,
-                    style: ThemeColor.bodyMedium.copyWith(
-                      color: ThemeColor.textSecondaryColor,
-                    ),
-                  ),
+                  child: Text(ctrl.selectedPriceType.value,
+                      style: ThemeColor.bodyMedium
+                          .copyWith(color: ThemeColor.textSecondaryColor)),
                 ),
-                const Icon(
-                  Icons.chevron_right,
-                  color: ThemeColor.textSecondaryColor,
-                  size: 18,
-                ),
+                const Icon(Icons.chevron_right,
+                    color: ThemeColor.textSecondaryColor, size: 18),
               ],
             ),
           ),
@@ -335,24 +309,21 @@ class _PriceBottomSheet extends StatelessWidget {
       decoration: const BoxDecoration(
         color: ThemeColor.surfaceColor,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(ThemeColor.largeRadius),
-        ),
+            top: Radius.circular(ThemeColor.largeRadius)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding:
-                const EdgeInsets.only(bottom: ThemeColor.paddingMedium),
+            padding: const EdgeInsets.only(bottom: ThemeColor.paddingMedium),
             child: Text('Tipo de precio', style: ThemeColor.headingSmall),
           ),
           ...ctrl.priceOptions.map(
             (opt) => Obx(() => ListTile(
                   title: Text(opt, style: ThemeColor.bodyLarge),
                   trailing: ctrl.selectedPriceType.value == opt
-                      ? const Icon(Icons.check,
-                          color: ThemeColor.accentColor)
+                      ? const Icon(Icons.check, color: ThemeColor.accentColor)
                       : null,
                   onTap: () {
                     ctrl.selectedPriceType.value = opt;
@@ -367,7 +338,7 @@ class _PriceBottomSheet extends StatelessWidget {
   }
 }
 
-
+// ── Product Search ────────────────────────────────────────────────────────────
 
 class ProductSearchField extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -383,8 +354,7 @@ class ProductSearchField extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.search,
-              color: ThemeColor.textSecondaryColor, size: 18),
+          const Icon(Icons.search, color: ThemeColor.textSecondaryColor, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
@@ -419,6 +389,7 @@ class ProductSearchField extends StatelessWidget {
   }
 }
 
+// ── Product List ──────────────────────────────────────────────────────────────
 
 class _ProductList extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -438,11 +409,10 @@ class _ProductList extends StatelessWidget {
                 _ProductItem(ctrl: ctrl, item: entry.value),
                 if (!isLast)
                   Divider(
-                    height: 1,
-                    color: ThemeColor.dividerColor,
-                    indent: 16,
-                    endIndent: 16,
-                  ),
+                      height: 1,
+                      color: ThemeColor.dividerColor,
+                      indent: 16,
+                      endIndent: 16),
               ],
             );
           }).toList(),
@@ -451,6 +421,7 @@ class _ProductList extends StatelessWidget {
     });
   }
 }
+
 class _ProductItem extends StatelessWidget {
   final CreateQuoteController ctrl;
   final QuoteItem item;
@@ -460,9 +431,8 @@ class _ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingMedium,
-      ),
+          horizontal: ThemeColor.paddingMedium,
+          vertical: ThemeColor.paddingMedium),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -472,21 +442,15 @@ class _ProductItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.product.description ?? '',
-                  style: ThemeColor.subtitleMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(item.product.description ?? '',
+                    style: ThemeColor.subtitleMedium,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
-                Text(
-                  '\$${item.unitPrice.toStringAsFixed(2)}',
-                  style: ThemeColor.bodyMedium.copyWith(
-                    color: ThemeColor.textSecondaryColor,
-                  ),
-                ),
+                Text('\$${item.unitPrice.toStringAsFixed(2)}',
+                    style: ThemeColor.bodyMedium
+                        .copyWith(color: ThemeColor.textSecondaryColor)),
                 const SizedBox(height: 8),
-                // Controles de cantidad inline
                 _QuantityControls(ctrl: ctrl, item: item),
               ],
             ),
@@ -495,25 +459,18 @@ class _ProductItem extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Delete directo sin more_horiz
               GestureDetector(
                 onTap: () => ctrl.removeItem(item),
                 child: const Padding(
                   padding: EdgeInsets.all(4),
-                  child: Icon(
-                    Icons.delete_outline,
-                    color: ThemeColor.errorColor,
-                    size: 20,
-                  ),
+                  child: Icon(Icons.delete_outline,
+                      color: ThemeColor.errorColor, size: 20),
                 ),
               ),
               const SizedBox(height: 14),
-              Obx(() => Text(
-                    '\$${item.total.toStringAsFixed(2)}',
-                    style: ThemeColor.subtitleMedium.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )),
+              Obx(() => Text('\$${item.total.toStringAsFixed(2)}',
+                  style: ThemeColor.subtitleMedium
+                      .copyWith(fontWeight: FontWeight.w700))),
             ],
           ),
         ],
@@ -521,6 +478,8 @@ class _ProductItem extends StatelessWidget {
     );
   }
 }
+
+// ── Quantity Controls ─────────────────────────────────────────────────────────
 
 class _QuantityControls extends StatefulWidget {
   final CreateQuoteController ctrl;
@@ -537,17 +496,14 @@ class _QuantityControlsState extends State<_QuantityControls> {
   @override
   void initState() {
     super.initState();
-    _textCtrl = TextEditingController(
-        text: widget.item.quantity.value.toString());
-
-    // ✅ Sincroniza el texto cuando quantity cambia desde afuera
+    _textCtrl =
+        TextEditingController(text: widget.item.quantity.value.toString());
     ever(widget.item.quantity, (val) {
       final newText = val.toString();
       if (_textCtrl.text != newText) {
         _textCtrl.text = newText;
-        _textCtrl.selection = TextSelection.fromPosition(
-          TextPosition(offset: newText.length),
-        );
+        _textCtrl.selection =
+            TextSelection.fromPosition(TextPosition(offset: newText.length));
       }
     });
   }
@@ -637,122 +593,7 @@ class _QuantityControlsState extends State<_QuantityControls> {
   }
 }
 
-
-class _QuantityInput extends StatefulWidget {
-  final QuoteItem item;
-  const _QuantityInput({required this.item});
-
-  @override
-  State<_QuantityInput> createState() => _QuantityInputState();
-}
-
-class _QuantityInputState extends State<_QuantityInput> {
-  late final TextEditingController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = TextEditingController(
-        text: widget.item.quantity.value.toString());
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 64,
-      height: 34,
-      child: TextField(
-        controller: _ctrl,
-        textAlign: TextAlign.center,
-        keyboardType: TextInputType.number,
-        style: ThemeColor.bodyMedium,
-        decoration: InputDecoration(
-          isDense: true,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-          filled: true,
-          fillColor: ThemeColor.backgroundColor,
-          border: OutlineInputBorder(
-            borderRadius: ThemeColor.smallBorderRadius,
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: ThemeColor.smallBorderRadius,
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: ThemeColor.smallBorderRadius,
-            borderSide: const BorderSide(
-                color: ThemeColor.accentColor, width: 1.5),
-          ),
-        ),
-        onChanged: (v) {
-          final parsed = int.tryParse(v);
-          if (parsed != null && parsed > 0) {
-            widget.item.quantity.value = parsed;
-          }
-        },
-      ),
-    );
-  }
-}
-
-
-
-class _ItemOptionsSheet extends StatelessWidget {
-  final CreateQuoteController ctrl;
-  final QuoteItem item;
-  const _ItemOptionsSheet({required this.ctrl, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(ThemeColor.paddingMedium),
-      decoration: const BoxDecoration(
-        color: ThemeColor.surfaceColor,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(ThemeColor.largeRadius),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.copy_outlined,
-                color: ThemeColor.primaryColor),
-            title: Text('Duplicar', style: ThemeColor.bodyLarge),
-            onTap: () {
-              ctrl.duplicateItem(item);
-              Get.back();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline,
-                color: ThemeColor.errorColor),
-            title: Text(
-              'Eliminar',
-              style: ThemeColor.bodyLarge
-                  .copyWith(color: ThemeColor.errorColor),
-            ),
-            onTap: () {
-              ctrl.removeItem(item);
-              Get.back();
-            },
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-}
-
-
+// ── Totals ────────────────────────────────────────────────────────────────────
 
 class _TotalsSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -763,15 +604,13 @@ class _TotalsSection extends StatelessWidget {
     return Container(
       color: ThemeColor.surfaceColor,
       padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingMedium,
-      ),
+          horizontal: ThemeColor.paddingMedium,
+          vertical: ThemeColor.paddingMedium),
       child: Obx(() => Column(
             children: [
               _TotalRow(
-                label: 'Subtotal',
-                value: '\$${ctrl.subtotal.toStringAsFixed(2)}',
-              ),
+                  label: 'Subtotal',
+                  value: '\$${ctrl.subtotal.toStringAsFixed(2)}'),
               const SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -780,12 +619,13 @@ class _TotalsSection extends StatelessWidget {
                     onTap: () => _showDiscountDialog(context),
                     child: Text(
                       ctrl.globalDiscount.value > 0
-                          ? 'Descuento aplicado'
+                          ? ctrl.globalDiscountType.value == 'porcentaje'
+                              ? 'Descuento ${ctrl.globalDiscountPercent.value.toInt()}% aplicado'
+                              : 'Descuento aplicado'
                           : 'Agregar un Descuento',
                       style: ThemeColor.bodyMedium.copyWith(
-                        color: ThemeColor.errorColor,
-                        fontWeight: FontWeight.w500,
-                      ),
+                          color: ThemeColor.errorColor,
+                          fontWeight: FontWeight.w500),
                     ),
                   ),
                   Text(
@@ -799,9 +639,8 @@ class _TotalsSection extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               _TotalRow(
-                label: 'I.V.A',
-                value: '\$${ctrl.ivaAmount.toStringAsFixed(2)}',
-              ),
+                  label: 'I.V.A',
+                  value: '\$${ctrl.ivaAmount.toStringAsFixed(2)}'),
               Divider(height: 20, color: ThemeColor.dividerColor),
               _TotalRow(
                 label: 'Total a pagar',
@@ -814,51 +653,218 @@ class _TotalsSection extends StatelessWidget {
   }
 
   void _showDiscountDialog(BuildContext context) {
+    final RxString mode = ctrl.globalDiscountType.value.obs;
+
     Get.dialog(
-      AlertDialog(
-        backgroundColor: ThemeColor.surfaceColor,
-        title: Text('Descuento global', style: ThemeColor.headingSmall),
-        content: TextField(
-          controller: ctrl.globalDiscountCtrl,
-          keyboardType:
-              const TextInputType.numberWithOptions(decimal: true),
-          style: ThemeColor.bodyMedium,
-          decoration: InputDecoration(
-            hintText: '0.00',
-            prefixText: '\$ ',
-            border: OutlineInputBorder(
-              borderRadius: ThemeColor.mediumBorderRadius,
-              borderSide: BorderSide(color: Colors.grey.shade300),
+      Obx(() => AlertDialog(
+            backgroundColor: ThemeColor.surfaceColor,
+            title: Text('Descuento global', style: ThemeColor.headingSmall),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Toggle monto / porcentaje
+                Container(
+                  decoration: BoxDecoration(
+                    color: ThemeColor.backgroundColor,
+                    borderRadius: ThemeColor.smallBorderRadius,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => mode.value = 'monto',
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: mode.value == 'monto'
+                                  ? ThemeColor.primaryColor
+                                  : Colors.transparent,
+                              borderRadius: ThemeColor.smallBorderRadius,
+                            ),
+                            child: Text(
+                              'Monto fijo',
+                              textAlign: TextAlign.center,
+                              style: ThemeColor.bodySmall.copyWith(
+                                color: mode.value == 'monto'
+                                    ? Colors.white
+                                    : ThemeColor.textSecondaryColor,
+                                fontWeight: mode.value == 'monto'
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => mode.value = 'porcentaje',
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: mode.value == 'porcentaje'
+                                  ? ThemeColor.primaryColor
+                                  : Colors.transparent,
+                              borderRadius: ThemeColor.smallBorderRadius,
+                            ),
+                            child: Text(
+                              'Porcentaje',
+                              textAlign: TextAlign.center,
+                              style: ThemeColor.bodySmall.copyWith(
+                                color: mode.value == 'porcentaje'
+                                    ? Colors.white
+                                    : ThemeColor.textSecondaryColor,
+                                fontWeight: mode.value == 'porcentaje'
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: ThemeColor.paddingMedium),
+
+                // Monto fijo
+                if (mode.value == 'monto')
+                  TextField(
+                    controller: ctrl.globalDiscountCtrl,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    style: ThemeColor.bodyMedium,
+                    decoration: InputDecoration(
+                      hintText: '0.00',
+                      prefixText: '\$ ',
+                      border: OutlineInputBorder(
+                        borderRadius: ThemeColor.mediumBorderRadius,
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: ThemeColor.mediumBorderRadius,
+                        borderSide: const BorderSide(
+                            color: ThemeColor.accentColor, width: 1.5),
+                      ),
+                    ),
+                  ),
+
+                // Porcentaje — chips
+                if (mode.value == 'porcentaje')
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Selecciona el porcentaje',
+                          style: ThemeColor.bodySmall.copyWith(
+                              color: ThemeColor.textSecondaryColor)),
+                      const SizedBox(height: 10),
+                      Obx(() => Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [5, 10, 15, 20, 25, 30].map((pct) {
+                              final selected =
+                                  ctrl.globalDiscountPercent.value ==
+                                      pct.toDouble();
+                              return GestureDetector(
+                                onTap: () =>
+                                    ctrl.globalDiscountPercent.value =
+                                        pct.toDouble(),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: selected
+                                        ? ThemeColor.primaryColor
+                                        : ThemeColor.backgroundColor,
+                                    borderRadius:
+                                        ThemeColor.circularBorderRadius,
+                                    border: Border.all(
+                                      color: selected
+                                          ? ThemeColor.primaryColor
+                                          : ThemeColor.dividerColor,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '$pct%',
+                                    style: ThemeColor.bodyMedium.copyWith(
+                                      color: selected
+                                          ? Colors.white
+                                          : ThemeColor.textPrimaryColor,
+                                      fontWeight: selected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          )),
+                      const SizedBox(height: 10),
+                      Obx(() => ctrl.globalDiscountPercent.value > 0
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: ThemeColor.errorColor.withOpacity(0.08),
+                                borderRadius: ThemeColor.smallBorderRadius,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Descuento ${ctrl.globalDiscountPercent.value.toInt()}%',
+                                    style: ThemeColor.bodySmall
+                                        .copyWith(color: ThemeColor.errorColor),
+                                  ),
+                                  Text(
+                                    '-\$${(ctrl.subtotal * (ctrl.globalDiscountPercent.value / 100)).toStringAsFixed(2)}',
+                                    style: ThemeColor.bodySmall.copyWith(
+                                      color: ThemeColor.errorColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink()),
+                    ],
+                  ),
+              ],
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: ThemeColor.mediumBorderRadius,
-              borderSide: const BorderSide(
-                  color: ThemeColor.accentColor, width: 1.5),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: ThemeColor.textSecondaryColor),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeColor.primaryColor,
-            ),
-            onPressed: () {
-              ctrl.applyGlobalDiscount(
-                double.tryParse(ctrl.globalDiscountCtrl.text) ?? 0,
-              );
-              Get.back();
-            },
-            child: const Text('Aplicar'),
-          ),
-        ],
-      ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  ctrl.globalDiscountPercent.value = 0;
+                  Get.back();
+                },
+                child: const Text('Cancelar',
+                    style:
+                        TextStyle(color: ThemeColor.textSecondaryColor)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: ThemeColor.primaryColor),
+                onPressed: () {
+                  if (mode.value == 'monto') {
+                    ctrl.applyGlobalDiscount(
+                      double.tryParse(ctrl.globalDiscountCtrl.text) ?? 0,
+                    );
+                  } else {
+                    ctrl.applyGlobalDiscount(
+                      ctrl.globalDiscountPercent.value,
+                      isPercent: true,
+                    );
+                  }
+                  Get.back();
+                },
+                child: const Text('Aplicar'),
+              ),
+            ],
+          )),
     );
   }
 }
@@ -867,11 +873,8 @@ class _TotalRow extends StatelessWidget {
   final String label;
   final String value;
   final bool bold;
-  const _TotalRow({
-    required this.label,
-    required this.value,
-    this.bold = false,
-  });
+  const _TotalRow(
+      {required this.label, required this.value, this.bold = false});
 
   @override
   Widget build(BuildContext context) {
@@ -880,15 +883,12 @@ class _TotalRow extends StatelessWidget {
         : ThemeColor.bodyMedium;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: style),
-        Text(value, style: style),
-      ],
+      children: [Text(label, style: style), Text(value, style: style)],
     );
   }
 }
 
-
+// ── Valid Until ───────────────────────────────────────────────────────────────
 
 class _ValidUntilSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -899,18 +899,14 @@ class _ValidUntilSection extends StatelessWidget {
     return Container(
       color: ThemeColor.surfaceColor,
       padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingMedium,
-      ),
+          horizontal: ThemeColor.paddingMedium,
+          vertical: ThemeColor.paddingMedium),
       child: Row(
         children: [
-          Text(
-            'Válida hasta',
-            style: ThemeColor.bodyMedium.copyWith(
-              fontWeight: FontWeight.w600,
-              color: ThemeColor.textPrimaryColor,
-            ),
-          ),
+          Text('Válida hasta',
+              style: ThemeColor.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: ThemeColor.textPrimaryColor)),
           const SizedBox(width: 12),
           Expanded(
             child: Obx(() => GestureDetector(
@@ -923,12 +919,9 @@ class _ValidUntilSection extends StatelessWidget {
                       borderRadius: ThemeColor.smallBorderRadius,
                       border: Border.all(color: ThemeColor.dividerColor),
                     ),
-                    child: Text(
-                      _fmt(ctrl.validUntil.value),
-                      style: ThemeColor.bodyMedium.copyWith(
-                        color: ThemeColor.textSecondaryColor,
-                      ),
-                    ),
+                    child: Text(_fmt(ctrl.validUntil.value),
+                        style: ThemeColor.bodyMedium
+                            .copyWith(color: ThemeColor.textSecondaryColor)),
                   ),
                 )),
           ),
@@ -943,6 +936,7 @@ class _ValidUntilSection extends StatelessWidget {
       '${d.year}';
 }
 
+// ── Comments ──────────────────────────────────────────────────────────────────
 
 class _CommentsSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -953,19 +947,15 @@ class _CommentsSection extends StatelessWidget {
     return Container(
       color: ThemeColor.surfaceColor,
       padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingMedium,
-      ),
+          horizontal: ThemeColor.paddingMedium,
+          vertical: ThemeColor.paddingMedium),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Comentarios',
-            style: ThemeColor.bodyMedium.copyWith(
-              fontWeight: FontWeight.w600,
-              color: ThemeColor.textPrimaryColor,
-            ),
-          ),
+          Text('Comentarios',
+              style: ThemeColor.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: ThemeColor.textPrimaryColor)),
           const SizedBox(height: ThemeColor.paddingSmall),
           TextField(
             controller: ctrl.commentsCtrl,
@@ -996,16 +986,18 @@ class _CommentsSection extends StatelessWidget {
   }
 }
 
+// ── Bottom Button ─────────────────────────────────────────────────────────────
+
 class _BottomButton extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _BottomButton({required this.ctrl});
 
   @override
-  Widget build(BuildContext context) {    final bottomPadding = MediaQuery.of(context).padding.bottom; // 👈
-
+  Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
       color: ThemeColor.surfaceColor,
-      padding:  EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         ThemeColor.paddingMedium,
         ThemeColor.paddingSmall,
         ThemeColor.paddingMedium,
@@ -1040,7 +1032,7 @@ class _BottomButton extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   borderRadius: ThemeColor.mediumRadius,
                   isLoading: ctrl.isLoadingPdf.value,
-onPressed: () => ctrl.generateAndOpenPdf(context),                
+                  onPressed: () => ctrl.generateAndOpenPdf(context),
                 ),
               ),
             ],
@@ -1066,6 +1058,7 @@ onPressed: () => ctrl.generateAndOpenPdf(context),
   }
 }
 
+// ── Product Thumbnail ─────────────────────────────────────────────────────────
 
 class _ProductThumbnail extends StatelessWidget {
   final String? imageUrl;
@@ -1095,11 +1088,8 @@ class _ProductThumbnail extends StatelessWidget {
                 ),
               ),
             )
-          : Icon(
-              Icons.image_outlined,
-              color: ThemeColor.textTertiaryColor,
-              size: size * 0.48,
-            ),
+          : Icon(Icons.image_outlined,
+              color: ThemeColor.textTertiaryColor, size: size * 0.48),
     );
   }
 }

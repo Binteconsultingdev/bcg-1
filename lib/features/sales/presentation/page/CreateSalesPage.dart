@@ -20,8 +20,7 @@ class CreateSalesPage extends StatelessWidget {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              keyboardDismissBehavior:
-                  ScrollViewKeyboardDismissBehavior.onDrag,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: Column(
                 children: [
                   _TopSection(ctrl: ctrl),
@@ -49,7 +48,7 @@ class CreateSalesPage extends StatelessWidget {
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
 
-// ── AppBar ──────────────────────────────────────────────────────────────────
+// ── AppBar ───────────────────────────────────────────────────────────────────
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final CreateSalesController ctrl;
@@ -79,7 +78,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-// ── Top Section ─────────────────────────────────────────────────────────────
+// ── Top Section ──────────────────────────────────────────────────────────────
 
 class _TopSection extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -131,8 +130,7 @@ class _TopSection extends StatelessWidget {
                   final p = results[i];
                   return ListTile(
                     dense: true,
-                    leading: _ProductThumbnail(
-                        imageUrl: p.imageUrl, size: 36),
+                    leading: _ProductThumbnail(imageUrl: p.imageUrl, size: 36),
                     title: Text(
                       p.description ?? '',
                       style: ThemeColor.bodyMedium,
@@ -157,7 +155,7 @@ class _TopSection extends StatelessWidget {
   }
 }
 
-// ── Row Field ────────────────────────────────────────────────────────────────
+// ── Row Field ─────────────────────────────────────────────────────────────────
 
 class _RowField extends StatelessWidget {
   final String label;
@@ -187,7 +185,7 @@ class _RowField extends StatelessWidget {
   }
 }
 
-// ── Client Selector ──────────────────────────────────────────────────────────
+// ── Client Selector ───────────────────────────────────────────────────────────
 
 class _ClientSelector extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -211,8 +209,8 @@ class _ClientSelector extends StatelessWidget {
                 hintStyle: ThemeColor.bodyMedium
                     .copyWith(color: ThemeColor.textSecondaryColor),
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 filled: true,
                 fillColor: ThemeColor.backgroundColor,
                 suffixIcon: hasText
@@ -222,8 +220,7 @@ class _ClientSelector extends StatelessWidget {
                           ctrl.onClienteChanged('');
                         },
                         child: const Icon(Icons.close,
-                            size: 16,
-                            color: ThemeColor.textSecondaryColor),
+                            size: 16, color: ThemeColor.textSecondaryColor),
                       )
                     : null,
                 enabledBorder: OutlineInputBorder(
@@ -237,8 +234,8 @@ class _ClientSelector extends StatelessWidget {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: ThemeColor.extraLargeBorderRadius,
-                  borderSide: const BorderSide(
-                      color: ThemeColor.accentColor, width: 1.5),
+                  borderSide:
+                      const BorderSide(color: ThemeColor.accentColor, width: 1.5),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: ThemeColor.extraLargeBorderRadius,
@@ -267,7 +264,7 @@ class _ClientSelector extends StatelessWidget {
   }
 }
 
-// ── Método Embarque ──────────────────────────────────────────────────────────
+// ── Método Embarque ───────────────────────────────────────────────────────────
 
 class _MetodoEmbarqueSelector extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -281,8 +278,7 @@ class _MetodoEmbarqueSelector extends StatelessWidget {
             isScrollControlled: true,
           ),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               color: ThemeColor.backgroundColor,
               borderRadius: ThemeColor.extraLargeBorderRadius,
@@ -323,17 +319,14 @@ class _MetodoBottomSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding:
-                const EdgeInsets.only(bottom: ThemeColor.paddingMedium),
-            child:
-                Text('Método de embarque', style: ThemeColor.headingSmall),
+            padding: const EdgeInsets.only(bottom: ThemeColor.paddingMedium),
+            child: Text('Método de embarque', style: ThemeColor.headingSmall),
           ),
           ...ctrl.metodosEmbarque.map(
             (opt) => Obx(() => ListTile(
                   title: Text(opt, style: ThemeColor.bodyLarge),
                   trailing: ctrl.metodoEmbarque.value == opt
-                      ? const Icon(Icons.check,
-                          color: ThemeColor.accentColor)
+                      ? const Icon(Icons.check, color: ThemeColor.accentColor)
                       : null,
                   onTap: () {
                     ctrl.metodoEmbarque.value = opt;
@@ -348,7 +341,7 @@ class _MetodoBottomSheet extends StatelessWidget {
   }
 }
 
-// ── Product Search ───────────────────────────────────────────────────────────
+// ── Product Search ────────────────────────────────────────────────────────────
 
 class _ProductSearchField extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -364,8 +357,7 @@ class _ProductSearchField extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.search,
-              color: ThemeColor.textSecondaryColor, size: 18),
+          const Icon(Icons.search, color: ThemeColor.textSecondaryColor, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
@@ -400,7 +392,7 @@ class _ProductSearchField extends StatelessWidget {
   }
 }
 
-// ── Product List ─────────────────────────────────────────────────────────────
+// ── Product List ──────────────────────────────────────────────────────────────
 
 class _ProductList extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -432,6 +424,7 @@ class _ProductList extends StatelessWidget {
     });
   }
 }
+
 class _ProductItem extends StatelessWidget {
   final CreateSalesController ctrl;
   final SaleItem item;
@@ -510,16 +503,14 @@ class _QuantityControlsState extends State<_QuantityControls> {
   @override
   void initState() {
     super.initState();
-    _textCtrl = TextEditingController(
-        text: widget.item.quantity.value.toString());
-
+    _textCtrl =
+        TextEditingController(text: widget.item.quantity.value.toString());
     ever(widget.item.quantity, (val) {
       final newText = val.toString();
       if (_textCtrl.text != newText) {
         _textCtrl.text = newText;
-        _textCtrl.selection = TextSelection.fromPosition(
-          TextPosition(offset: newText.length),
-        );
+        _textCtrl.selection =
+            TextSelection.fromPosition(TextPosition(offset: newText.length));
       }
     });
   }
@@ -609,51 +600,7 @@ class _QuantityControlsState extends State<_QuantityControls> {
   }
 }
 
-class _ItemOptionsSheet extends StatelessWidget {
-  final CreateSalesController ctrl;
-  final SaleItem item;
-  const _ItemOptionsSheet({required this.ctrl, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(ThemeColor.paddingMedium),
-      decoration: const BoxDecoration(
-        color: ThemeColor.surfaceColor,
-        borderRadius: BorderRadius.vertical(
-            top: Radius.circular(ThemeColor.largeRadius)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.copy_outlined,
-                color: ThemeColor.primaryColor),
-            title: Text('Duplicar', style: ThemeColor.bodyLarge),
-            onTap: () {
-              ctrl.duplicateItem(item);
-              Get.back();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.delete_outline,
-                color: ThemeColor.errorColor),
-            title: Text('Eliminar',
-                style: ThemeColor.bodyLarge
-                    .copyWith(color: ThemeColor.errorColor)),
-            onTap: () {
-              ctrl.removeItem(item);
-              Get.back();
-            },
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Totals ───────────────────────────────────────────────────────────────────
+// ── Totals ────────────────────────────────────────────────────────────────────
 
 class _TotalsSection extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -679,7 +626,9 @@ class _TotalsSection extends StatelessWidget {
                     onTap: () => _showDiscountDialog(context),
                     child: Text(
                       ctrl.globalDiscount.value > 0
-                          ? 'Descuento aplicado'
+                          ? ctrl.globalDiscountType.value == 'porcentaje'
+                              ? 'Descuento ${ctrl.globalDiscountPercent.value.toInt()}% aplicado'
+                              : 'Descuento aplicado'
                           : 'Agregar un Descuento',
                       style: ThemeColor.bodyMedium.copyWith(
                           color: ThemeColor.errorColor,
@@ -696,24 +645,20 @@ class _TotalsSection extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 6),
-              // Toggle IVA
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('I.V.A (16%)', style: ThemeColor.bodyMedium),
                   Row(
                     children: [
-                      Text(
-                        '\$${ctrl.ivaAmount.toStringAsFixed(2)}',
-                        style: ThemeColor.bodyMedium,
-                      ),
+                      Text('\$${ctrl.ivaAmount.toStringAsFixed(2)}',
+                          style: ThemeColor.bodyMedium),
                       const SizedBox(width: 8),
                       Switch(
                         value: ctrl.incIVA.value,
                         onChanged: (v) => ctrl.incIVA.value = v,
                         activeColor: ThemeColor.primaryColor,
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ],
                   ),
@@ -731,46 +676,221 @@ class _TotalsSection extends StatelessWidget {
   }
 
   void _showDiscountDialog(BuildContext context) {
-    Get.dialog(AlertDialog(
-      backgroundColor: ThemeColor.surfaceColor,
-      title: Text('Descuento global', style: ThemeColor.headingSmall),
-      content: TextField(
-        controller: ctrl.globalDiscountCtrl,
-        keyboardType:
-            const TextInputType.numberWithOptions(decimal: true),
-        style: ThemeColor.bodyMedium,
-        decoration: InputDecoration(
-          hintText: '0.00',
-          prefixText: '\$ ',
-          border: OutlineInputBorder(
-            borderRadius: ThemeColor.mediumBorderRadius,
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: ThemeColor.mediumBorderRadius,
-            borderSide: const BorderSide(
-                color: ThemeColor.accentColor, width: 1.5),
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: const Text('Cancelar',
-              style: TextStyle(color: ThemeColor.textSecondaryColor)),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeColor.primaryColor),
-          onPressed: () {
-            ctrl.applyGlobalDiscount(
-                double.tryParse(ctrl.globalDiscountCtrl.text) ?? 0);
-            Get.back();
-          },
-          child: const Text('Aplicar'),
-        ),
-      ],
-    ));
+    final RxString mode = ctrl.globalDiscountType.value.obs;
+
+    Get.dialog(
+      Obx(() => AlertDialog(
+            backgroundColor: ThemeColor.surfaceColor,
+            title: Text('Descuento global', style: ThemeColor.headingSmall),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Toggle monto / porcentaje
+                Container(
+                  decoration: BoxDecoration(
+                    color: ThemeColor.backgroundColor,
+                    borderRadius: ThemeColor.smallBorderRadius,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => mode.value = 'monto',
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: mode.value == 'monto'
+                                  ? ThemeColor.primaryColor
+                                  : Colors.transparent,
+                              borderRadius: ThemeColor.smallBorderRadius,
+                            ),
+                            child: Text(
+                              'Monto fijo',
+                              textAlign: TextAlign.center,
+                              style: ThemeColor.bodySmall.copyWith(
+                                color: mode.value == 'monto'
+                                    ? Colors.white
+                                    : ThemeColor.textSecondaryColor,
+                                fontWeight: mode.value == 'monto'
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => mode.value = 'porcentaje',
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: mode.value == 'porcentaje'
+                                  ? ThemeColor.primaryColor
+                                  : Colors.transparent,
+                              borderRadius: ThemeColor.smallBorderRadius,
+                            ),
+                            child: Text(
+                              'Porcentaje',
+                              textAlign: TextAlign.center,
+                              style: ThemeColor.bodySmall.copyWith(
+                                color: mode.value == 'porcentaje'
+                                    ? Colors.white
+                                    : ThemeColor.textSecondaryColor,
+                                fontWeight: mode.value == 'porcentaje'
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: ThemeColor.paddingMedium),
+
+                // Monto fijo
+                if (mode.value == 'monto')
+                  TextField(
+                    controller: ctrl.globalDiscountCtrl,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    style: ThemeColor.bodyMedium,
+                    decoration: InputDecoration(
+                      hintText: '0.00',
+                      prefixText: '\$ ',
+                      border: OutlineInputBorder(
+                        borderRadius: ThemeColor.mediumBorderRadius,
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: ThemeColor.mediumBorderRadius,
+                        borderSide: const BorderSide(
+                            color: ThemeColor.accentColor, width: 1.5),
+                      ),
+                    ),
+                  ),
+
+                // Porcentaje — chips
+                if (mode.value == 'porcentaje')
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Selecciona el porcentaje',
+                        style: ThemeColor.bodySmall
+                            .copyWith(color: ThemeColor.textSecondaryColor),
+                      ),
+                      const SizedBox(height: 10),
+                      Obx(() => Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [5, 10, 15, 20, 25, 30].map((pct) {
+                              final selected =
+                                  ctrl.globalDiscountPercent.value ==
+                                      pct.toDouble();
+                              return GestureDetector(
+                                onTap: () => ctrl.globalDiscountPercent.value =
+                                    pct.toDouble(),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: selected
+                                        ? ThemeColor.primaryColor
+                                        : ThemeColor.backgroundColor,
+                                    borderRadius:
+                                        ThemeColor.circularBorderRadius,
+                                    border: Border.all(
+                                      color: selected
+                                          ? ThemeColor.primaryColor
+                                          : ThemeColor.dividerColor,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '$pct%',
+                                    style: ThemeColor.bodyMedium.copyWith(
+                                      color: selected
+                                          ? Colors.white
+                                          : ThemeColor.textPrimaryColor,
+                                      fontWeight: selected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          )),
+                      const SizedBox(height: 10),
+                      // Preview del descuento
+                      Obx(() => ctrl.globalDiscountPercent.value > 0
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: ThemeColor.errorColor.withOpacity(0.08),
+                                borderRadius: ThemeColor.smallBorderRadius,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Descuento ${ctrl.globalDiscountPercent.value.toInt()}%',
+                                    style: ThemeColor.bodySmall.copyWith(
+                                        color: ThemeColor.errorColor),
+                                  ),
+                                  Text(
+                                    '-\$${(ctrl.subtotal * (ctrl.globalDiscountPercent.value / 100)).toStringAsFixed(2)}',
+                                    style: ThemeColor.bodySmall.copyWith(
+                                      color: ThemeColor.errorColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink()),
+                    ],
+                  ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  ctrl.globalDiscountPercent.value = 0;
+                  Get.back();
+                },
+                child: const Text('Cancelar',
+                    style:
+                        TextStyle(color: ThemeColor.textSecondaryColor)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: ThemeColor.primaryColor),
+                onPressed: () {
+                  if (mode.value == 'monto') {
+                    ctrl.applyGlobalDiscount(
+                      double.tryParse(ctrl.globalDiscountCtrl.text) ?? 0,
+                    );
+                  } else {
+                    ctrl.applyGlobalDiscount(
+                      ctrl.globalDiscountPercent.value,
+                      isPercent: true,
+                    );
+                  }
+                  Get.back();
+                },
+                child: const Text('Aplicar'),
+              ),
+            ],
+          )),
+    );
   }
 }
 
@@ -796,7 +916,7 @@ class _TotalRow extends StatelessWidget {
   }
 }
 
-// ── Delivery Section ─────────────────────────────────────────────────────────
+// ── Delivery Section ──────────────────────────────────────────────────────────
 
 class _DeliverySection extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -827,13 +947,12 @@ class _DeliverySection extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: ThemeColor.backgroundColor,
                       borderRadius: ThemeColor.smallBorderRadius,
-                      border:
-                          Border.all(color: ThemeColor.dividerColor),
+                      border: Border.all(color: ThemeColor.dividerColor),
                     ),
                     child: Text(
                       _fmt(ctrl.validUntil.value),
-                      style: ThemeColor.bodyMedium.copyWith(
-                          color: ThemeColor.textSecondaryColor),
+                      style: ThemeColor.bodyMedium
+                          .copyWith(color: ThemeColor.textSecondaryColor),
                     ),
                   ),
                 )),
@@ -848,6 +967,9 @@ class _DeliverySection extends StatelessWidget {
       '${d.month.toString().padLeft(2, '0')}/'
       '${d.year}';
 }
+
+// ── Extra Fields ──────────────────────────────────────────────────────────────
+
 class _ExtraFieldsSection extends StatelessWidget {
   final CreateSalesController ctrl;
   const _ExtraFieldsSection({required this.ctrl});
@@ -861,7 +983,6 @@ class _ExtraFieldsSection extends StatelessWidget {
           vertical: ThemeColor.paddingMedium),
       child: Column(
         children: [
-          // ✅ Vendedor eliminado
           _RowField(
             label: 'Referencia',
             child: _SimpleTextField(
@@ -878,8 +999,7 @@ class _ExtraFieldsSection extends StatelessWidget {
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                    RegExp(r'^\d+\.?\d{0,4}')),
+                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,4}')),
               ],
             ),
           ),
@@ -888,6 +1008,7 @@ class _ExtraFieldsSection extends StatelessWidget {
     );
   }
 }
+
 class _SimpleTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
@@ -907,12 +1028,12 @@ class _SimpleTextField extends StatelessWidget {
       controller: controller,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
-      style: ThemeColor.bodyMedium
-          .copyWith(color: ThemeColor.textPrimaryColor),
+      style:
+          ThemeColor.bodyMedium.copyWith(color: ThemeColor.textPrimaryColor),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: ThemeColor.bodyMedium
-            .copyWith(color: ThemeColor.textSecondaryColor),
+        hintStyle:
+            ThemeColor.bodyMedium.copyWith(color: ThemeColor.textSecondaryColor),
         isDense: true,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -928,15 +1049,15 @@ class _SimpleTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: ThemeColor.extraLargeBorderRadius,
-          borderSide: const BorderSide(
-              color: ThemeColor.accentColor, width: 1.5),
+          borderSide:
+              const BorderSide(color: ThemeColor.accentColor, width: 1.5),
         ),
       ),
     );
   }
 }
 
-// ── Comments ─────────────────────────────────────────────────────────────────
+// ── Comments ──────────────────────────────────────────────────────────────────
 
 class _CommentsSection extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -964,8 +1085,7 @@ class _CommentsSection extends StatelessWidget {
             decoration: InputDecoration(
               filled: true,
               fillColor: ThemeColor.surfaceColor,
-              contentPadding:
-                  const EdgeInsets.all(ThemeColor.paddingMedium),
+              contentPadding: const EdgeInsets.all(ThemeColor.paddingMedium),
               border: OutlineInputBorder(
                 borderRadius: ThemeColor.smallBorderRadius,
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -995,15 +1115,14 @@ class _BottomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-        final bottomPadding = MediaQuery.of(context).padding.bottom; 
-
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
       color: ThemeColor.surfaceColor,
       padding: EdgeInsets.fromLTRB(
         ThemeColor.paddingMedium,
         ThemeColor.paddingSmall,
         ThemeColor.paddingMedium,
-        ThemeColor.paddingLarge + bottomPadding, 
+        ThemeColor.paddingLarge + bottomPadding,
       ),
       child: Obx(() => SizedBox(
             width: double.infinity,
@@ -1034,7 +1153,7 @@ class _BottomButton extends StatelessWidget {
   }
 }
 
-// ── Product Thumbnail ────────────────────────────────────────────────────────
+// ── Product Thumbnail ─────────────────────────────────────────────────────────
 
 class _ProductThumbnail extends StatelessWidget {
   final String? imageUrl;
@@ -1066,186 +1185,6 @@ class _ProductThumbnail extends StatelessWidget {
             )
           : Icon(Icons.image_outlined,
               color: ThemeColor.textTertiaryColor, size: size * 0.48),
-    );
-  }
-}
-
-// ── Client Search Sheet ──────────────────────────────────────────────────────
-
-class _ClientSearchSheet extends StatefulWidget {
-  final ClientController clientCtrl;
-  final ValueChanged<ClientEntity> onSelected;
-  const _ClientSearchSheet(
-      {required this.clientCtrl, required this.onSelected});
-
-  @override
-  State<_ClientSearchSheet> createState() => _ClientSearchSheetState();
-}
-
-class _ClientSearchSheetState extends State<_ClientSearchSheet> {
-  final TextEditingController _searchCtrl = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    widget.clientCtrl.fetchClients();
-  }
-
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(
-        color: ThemeColor.backgroundColor,
-        borderRadius: BorderRadius.vertical(
-            top: Radius.circular(ThemeColor.largeRadius)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            margin:
-                const EdgeInsets.only(top: ThemeColor.paddingSmall),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: ThemeColor.dividerColor,
-              borderRadius: ThemeColor.circularBorderRadius,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: ThemeColor.paddingMedium,
-                vertical: ThemeColor.paddingSmall),
-            child: Row(
-              children: [
-                const Spacer(),
-                Text('Seleccionar Cliente',
-                    style: ThemeColor.headingSmall),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Text('X',
-                      style: ThemeColor.subtitleLarge
-                          .copyWith(fontWeight: FontWeight.w700)),
-                ),
-              ],
-            ),
-          ),
-          Divider(height: 1, color: ThemeColor.dividerColor),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: ThemeColor.paddingMedium,
-                vertical: ThemeColor.paddingSmall),
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: ThemeColor.surfaceColor,
-                borderRadius: ThemeColor.mediumBorderRadius,
-                border: Border.all(color: ThemeColor.dividerColor),
-              ),
-              child: TextField(
-                controller: _searchCtrl,
-                onChanged: (v) =>
-                    widget.clientCtrl.fetchClients(client: v),
-                style: ThemeColor.bodyMedium,
-                decoration: InputDecoration(
-                  hintText: 'Buscar cliente...',
-                  hintStyle: ThemeColor.bodyMedium.copyWith(
-                      color: ThemeColor.textSecondaryColor),
-                  prefixIcon: const Icon(Icons.search,
-                      color: ThemeColor.textSecondaryColor, size: 20),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 10),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Obx(() {
-              if (widget.clientCtrl.isLoading.value) {
-                return const Center(
-                    child: CircularProgressIndicator(
-                        color: ThemeColor.primaryColor));
-              }
-              if (widget.clientCtrl.clients.isEmpty) {
-                return Center(
-                    child: Text('Sin clientes',
-                        style: ThemeColor.bodyMedium.copyWith(
-                            color: ThemeColor.textSecondaryColor)));
-              }
-              return ListView.separated(
-                controller: widget.clientCtrl.scrollController,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: ThemeColor.paddingMedium),
-                itemCount: widget.clientCtrl.clients.length + 1,
-                separatorBuilder: (_, __) =>
-                    Divider(height: 1, color: ThemeColor.dividerColor),
-                itemBuilder: (_, i) {
-                  if (i == widget.clientCtrl.clients.length) {
-                    return Obx(() {
-                      if (widget.clientCtrl.isLoadingMore.value) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                              child: CircularProgressIndicator(
-                                  color: ThemeColor.primaryColor)),
-                        );
-                      }
-                      return const SizedBox(height: 16);
-                    });
-                  }
-                  final client = widget.clientCtrl.clients[i];
-                  return ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 4),
-                    leading: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color:
-                            ThemeColor.primaryColor.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.person_outline,
-                          color: ThemeColor.primaryColor, size: 20),
-                    ),
-                    title: Text(
-                      client.displayName ?? '-',
-                      style: ThemeColor.bodyMedium
-                          .copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: client.owes != null && client.owes! > 0
-                        ? Text(
-                            'Saldo: \$${client.owes!.toStringAsFixed(2)}',
-                            style: ThemeColor.caption.copyWith(
-                                color: ThemeColor.errorColor),
-                          )
-                        : null,
-                    trailing: const Icon(Icons.chevron_right,
-                        color: ThemeColor.textSecondaryColor),
-                    onTap: () {
-                      widget.onSelected(client);
-                      Navigator.of(context).pop();
-                    },
-                  );
-                },
-              );
-            }),
-          ),
-          SizedBox(
-              height: MediaQuery.of(context).padding.bottom +
-                  ThemeColor.paddingSmall),
-        ],
-      ),
     );
   }
 }
