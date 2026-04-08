@@ -42,7 +42,7 @@ class CreateQuoteController extends GetxController {
     required this.fetchFolioUsecase,
     required this.generatePdfUsecase,
   });
-final RxBool searchByDescription = true.obs; // true = descripción, false = num parte
+final RxBool searchByDescription = true.obs;
 
   late final InventoryController _inventoryCtrl =
       Get.find<InventoryController>();
@@ -60,35 +60,28 @@ final RxBool searchByDescription = true.obs; // true = descripción, false = num
   final folio = ''.obs;
   final isLoadingFolio = false.obs;
 
-  // Cliente
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<String>();
   final selectedClientName = Rxn<String>();
 
-  // Precio
   final selectedPriceType = 'REGULAR'.obs;
-  final List<String> priceOptions = ['REGULAR', 'MEDIO M', 'PAQUETE','MAYOREO', 'ESPECIAL','REGULAR','MAYOREO'];
+  final List<String> priceOptions = ['REGULAR', 'MEDIO M', 'PAQUETE','MAYOREO', 'ESPECIAL'];
 
-  // Fecha
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
 
-  // Productos
   final items = <QuoteItem>[].obs;
   final productSearchQuery = ''.obs;
   final isSearching = false.obs;
 
-  // Descuento
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs; // 'monto' o 'porcentaje'
   final globalDiscountPercent = 0.0.obs;
   final referencia = ''.obs;
 
-  // Estado
   final isCreating = false.obs;
   final errorMessage = ''.obs;
 
-  // Controllers
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();

@@ -48,7 +48,6 @@ class CreateSalesPage extends StatelessWidget {
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
 
-// ── AppBar ───────────────────────────────────────────────────────────────────
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final CreateSalesController ctrl;
@@ -78,7 +77,6 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-// ── Top Section ──────────────────────────────────────────────────────────────
 class _QuoteSelector extends StatelessWidget {
   final CreateSalesController ctrl;
   const _QuoteSelector({required this.ctrl});
@@ -156,7 +154,7 @@ class _QuoteSelector extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            // Botón buscar
+      
             GestureDetector(
               onTap: ctrl.searchQuoteByFolio,
               child: Container(
@@ -172,7 +170,6 @@ class _QuoteSelector extends StatelessWidget {
             ),
           ],
         ),
-        // Resultados
         Obx(() {
           if (!ctrl.isSearchingQuote.value && ctrl.quoteResults.isEmpty) {
             return const SizedBox.shrink();
@@ -316,7 +313,6 @@ Divider(height: 1, color: ThemeColor.dividerColor),
   }
 }
 
-// ── Row Field ─────────────────────────────────────────────────────────────────
 
 class _RowField extends StatelessWidget {
   final String label;
@@ -346,7 +342,6 @@ class _RowField extends StatelessWidget {
   }
 }
 
-// ── Client Selector ───────────────────────────────────────────────────────────
 
 class _ClientSelector extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -425,7 +420,6 @@ class _ClientSelector extends StatelessWidget {
   }
 }
 
-// ── Método Embarque ───────────────────────────────────────────────────────────
 
 class _MetodoEmbarqueSelector extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -502,7 +496,6 @@ class _MetodoBottomSheet extends StatelessWidget {
   }
 }
 
-// ── Product Search ────────────────────────────────────────────────────────────
 class _ProductSearchField extends StatelessWidget {
   final CreateSalesController ctrl;
   const _ProductSearchField({required this.ctrl});
@@ -556,7 +549,6 @@ class _ProductSearchField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        // Toggle descripción / núm. parte
         Obx(() => Row(
               children: [
                 _chip(
@@ -616,7 +608,6 @@ class _ProductSearchField extends StatelessWidget {
   }
 }
 
-// ── Product List ──────────────────────────────────────────────────────────────
 
 class _ProductList extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -824,7 +815,6 @@ class _QuantityControlsState extends State<_QuantityControls> {
   }
 }
 
-// ── Totals ────────────────────────────────────────────────────────────────────
 
 class _TotalsSection extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -909,7 +899,6 @@ class _TotalsSection extends StatelessWidget {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Toggle monto / porcentaje
                 Container(
                   decoration: BoxDecoration(
                     color: ThemeColor.backgroundColor,
@@ -976,7 +965,6 @@ class _TotalsSection extends StatelessWidget {
                 ),
                 const SizedBox(height: ThemeColor.paddingMedium),
 
-                // Monto fijo
                 if (mode.value == 'monto')
                   TextField(
                     controller: ctrl.globalDiscountCtrl,
@@ -998,7 +986,6 @@ class _TotalsSection extends StatelessWidget {
                     ),
                   ),
 
-                // Porcentaje — chips
                 if (mode.value == 'porcentaje')
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1051,7 +1038,6 @@ class _TotalsSection extends StatelessWidget {
                             }).toList(),
                           )),
                       const SizedBox(height: 10),
-                      // Preview del descuento
                       Obx(() => ctrl.globalDiscountPercent.value > 0
                           ? Container(
                               padding: const EdgeInsets.symmetric(
@@ -1140,7 +1126,6 @@ class _TotalRow extends StatelessWidget {
   }
 }
 
-// ── Delivery Section ──────────────────────────────────────────────────────────
 
 class _DeliverySection extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -1192,7 +1177,6 @@ class _DeliverySection extends StatelessWidget {
       '${d.year}';
 }
 
-// ── Extra Fields ──────────────────────────────────────────────────────────────
 
 class _ExtraFieldsSection extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -1281,7 +1265,6 @@ class _SimpleTextField extends StatelessWidget {
   }
 }
 
-// ── Comments ──────────────────────────────────────────────────────────────────
 
 class _CommentsSection extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -1331,7 +1314,6 @@ class _CommentsSection extends StatelessWidget {
   }
 }
 
-// ── Bottom Button ─────────────────────────────────────────────────────────────
 
 class _BottomButton extends StatelessWidget {
   final CreateSalesController ctrl;
@@ -1377,7 +1359,6 @@ class _BottomButton extends StatelessWidget {
   }
 }
 
-// ── Product Thumbnail ─────────────────────────────────────────────────────────
 
 class _ProductThumbnail extends StatelessWidget {
   final String? imageUrl;

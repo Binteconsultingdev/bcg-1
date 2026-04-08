@@ -166,7 +166,7 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
             ],
           ),
           const SizedBox(height: ThemeColor.paddingSmall),
-          // Toggle folio / id
+     
           Obx(
             () => Row(
               children: [

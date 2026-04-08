@@ -116,7 +116,7 @@ class PutQuotesController extends GetxController {
   final folio = ''.obs;
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
-  final selectedPriceType = 'Regular'.obs;
+  final selectedPriceType = 'REGULAR'.obs;
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
@@ -133,7 +133,7 @@ class PutQuotesController extends GetxController {
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
 
-  final List<String> priceOptions = ['Regular', 'Mayoreo', 'Especial'];
+  final List<String> priceOptions = ['REGULAR', 'MEDIO M', 'PAQUETE','MAYOREO', 'ESPECIAL'];
 
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;

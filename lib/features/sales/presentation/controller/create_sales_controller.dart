@@ -49,7 +49,6 @@ Worker? _quoteSearchDebounce;
   late final SalesController _salesCtrl = Get.find<SalesController>();
   late final ClientController _clientCtrl = Get.find<ClientController>();
 
-  // ── Cliente ────────────────────────────────────────────────────────────────
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<int>();
@@ -98,7 +97,6 @@ Worker? _quoteSearchDebounce;
 @override
 void onInit() {
   super.onInit();
-  // Busca automáticamente 600ms después de que el usuario deje de escribir
   _quoteSearchDebounce = debounce(
     quoteSearchInput,
     (value) {
@@ -193,12 +191,12 @@ void onQuoteSearchChanged(String value) {
       quoteResults.clear();
 
       final results = await fetchQuoteUsecase.cal(
-        '', // client
-        '', // numParte
-        '', // dateFrom
-        '', // dateUntil
-        1,  // page
-        10, // pageSize
+        '',
+        '',
+        '',
+        '',
+        1,  
+        10,
         folio: folio,
       );
 
@@ -216,7 +214,6 @@ void onQuoteSearchChanged(String value) {
       isLoadingQuote.value = true;
       final quote = await fetchQuotesByidUsecase.call(quoteEntity.id!);
 
-      // Extrae el id y nombre limpio del cliente
       final clienteRaw = quote.cliente;
       int? clienteId;
       String clienteNombre = clienteRaw;
@@ -245,7 +242,6 @@ void onQuoteSearchChanged(String value) {
 
       selectedFolioQuote.value = quote.folio;
 
-      // Convierte productos buscando en el inventario por número de parte
       final newItems = <SaleItem>[];
       for (final producto in quote.productos) {
         final inventoryProduct = _inventoryCtrl.inventario.firstWhereOrNull(
@@ -260,7 +256,6 @@ void onQuoteSearchChanged(String value) {
       }
       items.assignAll(newItems);
 
-      // Limpia buscador
       quoteResults.clear();
       quoteSearchCtrl.clear();
       quoteSearchInput.value = '';
@@ -369,7 +364,7 @@ void onQuoteSearchChanged(String value) {
 
 @override
 void onClose() {
-  _quoteSearchDebounce?.dispose(); // ✅ limpia el worker
+  _quoteSearchDebounce?.dispose(); 
   clienteController.dispose();
   commentsCtrl.dispose();
   productSearchCtrl.dispose();

@@ -159,7 +159,7 @@ class _VentasPageState extends State<VentasPage> {
           ],
         ),
         const SizedBox(height: ThemeColor.paddingSmall),
-        // Toggle folio / id
+      
         Obx(() => Row(
           children: [
             _toggleChip(
