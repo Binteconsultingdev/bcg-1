@@ -79,7 +79,163 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 // ── Top Section ──────────────────────────────────────────────────────────────
+class _QuoteSelector extends StatelessWidget {
+  final CreateSalesController ctrl;
+  const _QuoteSelector({required this.ctrl});
 
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: ThemeColor.backgroundColor,
+                  borderRadius: ThemeColor.extraLargeBorderRadius,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.receipt_long_outlined,
+                        color: ThemeColor.textSecondaryColor, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Obx(() => TextField(
+                            controller: ctrl.quoteSearchCtrl,
+                            style: ThemeColor.bodyMedium,
+                            textInputAction: TextInputAction.search,
+                            onSubmitted: (_) => ctrl.searchQuoteByFolio(),
+                            decoration: InputDecoration(
+                              hintText: ctrl.selectedFolioQuote.value.isNotEmpty
+                                  ? 'Folio: ${ctrl.selectedFolioQuote.value}'
+                                  : 'Buscar por folio',
+                              hintStyle: ThemeColor.bodyMedium.copyWith(
+                                color: ctrl.selectedFolioQuote.value.isNotEmpty
+                                    ? ThemeColor.primaryColor
+                                    : ThemeColor.textSecondaryColor,
+                              ),
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                            ),
+                            onChanged: ctrl.onQuoteSearchChanged,
+                          )),
+                    ),
+                    Obx(() {
+                      if (ctrl.isSearchingQuoteApi.value) {
+                        return const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 1.5,
+                              color: ThemeColor.primaryColor),
+                        );
+                      }
+                      if (ctrl.selectedFolioQuote.value.isNotEmpty ||
+                          ctrl.isSearchingQuote.value) {
+                        return GestureDetector(
+                          onTap: () {
+                            ctrl.selectedFolioQuote.value = '';
+                            ctrl.quoteSearchCtrl.clear();
+                            ctrl.onQuoteSearchChanged('');
+                            ctrl.quoteResults.clear();
+                          },
+                          child: const Icon(Icons.close,
+                              color: ThemeColor.textSecondaryColor, size: 16),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Botón buscar
+            GestureDetector(
+              onTap: ctrl.searchQuoteByFolio,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: ThemeColor.primaryColor,
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                child: const Icon(Icons.search,
+                    color: Colors.white, size: 18),
+              ),
+            ),
+          ],
+        ),
+        // Resultados
+        Obx(() {
+          if (!ctrl.isSearchingQuote.value && ctrl.quoteResults.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          if (ctrl.isSearchingQuoteApi.value) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Center(
+                child: CircularProgressIndicator(
+                    color: ThemeColor.primaryColor),
+              ),
+            );
+          }
+          if (ctrl.quoteResults.isEmpty && ctrl.isSearchingQuote.value) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text('Sin cotizaciones', style: ThemeColor.bodySmall),
+            );
+          }
+          return Container(
+            constraints: const BoxConstraints(maxHeight: 200),
+            margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(
+              color: ThemeColor.surfaceColor,
+              borderRadius: ThemeColor.smallBorderRadius,
+              border: Border.all(color: ThemeColor.dividerColor),
+              boxShadow: [ThemeColor.lightShadow],
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: ctrl.quoteResults.length,
+              separatorBuilder: (_, __) =>
+                  Divider(height: 1, color: ThemeColor.dividerColor),
+              itemBuilder: (_, i) {
+                final q = ctrl.quoteResults[i];
+                return ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.receipt_outlined,
+                      color: ThemeColor.primaryColor, size: 20),
+                  title: Text(
+                    '${q.folito ?? '-'} · ${q.client ?? '-'}',
+                    style: ThemeColor.bodyMedium
+                        .copyWith(fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '\$${q.total?.toStringAsFixed(2) ?? '0.00'} · ${q.date ?? ''}',
+                    style: ThemeColor.caption,
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios,
+                      color: ThemeColor.textSecondaryColor, size: 14),
+                  onTap: () => ctrl.loadFromQuote(q),
+                );
+              },
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
 class _TopSection extends StatelessWidget {
   final CreateSalesController ctrl;
   const _TopSection({required this.ctrl});
@@ -95,7 +251,12 @@ class _TopSection extends StatelessWidget {
       child: Column(
         children: [
           _RowField(label: 'Cliente', child: _ClientSelector(ctrl: ctrl)),
-          Divider(height: 1, color: ThemeColor.dividerColor),
+          
+          Divider(height: 1, color: ThemeColor.dividerColor),_RowField(
+  label: 'Cotiz.',
+  child: _QuoteSelector(ctrl: ctrl),
+),
+Divider(height: 1, color: ThemeColor.dividerColor),
           _RowField(label: 'Método', child: _MetodoEmbarqueSelector(ctrl: ctrl)),
           Divider(height: 1, color: ThemeColor.dividerColor),
           _RowField(

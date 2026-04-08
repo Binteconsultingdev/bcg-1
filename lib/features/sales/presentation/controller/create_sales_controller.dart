@@ -1,11 +1,14 @@
+import 'package:bcg/common/errors/convert_message.dart';
 import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
-import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
 import 'package:bcg/features/client/presentation/page/client_search_sheet.dart';
+import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
+import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
+import 'package:bcg/features/quotes/domain/usecase/fetch_quotes_byid_usecase.dart';
 import 'package:bcg/features/sales/domain/entities/create_sales_entity.dart';
 import 'package:bcg/features/sales/domain/usecase/generate_sales_usecase.dart';
 import 'package:bcg/features/sales/presentation/controller/sales_controller.dart';
@@ -29,40 +32,58 @@ class SaleItem {
 
 class CreateSalesController extends GetxController {
   final GenerateSalesUsecase generateSalesUsecase;
-  CreateSalesController({required this.generateSalesUsecase});
+  final FetchQuotesByidUsecase fetchQuotesByidUsecase;
+  final FetchQuoteUsecase fetchQuoteUsecase;
+
+  CreateSalesController({
+    required this.generateSalesUsecase,
+    required this.fetchQuotesByidUsecase,
+    required this.fetchQuoteUsecase,
+  });
+Worker? _quoteSearchDebounce;
 
   final AuthService _authService = AuthService();
 
-  late final InventoryController _inventoryCtrl = Get.find<InventoryController>();
+  late final InventoryController _inventoryCtrl =
+      Get.find<InventoryController>();
   late final SalesController _salesCtrl = Get.find<SalesController>();
   late final ClientController _clientCtrl = Get.find<ClientController>();
 
-  // Cliente
+  // ── Cliente ────────────────────────────────────────────────────────────────
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<int>();
 
-  // Campos de venta
+  // ── Campos de venta ────────────────────────────────────────────────────────
   final metodoEmbarque = 'CAMIONETA'.obs;
   final incIVA = true.obs;
   final tipoCambio = 1.0.obs;
   final globalDiscount = 0.0.obs;
-  final globalDiscountType = 'monto'.obs; // 'monto' o 'porcentaje'
+  final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
 
-  // Productos
+  // ── Productos ──────────────────────────────────────────────────────────────
   final items = <SaleItem>[].obs;
   final productSearchQuery = ''.obs;
   final isSearching = false.obs;
+  final RxBool searchByDescription = true.obs;
 
-  // Estado
+  // ── Búsqueda de cotizaciones ───────────────────────────────────────────────
+  final RxString quoteSearchInput = ''.obs;
+  final TextEditingController quoteSearchCtrl = TextEditingController();
+  final RxBool isSearchingQuote = false.obs;
+  final RxBool isSearchingQuoteApi = false.obs;
+  final RxBool isLoadingQuote = false.obs;
+  final RxString selectedFolioQuote = ''.obs;
+  final RxList<GetQuoteEntity> quoteResults = <GetQuoteEntity>[].obs;
+
+  // ── Estado ─────────────────────────────────────────────────────────────────
   final isCreating = false.obs;
   final isSuccess = false.obs;
   final errorMessage = ''.obs;
-final RxBool searchByDescription = true.obs; // true = descripción, false = num parte
 
-  // Controllers
+  // ── Controllers ────────────────────────────────────────────────────────────
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
@@ -74,22 +95,40 @@ final RxBool searchByDescription = true.obs; // true = descripción, false = num
     'CLIENTE RECOGE',
     'PAQUETERIA',
   ];
-
+@override
+void onInit() {
+  super.onInit();
+  // Busca automáticamente 600ms después de que el usuario deje de escribir
+  _quoteSearchDebounce = debounce(
+    quoteSearchInput,
+    (value) {
+      if (value.trim().isNotEmpty) {
+        searchQuoteByFolio();
+      } else {
+        quoteResults.clear();
+      }
+    },
+    time: const Duration(milliseconds: 600),
+  );
+}
+  // ── Getters ────────────────────────────────────────────────────────────────
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount =>
       incIVA.value ? (subtotal - globalDiscount.value) * 0.16 : 0;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
 
-List<InventoryEntity> get searchResults {
-  final q = productSearchQuery.value.toLowerCase();
-  if (q.isEmpty) return [];
-  return _inventoryCtrl.inventario
-      .where((p) => searchByDescription.value
-          ? (p.description?.toLowerCase().contains(q) ?? false)
-          : (p.partNumber?.toLowerCase().contains(q) ?? false))
-      .take(20)
-      .toList();
-}
+  List<InventoryEntity> get searchResults {
+    final q = productSearchQuery.value.toLowerCase();
+    if (q.isEmpty) return [];
+    return _inventoryCtrl.inventario
+        .where((p) => searchByDescription.value
+            ? (p.description?.toLowerCase().contains(q) ?? false)
+            : (p.partNumber?.toLowerCase().contains(q) ?? false))
+        .take(20)
+        .toList();
+  }
+
+  // ── Cliente ────────────────────────────────────────────────────────────────
 
   void onClienteChanged(String value) => clienteName.value = value;
 
@@ -108,6 +147,8 @@ List<InventoryEntity> get searchResults {
       ),
     );
   }
+
+  // ── Productos ──────────────────────────────────────────────────────────────
 
   void onProductSearchChanged(String value) {
     productSearchQuery.value = value;
@@ -136,6 +177,105 @@ List<InventoryEntity> get searchResults {
     items.add(SaleItem(product: item.product, initialQty: item.quantity.value));
   }
 
+  // ── Cotizaciones ───────────────────────────────────────────────────────────
+
+void onQuoteSearchChanged(String value) {
+  quoteSearchInput.value = value;
+  isSearchingQuote.value = value.isNotEmpty;
+  if (value.isEmpty) quoteResults.clear();
+}
+  Future<void> searchQuoteByFolio() async {
+    final folio = quoteSearchInput.value.trim();
+    if (folio.isEmpty) return;
+
+    try {
+      isSearchingQuoteApi.value = true;
+      quoteResults.clear();
+
+      final results = await fetchQuoteUsecase.cal(
+        '', // client
+        '', // numParte
+        '', // dateFrom
+        '', // dateUntil
+        1,  // page
+        10, // pageSize
+        folio: folio,
+      );
+
+      quoteResults.assignAll(results);
+    } catch (e) {
+      showErrorSnackbar('Error al buscar cotización: $e');
+    } finally {
+      isSearchingQuoteApi.value = false;
+    }
+  }
+
+  Future<void> loadFromQuote(GetQuoteEntity quoteEntity) async {
+    if (quoteEntity.id == null) return;
+    try {
+      isLoadingQuote.value = true;
+      final quote = await fetchQuotesByidUsecase.call(quoteEntity.id!);
+
+      // Extrae el id y nombre limpio del cliente
+      final clienteRaw = quote.cliente;
+      int? clienteId;
+      String clienteNombre = clienteRaw;
+
+      final idMatch = RegExp(r'^\((\d+)\)\s*').firstMatch(clienteRaw);
+      if (idMatch != null) {
+        clienteId = int.tryParse(idMatch.group(1) ?? '');
+        clienteNombre =
+            clienteRaw.replaceFirst(idMatch.group(0)!, '').trim();
+        clienteNombre =
+            clienteNombre.replaceAll('"', '').replaceAll("'", '').trim();
+      }
+
+      selectedClientId.value = clienteId;
+      clienteController.text = clienteNombre;
+      clienteName.value = clienteNombre;
+
+      commentsCtrl.text = quote.comentarios;
+      referenciaCtrl.text = quote.folio;
+
+      final desc = double.tryParse(quote.descuento) ?? 0;
+      if (desc > 0) {
+        globalDiscount.value = desc;
+        globalDiscountCtrl.text = desc.toStringAsFixed(2);
+      }
+
+      selectedFolioQuote.value = quote.folio;
+
+      // Convierte productos buscando en el inventario por número de parte
+      final newItems = <SaleItem>[];
+      for (final producto in quote.productos) {
+        final inventoryProduct = _inventoryCtrl.inventario.firstWhereOrNull(
+          (p) => p.partNumber?.trim() == producto.codigo.trim(),
+        );
+        if (inventoryProduct != null) {
+          newItems.add(SaleItem(
+            product: inventoryProduct,
+            initialQty: producto.cantidad.toInt(),
+          ));
+        }
+      }
+      items.assignAll(newItems);
+
+      // Limpia buscador
+      quoteResults.clear();
+      quoteSearchCtrl.clear();
+      quoteSearchInput.value = '';
+      isSearchingQuote.value = false;
+
+      showSuccessSnackbar('Cotización ${quote.folio} cargada correctamente');
+    } catch (e) {
+      showErrorSnackbar('Error al cargar cotización: $e');
+    } finally {
+      isLoadingQuote.value = false;
+    }
+  }
+
+  // ── Descuento ──────────────────────────────────────────────────────────────
+
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
       globalDiscountType.value = 'porcentaje';
@@ -149,6 +289,8 @@ List<InventoryEntity> get searchResults {
     globalDiscountCtrl.text =
         globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
   }
+
+  // ── Fecha ──────────────────────────────────────────────────────────────────
 
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -168,6 +310,8 @@ List<InventoryEntity> get searchResults {
     );
     if (picked != null) validUntil.value = picked;
   }
+
+  // ── Crear venta ────────────────────────────────────────────────────────────
 
   Future<void> createSale() async {
     if (clienteName.value.trim().isEmpty) {
@@ -197,19 +341,17 @@ List<InventoryEntity> get searchResults {
         fechaEntrega: validUntil.value,
         tc: double.tryParse(tipoCambioCtrl.text) ?? 1.0,
         incIVA: incIVA.value,
-        folioPre: '',
+        folioPre: selectedFolioQuote.value,
         descuento: globalDiscount.value,
         partidas: items
-            .map(
-              (i) => PartidaEntity(
-                numParte: i.product.partNumber ?? '',
-                descripcion: i.product.description ?? '',
-                cantidad: i.quantity.value.toDouble(),
-                precio: i.unitPrice,
-                claveSat: '',
-                um: 'PZA',
-              ),
-            )
+            .map((i) => PartidaEntity(
+                  numParte: i.product.partNumber ?? '',
+                  descripcion: i.product.description ?? '',
+                  cantidad: i.quantity.value.toDouble(),
+                  precio: i.unitPrice,
+                  claveSat: '',
+                  um: 'PZA',
+                ))
             .toList(),
       );
 
@@ -218,21 +360,24 @@ List<InventoryEntity> get searchResults {
       await _salesCtrl.fetchSales();
       showSuccessSnackbar('Venta creada correctamente');
     } catch (e) {
-      errorMessage.value = 'Error al crear venta: $e';
-      showErrorSnackbar('Error al crear venta');
+      errorMessage.value = cleanExceptionMessage(e);
+      showErrorSnackbar(errorMessage.value);
     } finally {
       isCreating.value = false;
     }
   }
 
-  @override
-  void onClose() {
-    clienteController.dispose();
-    commentsCtrl.dispose();
-    productSearchCtrl.dispose();
-    globalDiscountCtrl.dispose();
-    referenciaCtrl.dispose();
-    tipoCambioCtrl.dispose();
-    super.onClose();
-  }
+@override
+void onClose() {
+  _quoteSearchDebounce?.dispose(); // ✅ limpia el worker
+  clienteController.dispose();
+  commentsCtrl.dispose();
+  productSearchCtrl.dispose();
+  globalDiscountCtrl.dispose();
+  referenciaCtrl.dispose();
+  tipoCambioCtrl.dispose();
+  quoteSearchCtrl.dispose();
+  quoteResults.clear();
+  super.onClose();
+}
 }

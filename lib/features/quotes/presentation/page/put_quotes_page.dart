@@ -1,18 +1,14 @@
 import 'package:bcg/common/theme/App_Theme.dart';
-import 'package:bcg/common/widgets/product_thumbnail.dart';
 import 'package:bcg/features/quotes/presentation/controller/put_quotes_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class EditQuotePage extends StatelessWidget {
-  const EditQuotePage({super.key}); 
-
+  const EditQuotePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final PutQuotesController ctrl = Get.find<PutQuotesController>();
-
-
 
     return Scaffold(
       backgroundColor: ThemeColor.backgroundColor,
@@ -116,7 +112,10 @@ class _TopSection extends StatelessWidget {
           Divider(height: 1, color: ThemeColor.dividerColor),
           _RowField(label: 'Precio', child: _PriceSelector(ctrl: ctrl)),
           Divider(height: 1, color: ThemeColor.dividerColor),
-          _RowField(label: 'Producto', child: _ProductSearchField(ctrl: ctrl)),
+          _RowField(
+            label: 'Producto',
+            child: _ProductSearchField(ctrl: ctrl),
+          ),
           Obx(() {
             if (!ctrl.isSearching.value) return const SizedBox.shrink();
             final results = ctrl.searchResults;
@@ -145,7 +144,7 @@ class _TopSection extends StatelessWidget {
                   final p = results[i];
                   return ListTile(
                     dense: true,
-                    leading: ProductThumbnail(imageUrl: p.imageUrl, size: 36),
+                    leading: _ProductThumbnail(imageUrl: p.imageUrl, size: 36),
                     title: Text(p.description ?? '',
                         style: ThemeColor.bodyMedium,
                         maxLines: 1,
@@ -350,6 +349,7 @@ class _PriceBottomSheet extends StatelessWidget {
 }
 
 // ── Product Search ────────────────────────────────────────────────────────────
+
 class _ProductSearchField extends StatelessWidget {
   final PutQuotesController ctrl;
   const _ProductSearchField({required this.ctrl});
@@ -403,7 +403,6 @@ class _ProductSearchField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        // Toggle descripción / núm. parte
         Obx(() => Row(
               children: [
                 _chip(
@@ -445,8 +444,7 @@ class _ProductSearchField extends StatelessWidget {
           color: selected ? ThemeColor.primaryColor : Colors.transparent,
           borderRadius: ThemeColor.circularBorderRadius,
           border: Border.all(
-            color:
-                selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
+            color: selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
           ),
         ),
         child: Text(
@@ -510,7 +508,7 @@ class _ProductItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ProductThumbnail(imageUrl: item.url, size: 54),
+          _ProductThumbnail(imageUrl: item.url, size: 54),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -587,7 +585,7 @@ class _QuantityControlsState extends State<_QuantityControls> {
     super.dispose();
   }
 
-  void _update(int newVal) {
+  void _update(double newVal) {
     if (newVal < 1) return;
     widget.item.quantity.value = newVal;
   }
@@ -619,7 +617,8 @@ class _QuantityControlsState extends State<_QuantityControls> {
             child: TextField(
               controller: _textCtrl,
               textAlign: TextAlign.center,
-              keyboardType: TextInputType.number,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 isDense: true,
@@ -641,7 +640,7 @@ class _QuantityControlsState extends State<_QuantityControls> {
                 ),
               ),
               onChanged: (v) {
-                final parsed = int.tryParse(v);
+                final parsed = double.tryParse(v);
                 if (parsed != null && parsed > 0) {
                   widget.item.quantity.value = parsed;
                 }
@@ -1061,22 +1060,75 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge + bottomPadding,
       ),
-      child: Obx(() => SizedBox(
-            width: double.infinity,
-            child: ThemeColor.widgetButton(
-              text: 'Guardar Cambios',
-              backgroundColor: ThemeColor.primaryColor,
-              textColor: ThemeColor.textLightColor,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              borderRadius: ThemeColor.mediumRadius,
-              isLoading: ctrl.isSaving.value,
-              onPressed: ctrl.saveQuote,
-            ),
+      // ✅ Siempre muestra los dos botones desde el inicio
+      child: Obx(() => Row(
+            children: [
+              Expanded(
+                child: ThemeColor.widgetButton(
+                  text: 'Ver PDF',
+                  backgroundColor: ThemeColor.accentColor,
+                  textColor: ThemeColor.textLightColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  borderRadius: ThemeColor.mediumRadius,
+                  isLoading: ctrl.isLoadingPdf.value,
+                  onPressed: () => ctrl.generateAndOpenPdf(context),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ThemeColor.widgetButton(
+                  text: 'Guardar Cambios',
+                  backgroundColor: ThemeColor.primaryColor,
+                  textColor: ThemeColor.textLightColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  borderRadius: ThemeColor.mediumRadius,
+                  isLoading: ctrl.isSaving.value,
+                  onPressed: ctrl.saveQuote,
+                ),
+              ),
+            ],
           )),
     );
   }
 }
 
 // ── Product Thumbnail ─────────────────────────────────────────────────────────
+
+class _ProductThumbnail extends StatelessWidget {
+  final String? imageUrl;
+  final double size;
+  const _ProductThumbnail({this.imageUrl, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: ThemeColor.backgroundColor,
+        borderRadius: ThemeColor.smallBorderRadius,
+        border: Border.all(color: ThemeColor.dividerColor),
+      ),
+      child: imageUrl != null && imageUrl!.isNotEmpty
+          ? ClipRRect(
+              borderRadius: ThemeColor.smallBorderRadius,
+              child: Image.network(
+                imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Icon(
+                  Icons.image_outlined,
+                  color: ThemeColor.textTertiaryColor,
+                  size: size * 0.48,
+                ),
+              ),
+            )
+          : Icon(Icons.image_outlined,
+              color: ThemeColor.textTertiaryColor, size: size * 0.48),
+    );
+  }
+}

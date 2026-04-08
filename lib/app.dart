@@ -58,8 +58,8 @@ class App extends StatelessWidget {
         Get.lazyPut(() => CreateQuoteController(createQuotesUsecase: Get.find(), fetchFolioUsecase: Get.find(), generatePdfUsecase: Get.find(),),fenix: true);
         Get.lazyPut(() => SalesController(pointSalesUsecase:Get.find()),fenix: true);
         Get.lazyPut(() => ClientController(fetchClientsUsecase:Get.find(), createClientUsecase: Get.find()),fenix: true);
-        Get.lazyPut(() => CreateSalesController(generateSalesUsecase:  Get.find()),fenix: true);
-        Get.lazyPut(() => PutQuotesController(putQuotesUsecase: Get.find(), fetchQuotesByidUsecase: Get.find()),fenix: true);
+        Get.lazyPut(() => CreateSalesController(generateSalesUsecase:  Get.find(), fetchQuotesByidUsecase: Get.find(), fetchQuoteUsecase: Get.find()),fenix: true);
+        Get.lazyPut(() => PutQuotesController(putQuotesUsecase: Get.find(), fetchQuotesByidUsecase: Get.find(), generatePdfUsecase:  Get.find()),fenix: true);
 
       }),
 
