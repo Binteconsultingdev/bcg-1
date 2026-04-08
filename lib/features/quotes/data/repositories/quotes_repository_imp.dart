@@ -62,4 +62,12 @@ class QuotesRepositoryImp implements QuotesRepository {
         (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
     return await quotesDataSourcesImp.generatePdf(folio, token);
   }
+  
+  @override
+  Future<GetQuoteEntity> fetchQuotebyid(int id) async {
+    final token =
+        await authService.getToken() ??
+        (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
+    return await quotesDataSourcesImp.fetchQuotebyid(token, id);
+  }
 }

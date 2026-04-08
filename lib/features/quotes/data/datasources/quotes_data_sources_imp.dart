@@ -72,7 +72,37 @@ class QuotesDataSourcesImp {
       throw Exception(e);
     }
   }
+  Future<GetQuoteEntity> fetchQuotebyid(String token, int id) async {
+    try {
+      Uri url = Uri.parse('$defaultApiServer/Cotizaciones/$id');
 
+       final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+         if (response.statusCode == 200 || response.statusCode == 201) {
+        final dataUTF8 = utf8.decode(response.bodyBytes);
+        final responseDecode = jsonDecode(dataUTF8);
+
+        return GetQuoteModel.fromJson(responseDecode);
+      }
+
+      ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+      exception.validateMesage();
+      throw exception;
+    } catch (e) {
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is TimeoutException) {
+        throw Exception(convertMessageException(error: e));
+      }
+      throw Exception('$e');
+    }
+  }
   Future<ResponseCreateEntity> createQuote(
     QuoteEntity entity,
     String token,

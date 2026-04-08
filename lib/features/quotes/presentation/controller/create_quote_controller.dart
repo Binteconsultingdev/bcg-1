@@ -19,10 +19,10 @@ import 'package:path_provider/path_provider.dart';
 
 class QuoteItem {
   final InventoryEntity product;
-  final RxInt quantity;
+  final RxDouble quantity;
   final RxDouble discount;
 
-  QuoteItem({required this.product, int initialQty = 1})
+  QuoteItem({required this.product, double initialQty = 1.0})
       : quantity = initialQty.obs,
         discount = 0.0.obs;
 

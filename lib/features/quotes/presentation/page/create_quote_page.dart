@@ -514,7 +514,7 @@ class _QuantityControlsState extends State<_QuantityControls> {
     super.dispose();
   }
 
-  void _update(int newVal) {
+  void _update(double newVal) {
     if (newVal < 1) return;
     widget.item.quantity.value = newVal;
   }
@@ -568,7 +568,7 @@ class _QuantityControlsState extends State<_QuantityControls> {
                 ),
               ),
               onChanged: (v) {
-                final parsed = int.tryParse(v);
+                final parsed = double.tryParse(v);
                 if (parsed != null && parsed > 0) {
                   widget.item.quantity.value = parsed;
                 }

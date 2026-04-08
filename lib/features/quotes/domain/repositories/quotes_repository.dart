@@ -8,7 +8,7 @@ abstract class QuotesRepository {
   Future<List<GetQuoteEntity>> fetchQuote(String client,String numParte,String dateFrom,String dateUntil,int page,int pageSize, {
   String? folio,
   int? id,
-});
+});Future<GetQuoteEntity> fetchQuotebyid(int id);
   Future<ResponseCreateEntity> createQuote(QuoteEntity entity);
   Future<FolioEntity> getfolio();
   Future<QuotePdfEntity> generatePdf(int folio);
