@@ -1,8 +1,9 @@
 import 'package:bcg/common/services/auth_service.dart';
-import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
+import 'package:bcg/common/widgets/product_thumbnail.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
+import 'package:bcg/features/quotes/presentation/page/put_quotes_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -299,30 +300,6 @@ final products = controller.inventario;
   }
 }
 
-class _LicenseLogo extends StatelessWidget {
-  final double size;
-  const _LicenseLogo({this.size = 52});
-
-  @override
-  Widget build(BuildContext context) {
-    final licenseService = Get.find<LicenseService>();
-    final logoUrl = licenseService.getLicenseSync()?.urllogo ?? '';
-
-    if (logoUrl.isEmpty) return const SizedBox.shrink();
-
-    return ClipRRect(
-      borderRadius: ThemeColor.smallBorderRadius,
-      child: Image.network(
-        logoUrl,
-        width: size,
-        height: size,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-      ),
-    );
-  }
-}
-
 class _ProductTile extends StatelessWidget {
   final InventoryEntity product;
   const _ProductTile({required this.product});
@@ -335,38 +312,8 @@ class _ProductTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: ThemeColor.paddingSmall),
       child: Row(
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: ThemeColor.backgroundColor,
-              borderRadius: ThemeColor.smallBorderRadius,
-              border: Border.all(color: ThemeColor.dividerColor),
-            ),
-            child: hasImage
-                ? ClipRRect(
-                    borderRadius: ThemeColor.smallBorderRadius,
-                    child: Image.network(
-                      product.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const _LicenseLogo(),
-                      loadingBuilder: (_, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const Center(
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1.5,
-                              color: ThemeColor.accentColor,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  )
-                : const _LicenseLogo(),
-          ),
+         
+          ProductThumbnail(imageUrl:   product.imageUrl!, size: 54),
           const SizedBox(width: ThemeColor.paddingMedium),
           Expanded(
             child: Column(

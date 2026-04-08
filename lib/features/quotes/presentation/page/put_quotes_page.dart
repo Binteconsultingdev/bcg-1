@@ -1,4 +1,5 @@
 import 'package:bcg/common/theme/App_Theme.dart';
+import 'package:bcg/common/widgets/product_thumbnail.dart';
 import 'package:bcg/features/quotes/presentation/controller/put_quotes_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -144,7 +145,7 @@ class _TopSection extends StatelessWidget {
                   final p = results[i];
                   return ListTile(
                     dense: true,
-                    leading: _ProductThumbnail(imageUrl: p.imageUrl, size: 36),
+                    leading: ProductThumbnail(imageUrl: p.imageUrl, size: 36),
                     title: Text(p.description ?? '',
                         style: ThemeColor.bodyMedium,
                         maxLines: 1,
@@ -509,7 +510,7 @@ class _ProductItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ProductThumbnail(imageUrl: item.url, size: 54),
+          ProductThumbnail(imageUrl: item.url, size: 54),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1079,37 +1080,3 @@ class _BottomButton extends StatelessWidget {
 }
 
 // ── Product Thumbnail ─────────────────────────────────────────────────────────
-
-class _ProductThumbnail extends StatelessWidget {
-  final String? imageUrl;
-  final double size;
-  const _ProductThumbnail({this.imageUrl, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: ThemeColor.backgroundColor,
-        borderRadius: ThemeColor.smallBorderRadius,
-        border: Border.all(color: ThemeColor.dividerColor),
-      ),
-      child: imageUrl != null && imageUrl!.isNotEmpty
-          ? ClipRRect(
-              borderRadius: ThemeColor.smallBorderRadius,
-              child: Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(
-                  Icons.image_outlined,
-                  color: ThemeColor.textTertiaryColor,
-                  size: size * 0.48,
-                ),
-              ),
-            )
-          : Icon(Icons.image_outlined,
-              color: ThemeColor.textTertiaryColor, size: size * 0.48),
-    );
-  }
-}
