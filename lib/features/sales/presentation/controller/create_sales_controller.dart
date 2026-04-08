@@ -60,6 +60,7 @@ class CreateSalesController extends GetxController {
   final isCreating = false.obs;
   final isSuccess = false.obs;
   final errorMessage = ''.obs;
+final RxBool searchByDescription = true.obs; // true = descripción, false = num parte
 
   // Controllers
   final commentsCtrl = TextEditingController();
@@ -79,18 +80,16 @@ class CreateSalesController extends GetxController {
       incIVA.value ? (subtotal - globalDiscount.value) * 0.16 : 0;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
 
-  List<InventoryEntity> get searchResults {
-    final q = productSearchQuery.value.toLowerCase();
-    if (q.isEmpty) return [];
-    return _inventoryCtrl.inventario
-        .where(
-          (p) =>
-              (p.description?.toLowerCase().contains(q) ?? false) ||
-              (p.partNumber?.toLowerCase().contains(q) ?? false),
-        )
-        .take(20)
-        .toList();
-  }
+List<InventoryEntity> get searchResults {
+  final q = productSearchQuery.value.toLowerCase();
+  if (q.isEmpty) return [];
+  return _inventoryCtrl.inventario
+      .where((p) => searchByDescription.value
+          ? (p.description?.toLowerCase().contains(q) ?? false)
+          : (p.partNumber?.toLowerCase().contains(q) ?? false))
+      .take(20)
+      .toList();
+}
 
   void onClienteChanged(String value) => clienteName.value = value;
 

@@ -42,6 +42,7 @@ class CreateQuoteController extends GetxController {
     required this.fetchFolioUsecase,
     required this.generatePdfUsecase,
   });
+final RxBool searchByDescription = true.obs; // true = descripción, false = num parte
 
   late final InventoryController _inventoryCtrl =
       Get.find<InventoryController>();
@@ -96,18 +97,16 @@ class CreateQuoteController extends GetxController {
   double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
 
-  List<InventoryEntity> get searchResults {
-    final q = productSearchQuery.value.toLowerCase();
-    if (q.isEmpty) return [];
-    return _inventoryCtrl.inventario
-        .where(
-          (p) =>
-              (p.description?.toLowerCase().contains(q) ?? false) ||
-              (p.partNumber?.toLowerCase().contains(q) ?? false),
-        )
-        .take(20)
-        .toList();
-  }
+List<InventoryEntity> get searchResults {
+  final q = productSearchQuery.value.toLowerCase();
+  if (q.isEmpty) return [];
+  return _inventoryCtrl.inventario
+      .where((p) => searchByDescription.value
+          ? (p.description?.toLowerCase().contains(q) ?? false)
+          : (p.partNumber?.toLowerCase().contains(q) ?? false))
+      .take(20)
+      .toList();
+}
 
   @override
   void onInit() {

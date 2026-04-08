@@ -22,6 +22,7 @@ class InventoryController extends GetxController {
   final RxList<InventoryEntity> inventario = <InventoryEntity>[].obs;
   final RxList<InventoryCategoryEntity> familias = <InventoryCategoryEntity>[].obs;
   final RxList<InventoryCategoryEntity> subfamilias = <InventoryCategoryEntity>[].obs;
+final RxBool searchByDescription = true.obs; // true = descripción, false = num parte
 
   final RxBool isLoadingInventario = false.obs;
   final RxBool isLoadingMore = false.obs;
@@ -44,11 +45,17 @@ class InventoryController extends GetxController {
           .where((v) => v != null)
           .length;
 
-  String? get _parsedDescription {
-    final trimmed = searchInput.value.trim();
-    return trimmed.isEmpty ? null : trimmed;
-  }
+String? get _parsedDescription {
+  final trimmed = searchInput.value.trim();
+  if (trimmed.isEmpty || !searchByDescription.value) return null;
+  return trimmed;
+}
 
+String? get _parsedNumParte {
+  final trimmed = searchInput.value.trim();
+  if (trimmed.isEmpty || searchByDescription.value) return null;
+  return trimmed;
+}
   @override
   void onInit() {
     super.onInit();
@@ -104,6 +111,7 @@ class InventoryController extends GetxController {
 
       final result = await fetchInventarioUsecase.call(
         _parsedDescription ?? '',
+        _parsedNumParte ?? '',
         selectedFamilia.value ?? '',
         selectedSubfamilia.value ?? '',
         _currentPage,
@@ -129,6 +137,7 @@ class InventoryController extends GetxController {
 
       final result = await fetchInventarioUsecase.call(
         _parsedDescription ?? '',
+        _parsedNumParte ?? '',
         selectedFamilia.value ?? '',
         selectedSubfamilia.value ?? '',
         _currentPage,
@@ -150,13 +159,14 @@ class InventoryController extends GetxController {
       isLoadingMore.value = true;
       _currentPage++;
 
-      final result = await fetchInventarioUsecase.call(
-        _parsedDescription ?? '',
-        selectedFamilia.value ?? '',
-        selectedSubfamilia.value ?? '',
-        _currentPage,
-        _pageSize,
-      );
+   final result = await fetchInventarioUsecase.call(
+  _parsedDescription ?? '',
+  _parsedNumParte ?? '',   // ✅ agrega este parámetro
+  selectedFamilia.value ?? '',
+  selectedSubfamilia.value ?? '',
+  _currentPage,
+  _pageSize,
+);
 
       if (result.isEmpty || result.length < _pageSize) {
         hasMorePages.value = false;
@@ -179,11 +189,12 @@ class InventoryController extends GetxController {
     await fetchInventario();
   }
 
-  Future<void> clearFilters() async {
-    searchController.clear();
-    searchInput.value = '';
-    selectedFamilia.value = null;
-    selectedSubfamilia.value = null;
-    await fetchInventario();
-  }
+Future<void> clearFilters() async {
+  searchController.clear();
+  searchInput.value = '';
+  searchByDescription.value = true; // reset al default
+  selectedFamilia.value = null;
+  selectedSubfamilia.value = null;
+  await fetchInventario();
+}
 }

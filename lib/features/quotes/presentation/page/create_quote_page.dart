@@ -339,51 +339,114 @@ class _PriceBottomSheet extends StatelessWidget {
 }
 
 // ── Product Search ────────────────────────────────────────────────────────────
-
 class ProductSearchField extends StatelessWidget {
   final CreateQuoteController ctrl;
   const ProductSearchField({required this.ctrl});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: ThemeColor.backgroundColor,
-        borderRadius: ThemeColor.extraLargeBorderRadius,
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: ThemeColor.textSecondaryColor, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: ctrl.productSearchCtrl,
-              style: ThemeColor.bodyMedium,
-              decoration: InputDecoration(
-                hintText: 'Buscar producto',
-                hintStyle: ThemeColor.bodyMedium
-                    .copyWith(color: ThemeColor.textSecondaryColor),
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-              onChanged: ctrl.onProductSearchChanged,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: ThemeColor.backgroundColor,
+            borderRadius: ThemeColor.extraLargeBorderRadius,
           ),
-          Obx(() => ctrl.isSearching.value
-              ? GestureDetector(
+          child: Row(
+            children: [
+              const Icon(Icons.search,
+                  color: ThemeColor.textSecondaryColor, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Obx(() => TextField(
+                      controller: ctrl.productSearchCtrl,
+                      style: ThemeColor.bodyMedium,
+                      decoration: InputDecoration(
+                        hintText: ctrl.searchByDescription.value
+                            ? 'Buscar por descripción'
+                            : 'Buscar por núm. parte',
+                        hintStyle: ThemeColor.bodyMedium
+                            .copyWith(color: ThemeColor.textSecondaryColor),
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                      ),
+                      onChanged: ctrl.onProductSearchChanged,
+                    )),
+              ),
+              Obx(() => ctrl.isSearching.value
+                  ? GestureDetector(
+                      onTap: () {
+                        ctrl.productSearchCtrl.clear();
+                        ctrl.onProductSearchChanged('');
+                      },
+                      child: const Icon(Icons.close,
+                          color: ThemeColor.textSecondaryColor, size: 16),
+                    )
+                  : const SizedBox.shrink()),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        // Toggle descripción / núm. parte
+        Obx(() => Row(
+              children: [
+                _chip(
+                  label: 'Descripción',
+                  selected: ctrl.searchByDescription.value,
                   onTap: () {
+                    ctrl.searchByDescription.value = true;
                     ctrl.productSearchCtrl.clear();
                     ctrl.onProductSearchChanged('');
                   },
-                  child: const Icon(Icons.close,
-                      color: ThemeColor.textSecondaryColor, size: 16),
-                )
-              : const SizedBox.shrink()),
-        ],
+                ),
+                const SizedBox(width: 8),
+                _chip(
+                  label: 'Núm. Parte',
+                  selected: !ctrl.searchByDescription.value,
+                  onTap: () {
+                    ctrl.searchByDescription.value = false;
+                    ctrl.productSearchCtrl.clear();
+                    ctrl.onProductSearchChanged('');
+                  },
+                ),
+              ],
+            )),
+      ],
+    );
+  }
+
+  Widget _chip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: selected ? ThemeColor.primaryColor : Colors.transparent,
+          borderRadius: ThemeColor.circularBorderRadius,
+          border: Border.all(
+            color:
+                selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
+          ),
+        ),
+        child: Text(
+          label,
+          style: ThemeColor.caption.copyWith(
+            color: selected
+                ? ThemeColor.textLightColor
+                : ThemeColor.textSecondaryColor,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
       ),
     );
   }

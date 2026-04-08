@@ -93,6 +93,7 @@ class PutQuotesController extends GetxController {
 
   // ID de la cotización a editar
   final Rxn<int> quoteId = Rxn<int>();
+final RxBool searchByDescription = true.obs; // true = descripción, false = num parte
 
   // Estado
   final isLoadingQuote = false.obs;
@@ -133,18 +134,16 @@ void onInit() {
     loadQuote(args['idQuote'] as int);
   }
 }
-  List<InventoryEntity> get searchResults {
-    final q = productSearchQuery.value.toLowerCase();
-    if (q.isEmpty) return [];
-    return _inventoryCtrl.inventario
-        .where(
-          (p) =>
-              (p.description?.toLowerCase().contains(q) ?? false) ||
-              (p.partNumber?.toLowerCase().contains(q) ?? false),
-        )
-        .take(20)
-        .toList();
-  }
+List<InventoryEntity> get searchResults {
+  final q = productSearchQuery.value.toLowerCase();
+  if (q.isEmpty) return [];
+  return _inventoryCtrl.inventario
+      .where((p) => searchByDescription.value
+          ? (p.description?.toLowerCase().contains(q) ?? false)
+          : (p.partNumber?.toLowerCase().contains(q) ?? false))
+      .take(20)
+      .toList();
+}
 
   // ── Cargar cotización ──────────────────────────────────────────────────────
 
