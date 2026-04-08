@@ -390,60 +390,70 @@ class _CotizacionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: ThemeColor.paddingSmall + 2,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${item.folito ?? '-'} - ${item.client ?? '-'}',
-                  style: ThemeColor.bodyMedium.copyWith(
-                    color: ThemeColor.infoColor,
-                    fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () {
+        if (item.id != null) {
+          Get.toNamed(
+            RoutesNames.putQuotePage,
+            arguments: {'idQuote': item.id},
+          );
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: ThemeColor.paddingSmall + 2,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${item.folito ?? '-'} - ${item.client ?? '-'}',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      color: ThemeColor.infoColor,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.date ?? '-',
-                  style: ThemeColor.caption.copyWith(
-                    color: ThemeColor.textSecondaryColor,
+                  const SizedBox(height: 2),
+                  Text(
+                    item.date ?? '-',
+                    style: ThemeColor.caption.copyWith(
+                      color: ThemeColor.textSecondaryColor,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '\$${item.total?.toStringAsFixed(2) ?? '0.00'}',
-                  style: ThemeColor.bodyMedium.copyWith(
-                    color: ThemeColor.textPrimaryColor,
-                    fontWeight: FontWeight.w500,
+                  const SizedBox(height: 4),
+                  Text(
+                    '\$${item.total?.toStringAsFixed(2) ?? '0.00'}',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      color: ThemeColor.textPrimaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: ThemeColor.paddingSmall,
-              vertical: 4,
-            ),
-            decoration: BoxDecoration(
-              color: _statusColor,
-              borderRadius: ThemeColor.smallBorderRadius,
-            ),
-            child: Text(
-              item.status ?? 'Abierta',
-              style: ThemeColor.caption.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+                ],
               ),
             ),
-          ),
-        ],
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: ThemeColor.paddingSmall,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: _statusColor,
+                borderRadius: ThemeColor.smallBorderRadius,
+              ),
+              child: Text(
+                item.status ?? 'Abierta',
+                style: ThemeColor.caption.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -40,6 +40,7 @@ class QuotesDataSourcesImp {
         'tamanoPagina': pageSize.toString(),
         if (folio != null && folio.isNotEmpty) 'folio': folio,
         if (id != null) 'id': id.toString(),
+        
       };
 
       Uri url = Uri.parse(
@@ -72,7 +73,7 @@ class QuotesDataSourcesImp {
       throw Exception(e);
     }
   }
-  Future<GetQuoteEntity> fetchQuotebyid(String token, int id) async {
+  Future<QuoteEntity> fetchQuotebyid(String token, int id) async {
     try {
       Uri url = Uri.parse('$defaultApiServer/Cotizaciones/$id');
 
@@ -88,7 +89,7 @@ class QuotesDataSourcesImp {
         final dataUTF8 = utf8.decode(response.bodyBytes);
         final responseDecode = jsonDecode(dataUTF8);
 
-        return GetQuoteModel.fromJson(responseDecode);
+        return QuoteModel.fromJson(responseDecode);
       }
 
       ApiExceptionCustom exception = ApiExceptionCustom(response: response);
@@ -100,6 +101,40 @@ class QuotesDataSourcesImp {
           e is TimeoutException) {
         throw Exception(convertMessageException(error: e));
       }
+      throw Exception('$e');
+    }
+  }
+   Future<void> updateQuote(
+    String token,
+    QuoteEntity entity,int id,
+  ) async {
+    try {
+      Uri url = Uri.parse('$defaultApiServer/Cotizaciones/$id');
+
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(QuoteModel.fromEntity(entity).toJson()),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+         return;
+      }
+
+      ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+      exception.validateMesage();
+      throw exception;
+    } catch (e) {
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is TimeoutException) {
+        print('🌐 Error de red detectado');
+        throw Exception(convertMessageException(error: e));
+      }
+
       throw Exception('$e');
     }
   }

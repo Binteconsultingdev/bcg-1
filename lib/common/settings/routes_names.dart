@@ -6,4 +6,5 @@ class RoutesNames {
   static const String licensePage = '/licensePage';
   static const String createQuotePage = '/createQuotePage';
   static const String createSalesPage = '/CreateSalesPage';
+  static const String putQuotePage = '/putQuotePage';
 }

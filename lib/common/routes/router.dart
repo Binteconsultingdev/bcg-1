@@ -8,6 +8,7 @@ import 'package:bcg/features/Inventory/presentation/page/inventario_screen.dart'
 import 'package:bcg/features/auth/presentation/page/login/license_screen.dart';
 import 'package:bcg/features/auth/presentation/page/login/login_page.dart';
 import 'package:bcg/features/quotes/presentation/page/create_quote_page.dart';
+import 'package:bcg/features/quotes/presentation/page/put_quotes_page.dart';
 import 'package:bcg/features/sales/presentation/page/CreateSalesPage.dart';
 import 'package:bcg/features/sales/presentation/page/ventas_page.dart';
 import 'package:bcg/page/ver_cotizacion_screen.dart';
@@ -26,6 +27,7 @@ class AppPages {
         GetPage(name: RoutesNames.licensePage, page: () => LicenseScreen()),
 
         GetPage(name: RoutesNames.homePage, page: () => StartPage()),
+        GetPage(name: RoutesNames.putQuotePage, page: () => EditQuotePage()),
   ];
 
   static final unknownRoute = GetPage(

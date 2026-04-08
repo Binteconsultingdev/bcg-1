@@ -64,10 +64,18 @@ class QuotesRepositoryImp implements QuotesRepository {
   }
   
   @override
-  Future<GetQuoteEntity> fetchQuotebyid(int id) async {
+  Future<QuoteEntity> fetchQuotebyid(int id) async {
     final token =
         await authService.getToken() ??
         (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
     return await quotesDataSourcesImp.fetchQuotebyid(token, id);
+  }
+  
+  @override
+  Future<void> putQuotebyid(int id, QuoteEntity entity) async {
+     final token =
+        await authService.getToken() ??
+        (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
+    return await quotesDataSourcesImp.updateQuote(token, entity, id);
   }
 }
