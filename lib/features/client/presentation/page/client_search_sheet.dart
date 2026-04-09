@@ -1,10 +1,7 @@
-import 'package:bcg/common/services/auth_service.dart';
-import 'package:bcg/common/settings/routes_names.dart';
+
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
-import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
-import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';

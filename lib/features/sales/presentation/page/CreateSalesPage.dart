@@ -1,6 +1,6 @@
 import 'package:bcg/common/theme/App_Theme.dart';
-import 'package:bcg/features/client/domain/entities/client_entity.dart';
-import 'package:bcg/features/client/presentation/controller/client_controller.dart';
+import 'package:bcg/common/widgets/product_search_field.dart';
+import 'package:bcg/common/widgets/product_search_results.dart';  
 import 'package:bcg/features/sales/presentation/controller/create_sales_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -256,57 +256,11 @@ class _TopSection extends StatelessWidget {
 Divider(height: 1, color: ThemeColor.dividerColor),
           _RowField(label: 'Método', child: _MetodoEmbarqueSelector(ctrl: ctrl)),
           Divider(height: 1, color: ThemeColor.dividerColor),
-          _RowField(
-            label: 'Producto',
-            child: _ProductSearchField(ctrl: ctrl),
-          ),
-          Obx(() {
-            if (!ctrl.isSearching.value) return const SizedBox.shrink();
-            final results = ctrl.searchResults;
-            if (results.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text('Sin resultados', style: ThemeColor.bodySmall),
-              );
-            }
-            return Container(
-              constraints: const BoxConstraints(maxHeight: 220),
-              margin: const EdgeInsets.only(top: 4, bottom: 4),
-              decoration: BoxDecoration(
-                color: ThemeColor.surfaceColor,
-                borderRadius: ThemeColor.smallBorderRadius,
-                border: Border.all(color: ThemeColor.dividerColor),
-                boxShadow: [ThemeColor.lightShadow],
-              ),
-              child: ListView.separated(
-                shrinkWrap: true,
-                padding: EdgeInsets.zero,
-                itemCount: results.length,
-                separatorBuilder: (_, __) =>
-                    Divider(height: 1, color: ThemeColor.dividerColor),
-                itemBuilder: (_, i) {
-                  final p = results[i];
-                  return ListTile(
-                    dense: true,
-                    leading: _ProductThumbnail(imageUrl: p.imageUrl, size: 36),
-                    title: Text(
-                      p.description ?? '',
-                      style: ThemeColor.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      '${p.partNumber ?? ''} · \$${(p.price ?? 0).toStringAsFixed(2)}',
-                      style: ThemeColor.caption,
-                    ),
-                    trailing: const Icon(Icons.add_circle_outline,
-                        color: ThemeColor.accentColor, size: 20),
-                    onTap: () => ctrl.addProduct(p),
-                  );
-                },
-              ),
-            );
-          }),
+         _RowField(
+  label: 'Producto',
+  child: ProductSearchField(onSelected: ctrl.addProduct),
+),
+ProductSearchResults(onSelected: ctrl.addProduct),
         ],
       ),
     );
@@ -491,118 +445,6 @@ class _MetodoBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
         ],
-      ),
-    );
-  }
-}
-
-class _ProductSearchField extends StatelessWidget {
-  final CreateSalesController ctrl;
-  const _ProductSearchField({required this.ctrl});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: ThemeColor.backgroundColor,
-            borderRadius: ThemeColor.extraLargeBorderRadius,
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.search,
-                  color: ThemeColor.textSecondaryColor, size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Obx(() => TextField(
-                      controller: ctrl.productSearchCtrl,
-                      style: ThemeColor.bodyMedium,
-                      decoration: InputDecoration(
-                        hintText: ctrl.searchByDescription.value
-                            ? 'Buscar por descripción'
-                            : 'Buscar por núm. parte',
-                        hintStyle: ThemeColor.bodyMedium
-                            .copyWith(color: ThemeColor.textSecondaryColor),
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                      ),
-                      onChanged: ctrl.onProductSearchChanged,
-                    )),
-              ),
-              Obx(() => ctrl.isSearching.value
-                  ? GestureDetector(
-                      onTap: () {
-                        ctrl.productSearchCtrl.clear();
-                        ctrl.onProductSearchChanged('');
-                      },
-                      child: const Icon(Icons.close,
-                          color: ThemeColor.textSecondaryColor, size: 16),
-                    )
-                  : const SizedBox.shrink()),
-            ],
-          ),
-        ),
-        const SizedBox(height: 6),
-        Obx(() => Row(
-              children: [
-                _chip(
-                  label: 'Descripción',
-                  selected: ctrl.searchByDescription.value,
-                  onTap: () {
-                    ctrl.searchByDescription.value = true;
-                    ctrl.productSearchCtrl.clear();
-                    ctrl.onProductSearchChanged('');
-                  },
-                ),
-                const SizedBox(width: 8),
-                _chip(
-                  label: 'Núm. Parte',
-                  selected: !ctrl.searchByDescription.value,
-                  onTap: () {
-                    ctrl.searchByDescription.value = false;
-                    ctrl.productSearchCtrl.clear();
-                    ctrl.onProductSearchChanged('');
-                  },
-                ),
-              ],
-            )),
-      ],
-    );
-  }
-
-  Widget _chip({
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: selected ? ThemeColor.primaryColor : Colors.transparent,
-          borderRadius: ThemeColor.circularBorderRadius,
-          border: Border.all(
-            color:
-                selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
-          ),
-        ),
-        child: Text(
-          label,
-          style: ThemeColor.caption.copyWith(
-            color: selected
-                ? ThemeColor.textLightColor
-                : ThemeColor.textSecondaryColor,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
       ),
     );
   }

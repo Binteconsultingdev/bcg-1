@@ -22,7 +22,6 @@ class InventoryController extends GetxController {
   final RxList<InventoryEntity> inventario = <InventoryEntity>[].obs;
   final RxList<InventoryCategoryEntity> familias = <InventoryCategoryEntity>[].obs;
   final RxList<InventoryCategoryEntity> subfamilias = <InventoryCategoryEntity>[].obs;
-final RxBool searchByDescription = true.obs; // true = descripción, false = num parte
 
   final RxBool isLoadingInventario = false.obs;
   final RxBool isLoadingMore = false.obs;
@@ -36,7 +35,6 @@ final RxBool searchByDescription = true.obs; // true = descripción, false = num
   final Rx<String?> selectedFamilia = Rx<String?>(null);
   final Rx<String?> selectedSubfamilia = Rx<String?>(null);
 
-  // Búsqueda por description via API
   final RxString searchInput = ''.obs;
   final TextEditingController searchController = TextEditingController();
 
@@ -45,17 +43,16 @@ final RxBool searchByDescription = true.obs; // true = descripción, false = num
           .where((v) => v != null)
           .length;
 
-String? get _parsedDescription {
-  final trimmed = searchInput.value.trim();
-  if (trimmed.isEmpty || !searchByDescription.value) return null;
-  return trimmed;
-}
+  String? get _parsedDescription {
+    final trimmed = searchInput.value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
 
-String? get _parsedNumParte {
-  final trimmed = searchInput.value.trim();
-  if (trimmed.isEmpty || searchByDescription.value) return null;
-  return trimmed;
-}
+  String? get _parsedNumParte {
+    final trimmed = searchInput.value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -100,6 +97,19 @@ String? get _parsedNumParte {
     }
   }
 
+  List<InventoryEntity> _mergeResults(
+    List<InventoryEntity> byDescription,
+    List<InventoryEntity> byNumParte,
+  ) {
+    final seen = <String>{};
+    final merged = <InventoryEntity>[];
+    for (final item in [...byDescription, ...byNumParte]) {
+      final key = item.partNumber ?? item.description ?? '';
+      if (seen.add(key)) merged.add(item);
+    }
+    return merged;
+  }
+
   Future<void> fetchInventario() async {
     if (isLoadingInventario.value) return;
     try {
@@ -109,17 +119,28 @@ String? get _parsedNumParte {
       _currentPage = 1;
       hasMorePages.value = true;
 
-      final result = await fetchInventarioUsecase.call(
-        _parsedDescription ?? '',
-        _parsedNumParte ?? '',
-        selectedFamilia.value ?? '',
-        selectedSubfamilia.value ?? '',
-        _currentPage,
-        _pageSize,
-      );
+      final results = await Future.wait([
+        fetchInventarioUsecase.call(
+          _parsedDescription ?? '',
+          '',
+          selectedFamilia.value ?? '',
+          selectedSubfamilia.value ?? '',
+          _currentPage,
+          _pageSize,
+        ),
+        fetchInventarioUsecase.call(
+          '',
+          _parsedNumParte ?? '',
+          selectedFamilia.value ?? '',
+          selectedSubfamilia.value ?? '',
+          _currentPage,
+          _pageSize,
+        ),
+      ]);
 
-      inventario.assignAll(result);
-      if (result.length < _pageSize) hasMorePages.value = false;
+      final combined = _mergeResults(results[0], results[1]);
+      inventario.assignAll(combined);
+      if (combined.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al cargar inventario: $e';
     } finally {
@@ -135,22 +156,46 @@ String? get _parsedNumParte {
       _currentPage = 1;
       hasMorePages.value = true;
 
-      final result = await fetchInventarioUsecase.call(
-        _parsedDescription ?? '',
-        _parsedNumParte ?? '',
-        selectedFamilia.value ?? '',
-        selectedSubfamilia.value ?? '',
-        _currentPage,
-        _pageSize,
-      );
+      final results = await Future.wait([
+        fetchInventarioUsecase.call(
+          _parsedDescription ?? '',
+          '',
+          selectedFamilia.value ?? '',
+          selectedSubfamilia.value ?? '',
+          _currentPage,
+          _pageSize,
+        ),
+        fetchInventarioUsecase.call(
+          '',
+          _parsedNumParte ?? '',
+          selectedFamilia.value ?? '',
+          selectedSubfamilia.value ?? '',
+          _currentPage,
+          _pageSize,
+        ),
+      ]);
 
-      inventario.assignAll(result);
-      if (result.length < _pageSize) hasMorePages.value = false;
+      final combined = _mergeResults(results[0], results[1]);
+      inventario.assignAll(combined);
+      if (combined.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al buscar: $e';
     } finally {
       isLoadingInventario.value = false;
     }
+  }
+
+  // Método público para buscar desde otros controllers (ej. CreateQuoteController)
+  Future<List<InventoryEntity>> searchProducts(String query) async {
+    if (query.trim().isEmpty) return [];
+    final trimmed = query.trim();
+
+    final results = await Future.wait([
+      fetchInventarioUsecase.call(trimmed, '', '', '', 1, 20),
+      fetchInventarioUsecase.call('', trimmed, '', '', 1, 20),
+    ]);
+
+    return _mergeResults(results[0], results[1]);
   }
 
   Future<void> loadMoreInventario() async {
@@ -159,19 +204,30 @@ String? get _parsedNumParte {
       isLoadingMore.value = true;
       _currentPage++;
 
-   final result = await fetchInventarioUsecase.call(
-  _parsedDescription ?? '',
-  _parsedNumParte ?? '',   // ✅ agrega este parámetro
-  selectedFamilia.value ?? '',
-  selectedSubfamilia.value ?? '',
-  _currentPage,
-  _pageSize,
-);
+      final results = await Future.wait([
+        fetchInventarioUsecase.call(
+          _parsedDescription ?? '',
+          '',
+          selectedFamilia.value ?? '',
+          selectedSubfamilia.value ?? '',
+          _currentPage,
+          _pageSize,
+        ),
+        fetchInventarioUsecase.call(
+          '',
+          _parsedNumParte ?? '',
+          selectedFamilia.value ?? '',
+          selectedSubfamilia.value ?? '',
+          _currentPage,
+          _pageSize,
+        ),
+      ]);
 
-      if (result.isEmpty || result.length < _pageSize) {
+      final combined = _mergeResults(results[0], results[1]);
+      if (combined.isEmpty || combined.length < _pageSize) {
         hasMorePages.value = false;
       }
-      inventario.addAll(result);
+      inventario.addAll(combined);
     } catch (e) {
       _currentPage--;
       errorMessage.value = 'Error al cargar más productos: $e';
@@ -189,12 +245,11 @@ String? get _parsedNumParte {
     await fetchInventario();
   }
 
-Future<void> clearFilters() async {
-  searchController.clear();
-  searchInput.value = '';
-  searchByDescription.value = true; // reset al default
-  selectedFamilia.value = null;
-  selectedSubfamilia.value = null;
-  await fetchInventario();
-}
+  Future<void> clearFilters() async {
+    searchController.clear();
+    searchInput.value = '';
+    selectedFamilia.value = null;
+    selectedSubfamilia.value = null;
+    await fetchInventario();
+  }
 }

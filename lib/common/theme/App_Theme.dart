@@ -849,4 +849,77 @@ class ThemeColor {
       ),
     );
   }
+
+  static Widget searchTextField({
+  required TextEditingController controller,
+  required String hintText,
+  required void Function(String) onChanged,
+  VoidCallback? onClear,
+  bool isLoading = false,
+  bool hasText = false,
+  IconData? prefixIcon,
+  BorderRadius? borderRadius,
+  Color? fillColor,
+  TextCapitalization textCapitalization = TextCapitalization.none,
+}) {
+  return TextField(
+    controller: controller,
+    style: bodyMedium.copyWith(color: textPrimaryColor),
+    textCapitalization: textCapitalization,
+    onChanged: onChanged,
+    decoration: InputDecoration(
+      hintText: hintText,
+      hintStyle: bodyMedium.copyWith(color: textSecondaryColor),
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 10,
+      ),
+      filled: true,
+      fillColor: fillColor ?? backgroundColor,
+      prefixIcon: prefixIcon != null
+          ? Icon(prefixIcon, color: textSecondaryColor, size: 18)
+          : null,
+      suffixIcon: isLoading
+          ? const Padding(
+              padding: EdgeInsets.all(10),
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          : (hasText && onClear != null)
+              ? GestureDetector(
+                  onTap: onClear,
+                  child: const Icon(
+                    Icons.close,
+                    size: 16,
+                    color: textSecondaryColor,
+                  ),
+                )
+              : null,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: borderRadius ?? extraLargeBorderRadius,
+        borderSide: BorderSide(
+          color: hasText
+              ? accentColor.withOpacity(0.5)
+              : dividerColor,
+          width: hasText ? 1.5 : 1,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: borderRadius ?? extraLargeBorderRadius,
+        borderSide: const BorderSide(
+          color: accentColor,
+          width: 1.5,
+        ),
+      ),
+      border: OutlineInputBorder(
+        borderRadius: borderRadius ?? extraLargeBorderRadius,
+        borderSide: BorderSide.none,
+      ),
+    ),
+  );
+}
 }

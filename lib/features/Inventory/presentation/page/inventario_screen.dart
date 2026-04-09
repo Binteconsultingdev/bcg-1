@@ -54,123 +54,99 @@ class InventarioScreen extends StatelessWidget {
   }
 
 
-  Widget _buildSearchBar(InventoryController controller, BuildContext context) {
+Widget _buildSearchBar(InventoryController controller, BuildContext context) {
   return Container(
     color: ThemeColor.surfaceColor,
     padding: const EdgeInsets.symmetric(
       horizontal: ThemeColor.paddingMedium,
       vertical: ThemeColor.paddingSmall,
     ),
-    child: Column(
+    child: Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 40,
-                decoration: BoxDecoration(
-                  color: ThemeColor.backgroundColor,
-                  borderRadius: ThemeColor.mediumBorderRadius,
-                  border: Border.all(color: ThemeColor.dividerColor),
-                ),
-                child: TextField(
-                  controller: controller.searchController,
-                  onChanged: (v) => controller.searchInput.value = v,
-                  onSubmitted: (_) => controller.searchInventario(),
-                  textInputAction: TextInputAction.search,
-                  style: ThemeColor.bodyMedium,
-                  decoration: InputDecoration(
-                    hintText: controller.searchByDescription.value
-                        ? 'Buscar por descripción'
-                        : 'Buscar por número de parte',
-                    hintStyle: ThemeColor.bodyMedium
-                        .copyWith(color: ThemeColor.textSecondaryColor),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 10),
+        Expanded(
+          child: Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: ThemeColor.backgroundColor,
+              borderRadius: ThemeColor.mediumBorderRadius,
+              border: Border.all(color: ThemeColor.dividerColor),
+            ),
+            child: TextField(
+              controller: controller.searchController,
+              onChanged: (v) => controller.searchInput.value = v,
+              onSubmitted: (_) => controller.searchInventario(),
+              textInputAction: TextInputAction.search,
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                hintText: 'Buscar por descripción o núm. parte',
+                hintStyle: ThemeColor.bodyMedium
+                    .copyWith(color: ThemeColor.textSecondaryColor),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 10),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: ThemeColor.paddingSmall),
+        GestureDetector(
+          onTap: controller.searchInventario,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: ThemeColor.primaryColor,
+              borderRadius: ThemeColor.mediumBorderRadius,
+            ),
+            child: const Icon(Icons.search, color: Colors.white, size: 20),
+          ),
+        ),
+        const SizedBox(width: ThemeColor.paddingSmall),
+        Obx(() => GestureDetector(
+              onTap: () => _openFilters(context, controller),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: ThemeColor.backgroundColor,
+                      borderRadius: ThemeColor.mediumBorderRadius,
+                      border: Border.all(color: ThemeColor.dividerColor),
+                    ),
+                    child: const Icon(Icons.tune,
+                        color: ThemeColor.textPrimaryColor, size: 20),
                   ),
-                ),
-              ),
-            ),
-            const SizedBox(width: ThemeColor.paddingSmall),
-            GestureDetector(
-              onTap: controller.searchInventario,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: ThemeColor.primaryColor,
-                  borderRadius: ThemeColor.mediumBorderRadius,
-                ),
-                child: const Icon(Icons.search, color: Colors.white, size: 20),
-              ),
-            ),
-            const SizedBox(width: ThemeColor.paddingSmall),
-            Obx(() => GestureDetector(
-                  onTap: () => _openFilters(context, controller),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
+                  if (controller.activeFiltersCount > 0)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
+                        width: 16,
+                        height: 16,
                         decoration: BoxDecoration(
-                          color: ThemeColor.backgroundColor,
-                          borderRadius: ThemeColor.mediumBorderRadius,
-                          border: Border.all(color: ThemeColor.dividerColor),
+                          color: ThemeColor.primaryColor,
+                          shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.tune,
-                            color: ThemeColor.textPrimaryColor, size: 20),
-                      ),
-                      if (controller.activeFiltersCount > 0)
-                        Positioned(
-                          top: -4,
-                          right: -4,
-                          child: Container(
-                            width: 16,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              color: ThemeColor.primaryColor,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${controller.activeFiltersCount}',
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 10),
-                              ),
-                            ),
+                        child: Center(
+                          child: Text(
+                            '${controller.activeFiltersCount}',
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 10),
                           ),
                         ),
-                    ],
-                  ),
-                )),
-          ],
-        ),
-        const SizedBox(height: ThemeColor.paddingSmall),
-        // Toggle descripción / número de parte
-        Obx(() => Row(
-              children: [
-                _toggleChip(
-                  label: 'Descripción',
-                  selected: controller.searchByDescription.value,
-                  onTap: () => controller.searchByDescription.value = true,
-                ),
-                const SizedBox(width: ThemeColor.paddingSmall),
-                _toggleChip(
-                  label: 'Núm. Parte',
-                  selected: !controller.searchByDescription.value,
-                  onTap: () => controller.searchByDescription.value = false,
-                ),
-              ],
+                      ),
+                    ),
+                ],
+              ),
             )),
       ],
     ),
   );
 }
-
 Widget _toggleChip({
   required String label,
   required bool selected,

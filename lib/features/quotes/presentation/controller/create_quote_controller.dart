@@ -2,7 +2,9 @@ import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
+import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
+import 'package:bcg/features/client/presentation/controller/client_search_controller.dart';
 import 'package:bcg/features/client/presentation/page/client_search_sheet.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_entity.dart';
 import 'package:bcg/features/quotes/domain/usecase/create_quotes_usecase.dart';
@@ -31,7 +33,6 @@ class QuoteItem {
   double get discountAmount => subtotal * (discount.value / 100);
   double get total => subtotal - discountAmount;
 }
-
 class CreateQuoteController extends GetxController {
   final CreateQuotesUsecase createQuotesUsecase;
   final FetchFolioUsecase fetchFolioUsecase;
@@ -42,64 +43,70 @@ class CreateQuoteController extends GetxController {
     required this.fetchFolioUsecase,
     required this.generatePdfUsecase,
   });
-final RxBool searchByDescription = true.obs;
 
-  late final InventoryController _inventoryCtrl =
-      Get.find<InventoryController>();
+  late final InventoryController _inventoryCtrl = Get.find<InventoryController>();
   late final QuotesController _quotesCtrl = Get.find<QuotesController>();
   late final ClientController _clientCtrl = Get.find<ClientController>();
+void onClientSelected(ClientEntity client) {
+  final name = client.displayName ?? '';
+  clienteController.text = name;
+  clienteName.value = name;
+  selectedClientId.value = client.id.toString();
+  selectedClientName.value = client.displayName;
 
+  // Actualiza el campo visual del buscador
+  Get.find<ClientSearchController>().searchCtrl.text = name;
+}
   // PDF
   final RxBool isDownloading = false.obs;
   final RxDouble downloadProgress = 0.0.obs;
   final pdfUrl = Rxn<String>();
-  final isLoadingPdf = false.obs;
+  final RxBool isLoadingPdf = false.obs;
   final createdQuoteId = Rxn<int>();
 
   // Folio
   final folio = ''.obs;
-  final isLoadingFolio = false.obs;
+  final RxBool isLoadingFolio = false.obs;
 
+  // Cliente
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<String>();
   final selectedClientName = Rxn<String>();
 
+  // Precio
   final selectedPriceType = 'REGULAR'.obs;
-  final List<String> priceOptions = ['REGULAR', 'MEDIO M', 'PAQUETE','MAYOREO', 'ESPECIAL'];
+  final List<String> priceOptions = ['REGULAR', 'MEDIO M', 'PAQUETE', 'MAYOREO', 'ESPECIAL'];
 
+  // Fecha
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
 
+  // Productos
   final items = <QuoteItem>[].obs;
   final productSearchQuery = ''.obs;
   final isSearching = false.obs;
+  final RxList<InventoryEntity> searchResults = <InventoryEntity>[].obs;
+  final RxBool isLoadingSearch = false.obs;
 
+  // Descuento
   final globalDiscount = 0.0.obs;
-  final globalDiscountType = 'monto'.obs; // 'monto' o 'porcentaje'
+  final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
   final referencia = ''.obs;
 
+  // Estado
   final isCreating = false.obs;
   final errorMessage = ''.obs;
 
+  // Text controllers
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
 
+  // Totales
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
-
-List<InventoryEntity> get searchResults {
-  final q = productSearchQuery.value.toLowerCase();
-  if (q.isEmpty) return [];
-  return _inventoryCtrl.inventario
-      .where((p) => searchByDescription.value
-          ? (p.description?.toLowerCase().contains(q) ?? false)
-          : (p.partNumber?.toLowerCase().contains(q) ?? false))
-      .take(20)
-      .toList();
-}
 
   @override
   void onInit() {
@@ -150,6 +157,7 @@ List<InventoryEntity> get searchResults {
   void onProductSearchChanged(String value) {
     productSearchQuery.value = value;
     isSearching.value = value.isNotEmpty;
+    if (value.trim().isEmpty) searchResults.clear();
   }
 
   void addProduct(InventoryEntity product) {
@@ -166,6 +174,7 @@ List<InventoryEntity> get searchResults {
     productSearchCtrl.clear();
     productSearchQuery.value = '';
     isSearching.value = false;
+    searchResults.clear();
   }
 
   void removeItem(QuoteItem item) => items.remove(item);
@@ -302,8 +311,7 @@ List<InventoryEntity> get searchResults {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final directory = await getTemporaryDirectory();
-        final fileName =
-            'cotizacion_${DateTime.now().millisecondsSinceEpoch}.pdf';
+        final fileName = 'cotizacion_${DateTime.now().millisecondsSinceEpoch}.pdf';
         final file = File('${directory.path}/$fileName');
         await file.writeAsBytes(response.bodyBytes);
 
@@ -349,7 +357,6 @@ List<InventoryEntity> get searchResults {
 
       final file = File(savePath);
       await file.writeAsBytes(response.bodyBytes);
-
       showSuccessSnackbar('PDF guardado en Descargas');
     } catch (e) {
       showErrorSnackbar('Error al descargar PDF: $e');

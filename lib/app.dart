@@ -3,11 +3,13 @@ import 'package:bcg/common/routes/router.dart';
 import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
+import 'package:bcg/common/controller/product_search_controller.dart';
 import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
 import 'package:bcg/features/auth/presentation/page/Splash/splash_controller.dart';
 import 'package:bcg/features/auth/presentation/page/login/license_controller.dart';
 import 'package:bcg/features/auth/presentation/page/login/login_controller.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
+import 'package:bcg/features/client/presentation/controller/client_search_controller.dart';
 import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
 import 'package:bcg/features/quotes/presentation/controller/put_quotes_controller.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
@@ -48,6 +50,7 @@ class App extends StatelessWidget {
         Get.put(usecaseConfig.fetchClientsUsecase!, permanent:  true);
         Get.put(usecaseConfig.createClientUsecase! , permanent:  true);
         Get.put(usecaseConfig.generatePdfUsecase!, permanent:  true);
+        
        
        
         Get.lazyPut(() => LoginController(loginUsecase: Get.find(), validateLicensesUsecase: Get.find() ), fenix: true);
@@ -60,6 +63,8 @@ class App extends StatelessWidget {
         Get.lazyPut(() => ClientController(fetchClientsUsecase:Get.find(), createClientUsecase: Get.find()),fenix: true);
         Get.lazyPut(() => CreateSalesController(generateSalesUsecase:  Get.find(), fetchQuotesByidUsecase: Get.find(), fetchQuoteUsecase: Get.find()),fenix: true);
         Get.lazyPut(() => PutQuotesController(putQuotesUsecase: Get.find(), fetchQuotesByidUsecase: Get.find(), generatePdfUsecase:  Get.find()),fenix: true);
+        Get.lazyPut(() => ProductSearchController(), fenix: true);
+        Get.lazyPut(() => ClientSearchController(), fenix: true);
 
       }),
 

@@ -1,8 +1,11 @@
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
+import 'package:bcg/common/controller/product_search_controller.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
+import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
+import 'package:bcg/features/client/presentation/controller/client_search_controller.dart';
 import 'package:bcg/features/client/presentation/page/client_search_sheet.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_entity.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quotes_byid_usecase.dart';
@@ -80,7 +83,6 @@ class EditQuoteItem {
     );
   }
 }
-
 class PutQuotesController extends GetxController {
   final PutQuotesUsecase putQuotesUsecase;
   final FetchQuotesByidUsecase fetchQuotesByidUsecase;
@@ -92,27 +94,20 @@ class PutQuotesController extends GetxController {
     required this.generatePdfUsecase,
   });
 
-  late final InventoryController _inventoryCtrl =
-      Get.find<InventoryController>();
   late final QuotesController _quotesCtrl = Get.find<QuotesController>();
   late final ClientController _clientCtrl = Get.find<ClientController>();
 
-  // ID
   final Rxn<int> quoteId = Rxn<int>();
 
-  // Estado
   final isLoadingQuote = false.obs;
   final isSaving = false.obs;
   final errorMessage = ''.obs;
 
-  // PDF
   final RxBool isDownloading = false.obs;
   final RxDouble downloadProgress = 0.0.obs;
   final pdfUrl = Rxn<String>();
-  final isLoadingPdf = false.obs;
-  final savedQuoteId = Rxn<int>();
+  final RxBool isLoadingPdf = false.obs;
 
-  // Campos
   final folio = ''.obs;
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
@@ -122,33 +117,27 @@ class PutQuotesController extends GetxController {
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
 
-  // Productos
   final items = <EditQuoteItem>[].obs;
-  final productSearchQuery = ''.obs;
-  final isSearching = false.obs;
-  final RxBool searchByDescription = true.obs;
 
-  // Controllers
   final commentsCtrl = TextEditingController();
-  final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
 
-  final List<String> priceOptions = ['REGULAR', 'MEDIO M', 'PAQUETE','MAYOREO', 'ESPECIAL'];
-
+  final List<String> priceOptions = [
+    'REGULAR',
+    'MEDIO M',
+    'PAQUETE',
+    'MAYOREO',
+    'ESPECIAL',
+  ];
+void onClientSelected(ClientEntity client) {
+  final name = client.displayName ?? '';
+  clienteController.text = name;
+  clienteName.value = name;
+  Get.find<ClientSearchController>().searchCtrl.text = name;
+}
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
-
-  List<InventoryEntity> get searchResults {
-    final q = productSearchQuery.value.toLowerCase();
-    if (q.isEmpty) return [];
-    return _inventoryCtrl.inventario
-        .where((p) => searchByDescription.value
-            ? (p.description?.toLowerCase().contains(q) ?? false)
-            : (p.partNumber?.toLowerCase().contains(q) ?? false))
-        .take(20)
-        .toList();
-  }
 
   @override
   void onInit() {
@@ -178,23 +167,26 @@ class PutQuotesController extends GetxController {
   }
 
   void _populateFromEntity(QuoteEntity quote) {
-    folio.value = quote.folio;
-    clienteName.value = quote.cliente;
-    clienteController.text = quote.cliente;
-    selectedPriceType.value = quote.cataPrecio;
-    commentsCtrl.text = quote.comentarios;
+  folio.value = quote.folio;
+  clienteName.value = quote.cliente;
+  clienteController.text = quote.cliente;
+  selectedPriceType.value = quote.cataPrecio;
+  commentsCtrl.text = quote.comentarios;
 
-    final daysToAdd = quote.diasEnt > 0 ? quote.diasEnt : 15;
-    validUntil.value = DateTime.now().add(Duration(days: daysToAdd));
+  final daysToAdd = quote.diasEnt > 0 ? quote.diasEnt : 15;
+  validUntil.value = DateTime.now().add(Duration(days: daysToAdd));
 
-    final desc = double.tryParse(quote.descuento) ?? 0;
-    globalDiscount.value = desc;
-    if (desc > 0) globalDiscountCtrl.text = desc.toStringAsFixed(2);
+  final desc = double.tryParse(quote.descuento) ?? 0;
+  globalDiscount.value = desc;
+  if (desc > 0) globalDiscountCtrl.text = desc.toStringAsFixed(2);
 
-    items.assignAll(
-      quote.productos.map((p) => EditQuoteItem.fromProductoEntity(p)).toList(),
-    );
-  }
+  items.assignAll(
+    quote.productos.map((p) => EditQuoteItem.fromProductoEntity(p)).toList(),
+  );
+
+  // Sincroniza el campo visual del buscador de cliente
+  Get.find<ClientSearchController>().searchCtrl.text = quote.cliente;
+}
 
   // ── Cliente ────────────────────────────────────────────────────────────────
 
@@ -217,11 +209,6 @@ class PutQuotesController extends GetxController {
 
   // ── Productos ──────────────────────────────────────────────────────────────
 
-  void onProductSearchChanged(String value) {
-    productSearchQuery.value = value;
-    isSearching.value = value.isNotEmpty;
-  }
-
   void addProduct(InventoryEntity product) {
     if ((product.price ?? 0) <= 0) {
       showErrorSnackbar('Este producto no tiene precio asignado');
@@ -234,9 +221,7 @@ class PutQuotesController extends GetxController {
     } else {
       items.add(EditQuoteItem.fromInventory(product, items.length + 1));
     }
-    productSearchCtrl.clear();
-    productSearchQuery.value = '';
-    isSearching.value = false;
+    Get.find<ProductSearchController>().clearSearch();
   }
 
   void removeItem(EditQuoteItem item) => items.remove(item);
@@ -280,96 +265,92 @@ class PutQuotesController extends GetxController {
 
   // ── Guardar ────────────────────────────────────────────────────────────────
 
-// Usa directamente quoteId, sin necesitar savedQuoteId
-Future<void> generateAndOpenPdf(BuildContext context) async {
-  final id = quoteId.value; // ✅ siempre usa el id original
-  if (id == null) return;
+  Future<void> generateAndOpenPdf(BuildContext context) async {
+    final id = quoteId.value;
+    if (id == null) return;
 
-  try {
-    isLoadingPdf.value = true;
-    final result = await generatePdfUsecase.call(id);
-    pdfUrl.value = result.urlpdf;
+    try {
+      isLoadingPdf.value = true;
+      final result = await generatePdfUsecase.call(id);
+      pdfUrl.value = result.urlpdf;
 
-    if (result.generated && result.urlpdf.isNotEmpty) {
-      isLoadingPdf.value = false;
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (_) => PdfOptionsSheet(),
-      );
-    }
-  } catch (e) {
-    showErrorSnackbar('Error al generar PDF');
-  } finally {
-    isLoadingPdf.value = false;
-  }
-}
-
-// saveQuote — al terminar refresca el PDF automáticamente
-Future<void> saveQuote() async {
-  final id = quoteId.value;
-  if (id == null) return;
-
-  if (clienteName.value.trim().isEmpty) {
-    showErrorSnackbar('Selecciona un cliente para continuar');
-    return;
-  }
-  if (items.isEmpty) {
-    showErrorSnackbar('Agrega al menos un producto');
-    return;
-  }
-
-  try {
-    isSaving.value = true;
-    errorMessage.value = '';
-
-    final entity = QuoteEntity(
-      folio: folio.value,
-      cliente: clienteName.value.trim(),
-      total: totalToPay,
-      cataPrecio: selectedPriceType.value,
-      descuento: globalDiscount.value.toStringAsFixed(2),
-      iva: ivaAmount.toStringAsFixed(2),
-      diasEnt: validUntil.value.difference(DateTime.now()).inDays,
-      comentarios: commentsCtrl.text.trim(),
-      referencia: '',
-      productos: items.asMap().entries.map((entry) {
-        final i = entry.value;
-        return ProductoEntity(
-          codigo: i.codigo.value,
-          descripcion: i.descripcion.value,
-          disponible: i.disponible,
-          unidad: i.unidad,
-          precio: i.precio.value,
-          cantidad: i.quantity.value,
-          importe: i.total,
-          iva: (i.total * 0.16).toStringAsFixed(2),
-          claveSat: i.claveSat,
-          url: i.url,
-          descuento: i.discountAmount,
-          prioridad: entry.key + 1,
+      if (result.generated && result.urlpdf.isNotEmpty) {
+        isLoadingPdf.value = false;
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (_) => PdfOptionsSheet(),
         );
-      }).toList(),
-    );
-
-    await putQuotesUsecase.call(id, entity);
-    await _quotesCtrl.fetchQuotes();
-
-    // ✅ Refresca el PDF con los nuevos datos
-    final result = await generatePdfUsecase.call(id);
-    pdfUrl.value = result.urlpdf;
-
-    showSuccessSnackbar('Cotización actualizada correctamente');
-  } catch (e) {
-    errorMessage.value = 'Error al guardar: $e';
-    showErrorSnackbar('Error al guardar cotización');
-  } finally {
-    isSaving.value = false;
+      }
+    } catch (e) {
+      showErrorSnackbar('Error al generar PDF');
+    } finally {
+      isLoadingPdf.value = false;
+    }
   }
-}
+
+  Future<void> saveQuote() async {
+    final id = quoteId.value;
+    if (id == null) return;
+
+    if (clienteName.value.trim().isEmpty) {
+      showErrorSnackbar('Selecciona un cliente para continuar');
+      return;
+    }
+    if (items.isEmpty) {
+      showErrorSnackbar('Agrega al menos un producto');
+      return;
+    }
+
+    try {
+      isSaving.value = true;
+      errorMessage.value = '';
+
+      final entity = QuoteEntity(
+        folio: folio.value,
+        cliente: clienteName.value.trim(),
+        total: totalToPay,
+        cataPrecio: selectedPriceType.value,
+        descuento: globalDiscount.value.toStringAsFixed(2),
+        iva: ivaAmount.toStringAsFixed(2),
+        diasEnt: validUntil.value.difference(DateTime.now()).inDays,
+        comentarios: commentsCtrl.text.trim(),
+        referencia: '',
+        productos: items.asMap().entries.map((entry) {
+          final i = entry.value;
+          return ProductoEntity(
+            codigo: i.codigo.value,
+            descripcion: i.descripcion.value,
+            disponible: i.disponible,
+            unidad: i.unidad,
+            precio: i.precio.value,
+            cantidad: i.quantity.value,
+            importe: i.total,
+            iva: (i.total * 0.16).toStringAsFixed(2),
+            claveSat: i.claveSat,
+            url: i.url,
+            descuento: i.discountAmount,
+            prioridad: entry.key + 1,
+          );
+        }).toList(),
+      );
+
+      await putQuotesUsecase.call(id, entity);
+      await _quotesCtrl.fetchQuotes();
+
+      final result = await generatePdfUsecase.call(id);
+      pdfUrl.value = result.urlpdf;
+
+      showSuccessSnackbar('Cotización actualizada correctamente');
+    } catch (e) {
+      errorMessage.value = 'Error al guardar: $e';
+      showErrorSnackbar('Error al guardar cotización');
+    } finally {
+      isSaving.value = false;
+    }
+  }
 
   // ── PDF ────────────────────────────────────────────────────────────────────
-
 
   Future<void> sendWhatsApp() async {
     final url = pdfUrl.value;
@@ -439,7 +420,6 @@ Future<void> saveQuote() async {
   void onClose() {
     clienteController.dispose();
     commentsCtrl.dispose();
-    productSearchCtrl.dispose();
     globalDiscountCtrl.dispose();
     super.onClose();
   }
