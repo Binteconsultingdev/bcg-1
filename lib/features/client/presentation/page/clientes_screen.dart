@@ -42,19 +42,24 @@ class _ClientesScreenState extends State<ClientesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
-      child: Scaffold(
-        backgroundColor: ThemeColor.backgroundColor,
-        appBar: _buildAppBar(),
-        body: Column(
-          children: [
-            _buildSearchBar(),
-            const SizedBox(height: ThemeColor.paddingSmall),
-            _buildAgregarBtn(),
-            const SizedBox(height: ThemeColor.paddingSmall),
-            Expanded(child: _buildList()),
-          ],
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.dark,
+        child: Scaffold(
+          backgroundColor: ThemeColor.backgroundColor,
+          appBar: _buildAppBar(),
+          body: Column(
+            children: [
+              _buildSearchBar(),
+              const SizedBox(height: ThemeColor.paddingSmall),
+              _buildAgregarBtn(),
+              const SizedBox(height: ThemeColor.paddingSmall),
+              Expanded(child: _buildList()),
+            ],
+          ),
         ),
       ),
     );
@@ -255,7 +260,7 @@ class _ClienteTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  cliente.displayName ?? '—',
+                  cliente.cleanName,
                   style: ThemeColor.bodyMedium.copyWith(
                     color: ThemeColor.infoColor,
                     fontWeight: FontWeight.w600,
@@ -333,10 +338,11 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-     padding: EdgeInsets.only(
-    bottom: MediaQuery.of(context).viewInsets.bottom +
-            MediaQuery.of(context).padding.bottom, 
-  ),
+      padding: EdgeInsets.only(
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom,
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: ThemeColor.backgroundColor,

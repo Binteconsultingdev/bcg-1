@@ -12,7 +12,7 @@ abstract class SalesRepository {
   int page,
   int pageSize, {
   String? folio,
-  int? id,
+  String? id,
 }
   );
   Future<void>generateSales(CreateSalesEntity entity);

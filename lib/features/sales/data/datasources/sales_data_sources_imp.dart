@@ -23,7 +23,7 @@ class SalesDataSourcesImp {
     int page,
     int pageSize, {
     String? folio,
-    int? id,
+    String? id,
   }) async {
     try {
       final queryParams = {

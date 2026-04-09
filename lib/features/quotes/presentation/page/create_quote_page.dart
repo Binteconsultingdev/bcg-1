@@ -12,12 +12,16 @@ import 'package:get/get.dart';
 
 class CreateQuotePage extends StatelessWidget {
   const CreateQuotePage({super.key});
+@override
+Widget build(BuildContext context) {
+  final CreateQuoteController ctrl = Get.find<CreateQuoteController>();
 
-  @override
-  Widget build(BuildContext context) {
-    final CreateQuoteController ctrl = Get.find<CreateQuoteController>();
-
-    return Scaffold(
+  return GestureDetector(
+    behavior: HitTestBehavior.translucent,
+    onTap: () {
+      FocusScope.of(context).unfocus();
+    },
+    child: Scaffold(
       backgroundColor: ThemeColor.backgroundColor,
       appBar: _AppBar(ctrl: ctrl),
       body: Column(
@@ -43,8 +47,9 @@ class CreateQuotePage extends StatelessWidget {
           _BottomButton(ctrl: ctrl),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   static Widget _sectionGap() =>
       Container(height: 8, color: ThemeColor.backgroundColor);

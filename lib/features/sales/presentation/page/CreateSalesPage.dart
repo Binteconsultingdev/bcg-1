@@ -9,12 +9,15 @@ import 'package:get/get.dart';
 
 class CreateSalesPage extends StatelessWidget {
   const CreateSalesPage({super.key});
+@override
+Widget build(BuildContext context) {
+  final CreateSalesController ctrl = Get.find<CreateSalesController>();
 
-  @override
-  Widget build(BuildContext context) {
-    final CreateSalesController ctrl = Get.find<CreateSalesController>();
-
-    return Scaffold(
+  return GestureDetector(
+    onTap: () {
+      FocusScope.of(context).unfocus(); // 👈 cierra teclado
+    },
+    child: Scaffold(
       backgroundColor: ThemeColor.backgroundColor,
       appBar: _AppBar(ctrl: ctrl),
       body: Column(
@@ -42,9 +45,9 @@ class CreateSalesPage extends StatelessWidget {
           _BottomButton(ctrl: ctrl),
         ],
       ),
-    );
-  }
-
+    ),
+  );
+}
   static Widget _sectionGap() =>
       Container(height: 8, color: ThemeColor.backgroundColor);
 }

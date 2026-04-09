@@ -41,9 +41,13 @@ class _VentasPageState extends State<VentasPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
+@override
+Widget build(BuildContext context) {
+  return GestureDetector(
+    onTap: () {
+      FocusScope.of(context).unfocus(); 
+    },
+    child: AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: ThemeColor.backgroundColor,
@@ -57,8 +61,9 @@ class _VentasPageState extends State<VentasPage> {
         ),
         floatingActionButton: _buildFab(),
       ),
-    );
-  }
+    ),
+  );
+}
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
@@ -85,96 +90,76 @@ class _VentasPageState extends State<VentasPage> {
       ),
     );
   }
-
- Widget _buildSearchBar() {
+Widget _buildSearchBar() {
   return Container(
     color: ThemeColor.surfaceColor,
     padding: const EdgeInsets.symmetric(
       horizontal: ThemeColor.paddingMedium,
       vertical: ThemeColor.paddingSmall,
     ),
-    child: Column(
+    child: Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 40,
-                decoration: BoxDecoration(
-                  color: ThemeColor.backgroundColor,
-                  borderRadius: ThemeColor.mediumBorderRadius,
-                  border: Border.all(color: ThemeColor.dividerColor),
+        Expanded(
+          child: Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: ThemeColor.backgroundColor,
+              borderRadius: ThemeColor.mediumBorderRadius,
+              border: Border.all(color: ThemeColor.dividerColor),
+            ),
+            child: TextField(
+              controller: _ctrl.searchController,
+              onChanged: (v) => _ctrl.searchInput.value = v,
+              onSubmitted: (_) => _ctrl.searchSales(),
+              textInputAction: TextInputAction.search,
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                hintText: 'Buscar por folio, ID o cliente...',
+                hintStyle: ThemeColor.bodyMedium.copyWith(
+                  color: ThemeColor.textSecondaryColor,
                 ),
-                child: TextField(
-                  controller: _ctrl.searchController,
-                  onChanged: (v) => _ctrl.searchInput.value = v,
-                  onSubmitted: (_) => _ctrl.searchSales(),
-                  textInputAction: TextInputAction.search,
-                  keyboardType: TextInputType.number,
-                  style: ThemeColor.bodyMedium,
-                  decoration: InputDecoration(
-                    hintText: 'Buscar...',
-                    hintStyle: ThemeColor.bodyMedium.copyWith(
-                      color: ThemeColor.textSecondaryColor,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
-                    ),
-                  ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 10,
                 ),
               ),
             ),
-            const SizedBox(width: ThemeColor.paddingSmall),
-            GestureDetector(
-              onTap: _ctrl.searchSales,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: ThemeColor.primaryColor,
-                  borderRadius: ThemeColor.mediumBorderRadius,
-                ),
-                child: const Icon(Icons.search, color: Colors.white, size: 20),
-              ),
-            ),
-            const SizedBox(width: ThemeColor.paddingSmall),
-            GestureDetector(
-              onTap: _openFilters,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: ThemeColor.backgroundColor,
-                  borderRadius: ThemeColor.mediumBorderRadius,
-                  border: Border.all(color: ThemeColor.dividerColor),
-                ),
-                child: const Icon(Icons.tune,
-                    color: ThemeColor.textPrimaryColor, size: 20),
-              ),
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: ThemeColor.paddingSmall),
-      
-        Obx(() => Row(
-          children: [
-            _toggleChip(
-              label: 'Folio',
-              selected: _ctrl.searchByFolio.value,
-              onTap: () => _ctrl.searchByFolio.value = true,
+        const SizedBox(width: ThemeColor.paddingSmall),
+        GestureDetector(
+          onTap: _ctrl.searchSales,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: ThemeColor.primaryColor,
+              borderRadius: ThemeColor.mediumBorderRadius,
             ),
-            const SizedBox(width: ThemeColor.paddingSmall),
-            _toggleChip(
-              label: 'ID',
-              selected: !_ctrl.searchByFolio.value,
-              onTap: () => _ctrl.searchByFolio.value = false,
+            child: const Icon(Icons.search, color: Colors.white, size: 20),
+          ),
+        ),
+        const SizedBox(width: ThemeColor.paddingSmall),
+        GestureDetector(
+          onTap: _openFilters,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: ThemeColor.backgroundColor,
+              borderRadius: ThemeColor.mediumBorderRadius,
+              border: Border.all(color: ThemeColor.dividerColor),
             ),
-          ],
-        )),
+            child: const Icon(
+              Icons.tune,
+              color: ThemeColor.textPrimaryColor,
+              size: 20,
+            ),
+          ),
+        ),
       ],
     ),
   );

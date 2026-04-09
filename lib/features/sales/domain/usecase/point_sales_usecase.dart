@@ -13,7 +13,7 @@ class PointSalesUsecase {
   int page,
   int pageSize, {
   String? folio,
-  int? id,
+  String? id,
 }) async {
     return await salesRepository.pointSales( startDate, endDate, ignoreDates, client, statusPayment, userToFilter, page, pageSize,
     folio: folio,

@@ -20,7 +20,7 @@ Future<List<PointSaleEntity>> pointSales(
   int page,
   int pageSize, {
   String? folio,
-  int? id,
+  String? id,
 }) async {
   final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
   return await salesDataSourcesImp.fetchQuote(

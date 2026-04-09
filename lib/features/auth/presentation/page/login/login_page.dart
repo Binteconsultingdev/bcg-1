@@ -49,7 +49,11 @@ class _LoginPageState extends State<LoginPage>
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: ThemeColor.backgroundColor,
-        body: SafeArea(
+        body: GestureDetector(
+  onTap: () {
+    FocusScope.of(context).unfocus(); // 🔥 cierra teclado
+  },
+  child:SafeArea(
           child: FadeTransition(
             opacity: _fadeAnim,
             child: SlideTransition(
@@ -149,6 +153,7 @@ class _LoginPageState extends State<LoginPage>
             ),
           ),
         ),
+        )
       ),
     );
   }

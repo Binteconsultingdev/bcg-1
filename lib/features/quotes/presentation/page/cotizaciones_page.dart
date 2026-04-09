@@ -35,19 +35,25 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
-      child: Scaffold(
-        backgroundColor: ThemeColor.backgroundColor,
-        appBar: _buildAppBar(),
-        body: Column(
-          children: [
-            _buildSearchBar(),
-            _buildTabs(),
-            Expanded(child: _buildList()),
-          ],
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.dark,
+        child: Scaffold(
+          backgroundColor: ThemeColor.backgroundColor,
+          appBar: _buildAppBar(),
+          body: Column(
+            children: [
+              _buildSearchBar(),
+              _buildTabs(),
+              Expanded(child: _buildList()),
+            ],
+          ),
+
+          floatingActionButton: _buildFab(),
         ),
-        floatingActionButton: _buildFab(),
       ),
     );
   }
@@ -132,7 +138,8 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
           ),
           const SizedBox(width: ThemeColor.paddingSmall),
           Obx(() {
-            final hasFilters = _ctrl.dateFromFilter.value.isNotEmpty ||
+            final hasFilters =
+                _ctrl.dateFromFilter.value.isNotEmpty ||
                 _ctrl.dateUntilFilter.value.isNotEmpty;
             return GestureDetector(
               onTap: _openFilters,
@@ -204,7 +211,9 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: selected ? ThemeColor.primaryColor : Colors.transparent,
+                  color: selected
+                      ? ThemeColor.primaryColor
+                      : Colors.transparent,
                   borderRadius: ThemeColor.mediumBorderRadius,
                   border: Border.all(
                     color: selected
@@ -218,8 +227,7 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
                     color: selected
                         ? ThemeColor.textLightColor
                         : ThemeColor.textSecondaryColor,
-                    fontWeight:
-                        selected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ),
@@ -332,7 +340,7 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
   }
 }
 
-// ── Tile ──────────────────────────────────────────────────────────────────────
+
 
 class _CotizacionTile extends StatelessWidget {
   final GetQuoteEntity item;
@@ -420,7 +428,7 @@ class _CotizacionTile extends StatelessWidget {
   }
 }
 
-// ── Filter Sheet ──────────────────────────────────────────────────────────────
+
 
 class _CotizacionFilterSheet extends StatefulWidget {
   final QuotesController controller;
@@ -437,15 +445,15 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
   @override
   void initState() {
     super.initState();
-    // Restaura fechas previas si las hay
+    
     _desdeController.text = widget.controller.dateFromFilter.value;
     _hastaController.text = widget.controller.dateUntilFilter.value;
   }
 
   int get _activeFilters => [
-        if (_desdeController.text.isNotEmpty) true,
-        if (_hastaController.text.isNotEmpty) true,
-      ].length;
+    if (_desdeController.text.isNotEmpty) true,
+    if (_hastaController.text.isNotEmpty) true,
+  ].length;
 
   void _onClear() {
     setState(() {
@@ -497,7 +505,8 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
         ),
       ),
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom +
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
             MediaQuery.of(context).padding.bottom,
       ),
       child: Column(
@@ -647,7 +656,7 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
   }
 }
 
-// ── Date Field ────────────────────────────────────────────────────────────────
+
 
 class _DateField extends StatelessWidget {
   final TextEditingController controller;

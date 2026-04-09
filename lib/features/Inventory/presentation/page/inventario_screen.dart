@@ -15,17 +15,22 @@ class InventarioScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<InventoryController>();
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
+    return  GestureDetector(
+    onTap: () {
+      FocusScope.of(context).unfocus(); 
+    },
+    child:AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: ThemeColor.backgroundColor,
         appBar: _buildAppBar(controller),
         body: Column(
-          children: [
-            _buildSearchBar(controller, context),
-            Expanded(child: _buildBody(controller)),
-          ],
-        ),
+            children: [
+              _buildSearchBar(controller, context),
+              Expanded(child: _buildBody(controller)),
+            ],
+          ),
+      ),
       ),
     );
   }
@@ -38,8 +43,10 @@ class InventarioScreen extends StatelessWidget {
       title: Text('Inventario', style: ThemeColor.headingSmall),
       actions: [
         IconButton(
-          icon: const Icon(Icons.settings_outlined,
-              color: ThemeColor.textPrimaryColor),
+          icon: const Icon(
+            Icons.settings_outlined,
+            color: ThemeColor.textPrimaryColor,
+          ),
           onPressed: () {
             AuthService authService = AuthService();
             authService.logoutaler();
@@ -53,58 +60,61 @@ class InventarioScreen extends StatelessWidget {
     );
   }
 
-
-Widget _buildSearchBar(InventoryController controller, BuildContext context) {
-  return Container(
-    color: ThemeColor.surfaceColor,
-    padding: const EdgeInsets.symmetric(
-      horizontal: ThemeColor.paddingMedium,
-      vertical: ThemeColor.paddingSmall,
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 40,
-            decoration: BoxDecoration(
-              color: ThemeColor.backgroundColor,
-              borderRadius: ThemeColor.mediumBorderRadius,
-              border: Border.all(color: ThemeColor.dividerColor),
-            ),
-            child: TextField(
-              controller: controller.searchController,
-              onChanged: (v) => controller.searchInput.value = v,
-              onSubmitted: (_) => controller.searchInventario(),
-              textInputAction: TextInputAction.search,
-              style: ThemeColor.bodyMedium,
-              decoration: InputDecoration(
-                hintText: 'Buscar por descripción o núm. parte',
-                hintStyle: ThemeColor.bodyMedium
-                    .copyWith(color: ThemeColor.textSecondaryColor),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 10),
+  Widget _buildSearchBar(InventoryController controller, BuildContext context) {
+    return Container(
+      color: ThemeColor.surfaceColor,
+      padding: const EdgeInsets.symmetric(
+        horizontal: ThemeColor.paddingMedium,
+        vertical: ThemeColor.paddingSmall,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: ThemeColor.backgroundColor,
+                borderRadius: ThemeColor.mediumBorderRadius,
+                border: Border.all(color: ThemeColor.dividerColor),
+              ),
+              child: TextField(
+                controller: controller.searchController,
+                onChanged: (v) => controller.searchInput.value = v,
+                onSubmitted: (_) => controller.searchInventario(),
+                textInputAction: TextInputAction.search,
+                style: ThemeColor.bodyMedium,
+                decoration: InputDecoration(
+                  hintText: 'Buscar por descripción o núm. parte',
+                  hintStyle: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.textSecondaryColor,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: ThemeColor.paddingSmall),
-        GestureDetector(
-          onTap: controller.searchInventario,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: ThemeColor.primaryColor,
-              borderRadius: ThemeColor.mediumBorderRadius,
+          const SizedBox(width: ThemeColor.paddingSmall),
+          GestureDetector(
+            onTap: controller.searchInventario,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: ThemeColor.primaryColor,
+                borderRadius: ThemeColor.mediumBorderRadius,
+              ),
+              child: const Icon(Icons.search, color: Colors.white, size: 20),
             ),
-            child: const Icon(Icons.search, color: Colors.white, size: 20),
           ),
-        ),
-        const SizedBox(width: ThemeColor.paddingSmall),
-        Obx(() => GestureDetector(
+          const SizedBox(width: ThemeColor.paddingSmall),
+          Obx(
+            () => GestureDetector(
               onTap: () => _openFilters(context, controller),
               child: Stack(
                 clipBehavior: Clip.none,
@@ -117,8 +127,11 @@ Widget _buildSearchBar(InventoryController controller, BuildContext context) {
                       borderRadius: ThemeColor.mediumBorderRadius,
                       border: Border.all(color: ThemeColor.dividerColor),
                     ),
-                    child: const Icon(Icons.tune,
-                        color: ThemeColor.textPrimaryColor, size: 20),
+                    child: const Icon(
+                      Icons.tune,
+                      color: ThemeColor.textPrimaryColor,
+                      size: 20,
+                    ),
                   ),
                   if (controller.activeFiltersCount > 0)
                     Positioned(
@@ -135,48 +148,51 @@ Widget _buildSearchBar(InventoryController controller, BuildContext context) {
                           child: Text(
                             '${controller.activeFiltersCount}',
                             style: const TextStyle(
-                                color: Colors.white, fontSize: 10),
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
                           ),
                         ),
                       ),
                     ),
                 ],
               ),
-            )),
-      ],
-    ),
-  );
-}
-Widget _toggleChip({
-  required String label,
-  required bool selected,
-  required VoidCallback onTap,
-}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: selected ? ThemeColor.primaryColor : Colors.transparent,
-        borderRadius: ThemeColor.circularBorderRadius,
-        border: Border.all(
-          color: selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
-        ),
+            ),
+          ),
+        ],
       ),
-      child: Text(
-        label,
-        style: ThemeColor.bodySmall.copyWith(
-          color: selected
-              ? ThemeColor.textLightColor
-              : ThemeColor.textSecondaryColor,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-        ),
-      ),
-    ),
-  );
-}
+    );
+  }
 
+  Widget _toggleChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        decoration: BoxDecoration(
+          color: selected ? ThemeColor.primaryColor : Colors.transparent,
+          borderRadius: ThemeColor.circularBorderRadius,
+          border: Border.all(
+            color: selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
+          ),
+        ),
+        child: Text(
+          label,
+          style: ThemeColor.bodySmall.copyWith(
+            color: selected
+                ? ThemeColor.textLightColor
+                : ThemeColor.textSecondaryColor,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildBody(InventoryController controller) {
     return Obx(() {
@@ -189,13 +205,13 @@ Widget _toggleChip({
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline,
-                  color: ThemeColor.errorColor, size: 40),
+              Icon(Icons.error_outline, color: ThemeColor.errorColor, size: 40),
               const SizedBox(height: 8),
               Text(
                 controller.errorMessage.value,
-                style: ThemeColor.bodyMedium
-                    .copyWith(color: ThemeColor.textSecondaryColor),
+                style: ThemeColor.bodyMedium.copyWith(
+                  color: ThemeColor.textSecondaryColor,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -208,15 +224,15 @@ Widget _toggleChip({
         );
       }
 
-  
-final products = controller.inventario;
+      final products = controller.inventario;
 
       if (products.isEmpty) {
         return Center(
           child: Text(
             'Sin resultados',
-            style: ThemeColor.bodyMedium
-                .copyWith(color: ThemeColor.textSecondaryColor),
+            style: ThemeColor.bodyMedium.copyWith(
+              color: ThemeColor.textSecondaryColor,
+            ),
           ),
         );
       }
@@ -250,7 +266,8 @@ final products = controller.inventario;
                       child: Text(
                         'No hay más productos',
                         style: ThemeColor.bodyMedium.copyWith(
-                            color: ThemeColor.textSecondaryColor),
+                          color: ThemeColor.textSecondaryColor,
+                        ),
                       ),
                     ),
                   );
@@ -288,8 +305,7 @@ class _ProductTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: ThemeColor.paddingSmall),
       child: Row(
         children: [
-         
-          ProductThumbnail(imageUrl:   product.imageUrl!, size: 54),
+          ProductThumbnail(imageUrl: product.imageUrl!, size: 54),
           const SizedBox(width: ThemeColor.paddingMedium),
           Expanded(
             child: Column(
@@ -305,14 +321,16 @@ class _ProductTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   product.partNumber ?? 'Sin número de parte',
-                  style: ThemeColor.bodyMedium
-                      .copyWith(color: ThemeColor.textSecondaryColor),
+                  style: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.textSecondaryColor,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '\$${product.price?.toStringAsFixed(2) ?? '0.00'}',
-                  style: ThemeColor.bodyMedium
-                      .copyWith(color: ThemeColor.textPrimaryColor),
+                  style: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.textPrimaryColor,
+                  ),
                 ),
               ],
             ),
@@ -363,9 +381,9 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
       [_familia, _subfamilia].where((v) => v != null).length;
 
   void _onClear() => setState(() {
-        _familia = null;
-        _subfamilia = null;
-      });
+    _familia = null;
+    _subfamilia = null;
+  });
 
   Future<void> _onApply() async {
     await widget.controller.applyFilters(
@@ -377,22 +395,25 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final familiaItems =
-        widget.controller.familias.map((e) => e.category).toList();
-    final subfamiliaItems =
-        widget.controller.subfamilias.map((e) => e.category).toList();
+    final familiaItems = widget.controller.familias
+        .map((e) => e.category)
+        .toList();
+    final subfamiliaItems = widget.controller.subfamilias
+        .map((e) => e.category)
+        .toList();
 
     return Container(
       decoration: BoxDecoration(
         color: ThemeColor.backgroundColor,
         borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(ThemeColor.largeRadius)),
+          top: Radius.circular(ThemeColor.largeRadius),
+        ),
       ),
-      padding:
-          EdgeInsets.only(
-    bottom: MediaQuery.of(context).viewInsets.bottom +
-            MediaQuery.of(context).padding.bottom, 
-  ),
+      padding: EdgeInsets.only(
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -417,9 +438,12 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                 const Spacer(),
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
-                  child: Text('X',
-                      style: ThemeColor.subtitleLarge
-                          .copyWith(fontWeight: FontWeight.w700)),
+                  child: Text(
+                    'X',
+                    style: ThemeColor.subtitleLarge.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -428,7 +452,8 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
           const SizedBox(height: ThemeColor.paddingMedium),
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: ThemeColor.paddingMedium),
+              horizontal: ThemeColor.paddingMedium,
+            ),
             child: Container(
               padding: const EdgeInsets.all(ThemeColor.paddingMedium),
               decoration: BoxDecoration(
@@ -458,7 +483,8 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
           const SizedBox(height: ThemeColor.paddingLarge),
           Padding(
             padding: const EdgeInsets.symmetric(
-                horizontal: ThemeColor.paddingMedium),
+              horizontal: ThemeColor.paddingMedium,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -470,7 +496,8 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     padding: const EdgeInsets.symmetric(
-                        vertical: ThemeColor.paddingMedium),
+                      vertical: ThemeColor.paddingMedium,
+                    ),
                     borderRadius: ThemeColor.smallRadius,
                     borderColor: ThemeColor.dividerColor,
                     borderWidth: 1.5,
@@ -488,7 +515,8 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     padding: const EdgeInsets.symmetric(
-                        vertical: ThemeColor.paddingMedium),
+                      vertical: ThemeColor.paddingMedium,
+                    ),
                     borderRadius: ThemeColor.smallRadius,
                     customShadow: ThemeColor.darkShadow,
                   ),
@@ -511,10 +539,13 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: ThemeColor.bodyMedium.copyWith(
-                fontWeight: FontWeight.w500,
-                color: ThemeColor.textPrimaryColor)),
+        Text(
+          label,
+          style: ThemeColor.bodyMedium.copyWith(
+            fontWeight: FontWeight.w500,
+            color: ThemeColor.textPrimaryColor,
+          ),
+        ),
         const SizedBox(height: 6),
         Container(
           height: 44,
@@ -524,15 +555,20 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
             border: Border.all(color: ThemeColor.dividerColor),
           ),
           padding: const EdgeInsets.symmetric(
-              horizontal: ThemeColor.paddingSmall),
+            horizontal: ThemeColor.paddingSmall,
+          ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down,
-                  color: ThemeColor.textSecondaryColor, size: 20),
-              style: ThemeColor.bodyMedium
-                  .copyWith(color: ThemeColor.textPrimaryColor),
+              icon: const Icon(
+                Icons.keyboard_arrow_down,
+                color: ThemeColor.textSecondaryColor,
+                size: 20,
+              ),
+              style: ThemeColor.bodyMedium.copyWith(
+                color: ThemeColor.textPrimaryColor,
+              ),
               dropdownColor: ThemeColor.surfaceColor,
               borderRadius: ThemeColor.smallBorderRadius,
               hint: const SizedBox.shrink(),

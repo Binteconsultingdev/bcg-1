@@ -11,7 +11,6 @@ class ClientSearchController extends GetxController {
   final RxBool isLoadingSearch = false.obs;
   final TextEditingController searchCtrl = TextEditingController();
 
-  // Callback que se llama cuando el usuario selecciona un cliente
   final Rx<ClientEntity?> selectedClient = Rx<ClientEntity?>(null);
 
   @override
@@ -49,7 +48,6 @@ class ClientSearchController extends GetxController {
 void selectClient(ClientEntity client, {required Function(ClientEntity) onSelected}) {
   selectedClient.value = client;
   onSelected(client);
-  // Solo limpia resultados, deja el texto visible
   isSearching.value = false;
   searchResults.clear();
 }

@@ -22,22 +22,15 @@ class SalesController extends GetxController {
   final RxString userFilter = ''.obs;
   final RxBool ignoreDatesFilter = true.obs;
 
-  // Búsqueda
   final RxString searchInput = ''.obs;
-  final RxBool searchByFolio = true.obs; // true = folio, false = id
   final TextEditingController searchController = TextEditingController();
 
   int _currentPage = 1;
   static const int _pageSize = 20;
 
-  int? get _parsedId =>
-      searchByFolio.value ? null : int.tryParse(searchInput.value.trim());
-
-  String? get _parsedFolio {
-    final trimmed = searchInput.value.trim();
-    if (trimmed.isEmpty || !searchByFolio.value) return null;
-    return trimmed;
-  }
+  String get _trimmed => searchInput.value.trim();
+  bool get _isEmpty => _trimmed.isEmpty;
+  bool get _isNumeric => int.tryParse(_trimmed) != null;
 
   @override
   void onReady() {
@@ -68,6 +61,59 @@ class SalesController extends GetxController {
     return '${parts[2]}-${parts[1]}-${parts[0]}T$time';
   }
 
+  List<PointSaleEntity> _mergeResults(List<List<PointSaleEntity>> lists) {
+    final seen = <String>{};
+    final merged = <PointSaleEntity>[];
+    for (final list in lists) {
+      for (final item in list) {
+        final key = item.id?.toString() ?? item.folito ?? '';
+        if (seen.add(key)) merged.add(item);
+      }
+    }
+    return merged;
+  }
+
+  Future<List<List<PointSaleEntity>>> _buildSearchCalls(int page) {
+    final calls = <Future<List<PointSaleEntity>>>[];
+    final dateFrom = _toIso(dateFromFilter.value);
+    final dateUntil = _toIso(dateUntilFilter.value, endOfDay: true);
+    final ignoreDates = ignoreDatesFilter.value;
+    final client = clientFilter.value;
+    final status = statusPaymentFilter.value;
+    final user = userFilter.value;
+
+    if (_isEmpty) {
+      calls.add(pointSalesUsecase.call(
+        dateFrom, dateUntil, ignoreDates,
+        client, status, user,
+        page, _pageSize,
+      ));
+    } else if (_isNumeric) {
+      calls.add(pointSalesUsecase.call(
+        dateFrom, dateUntil, ignoreDates,
+        client, status, user,
+        page, _pageSize,
+        id: _trimmed,
+      ));
+    } else {
+      // Por folio
+      calls.add(pointSalesUsecase.call(
+        dateFrom, dateUntil, ignoreDates,
+        client, status, user,
+        page, _pageSize,
+        folio: _trimmed,
+      ));
+      // Por cliente
+      calls.add(pointSalesUsecase.call(
+        dateFrom, dateUntil, ignoreDates,
+        _trimmed, status, user,
+        page, _pageSize,
+      ));
+    }
+
+    return Future.wait(calls);
+  }
+
   Future<void> fetchSales({
     String dateFrom = '',
     String dateUntil = '',
@@ -91,21 +137,10 @@ class SalesController extends GetxController {
       statusPaymentFilter.value = statusPayment;
       userFilter.value = userToFilter;
 
-      final result = await pointSalesUsecase.call(
-        _toIso(dateFrom),
-        _toIso(dateUntil, endOfDay: true),
-        ignoreDates,
-        client,
-        statusPayment,
-        userToFilter,
-        _currentPage,
-        _pageSize,
-        folio: _parsedFolio,
-        id: _parsedId,
-      );
-
-      sales.assignAll(result);
-      if (result.length < _pageSize) hasMorePages.value = false;
+      final results = await _buildSearchCalls(_currentPage);
+      final combined = _mergeResults(results);
+      sales.assignAll(combined);
+      if (combined.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al cargar ventas: $e';
     } finally {
@@ -121,21 +156,10 @@ class SalesController extends GetxController {
       _currentPage = 1;
       hasMorePages.value = true;
 
-      final result = await pointSalesUsecase.call(
-        _toIso(dateFromFilter.value),
-        _toIso(dateUntilFilter.value, endOfDay: true),
-        ignoreDatesFilter.value,
-        clientFilter.value,
-        statusPaymentFilter.value,
-        userFilter.value,
-        _currentPage,
-        _pageSize,
-        folio: _parsedFolio,
-        id: _parsedId,
-      );
-
-      sales.assignAll(result);
-      if (result.length < _pageSize) hasMorePages.value = false;
+      final results = await _buildSearchCalls(_currentPage);
+      final combined = _mergeResults(results);
+      sales.assignAll(combined);
+      if (combined.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al buscar: $e';
     } finally {
@@ -149,23 +173,12 @@ class SalesController extends GetxController {
       isLoadingMore.value = true;
       _currentPage++;
 
-      final result = await pointSalesUsecase.call(
-        _toIso(dateFromFilter.value),
-        _toIso(dateUntilFilter.value, endOfDay: true),
-        ignoreDatesFilter.value,
-        clientFilter.value,
-        statusPaymentFilter.value,
-        userFilter.value,
-        _currentPage,
-        _pageSize,
-        folio: _parsedFolio,
-        id: _parsedId,
-      );
-
-      if (result.isEmpty || result.length < _pageSize) {
+      final results = await _buildSearchCalls(_currentPage);
+      final combined = _mergeResults(results);
+      if (combined.isEmpty || combined.length < _pageSize) {
         hasMorePages.value = false;
       }
-      sales.addAll(result);
+      sales.addAll(combined);
     } catch (e) {
       _currentPage--;
       errorMessage.value = 'Error al cargar más ventas: $e';
@@ -194,13 +207,13 @@ class SalesController extends GetxController {
   void clearFilters() {
     searchController.clear();
     searchInput.value = '';
-    searchByFolio.value = true;
     fetchSales(ignoreDates: true);
   }
 
   List<PointSaleEntity> filteredByTab(int tab) {
     return sales.where((s) {
-      return tab == 0 || (tab == 1 && s.status?.toLowerCase() == 'pendiente');
+      return tab == 0 ||
+          (tab == 1 && s.status?.toLowerCase() == 'pendiente');
     }).toList();
   }
 }
