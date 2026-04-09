@@ -15,8 +15,6 @@ class CotizacionesPage extends StatefulWidget {
 }
 
 class _CotizacionesPageState extends State<CotizacionesPage> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
   int _selectedTab = 0;
   late final QuotesController _ctrl;
 
@@ -24,12 +22,6 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
   void initState() {
     super.initState();
     _ctrl = Get.find<QuotesController>();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   void _openFilters() {
@@ -93,134 +85,104 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
         horizontal: ThemeColor.paddingMedium,
         vertical: ThemeColor.paddingSmall,
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: ThemeColor.backgroundColor,
-                    borderRadius: ThemeColor.mediumBorderRadius,
-                    border: Border.all(color: ThemeColor.dividerColor),
+          Expanded(
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: ThemeColor.backgroundColor,
+                borderRadius: ThemeColor.mediumBorderRadius,
+                border: Border.all(color: ThemeColor.dividerColor),
+              ),
+              child: TextField(
+                controller: _ctrl.searchController,
+                onChanged: (v) => _ctrl.searchInput.value = v,
+                onSubmitted: (_) => _ctrl.searchQuotes(),
+                textInputAction: TextInputAction.search,
+                style: ThemeColor.bodyMedium,
+                decoration: InputDecoration(
+                  hintText: 'Buscar por folio, ID o cliente...',
+                  hintStyle: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.textSecondaryColor,
                   ),
-                  child: TextField(
-                    controller: _ctrl.searchController,
-                    onChanged: (v) => _ctrl.searchInput.value = v,
-                    onSubmitted: (_) => _ctrl.searchQuotes(),
-                    textInputAction: TextInputAction.search,
-                    keyboardType: TextInputType.number,
-                    style: ThemeColor.bodyMedium,
-                    decoration: InputDecoration(
-                      hintText: 'Buscar...',
-                      hintStyle: ThemeColor.bodyMedium.copyWith(
-                        color: ThemeColor.textSecondaryColor,
-                      ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 10,
-                      ),
-                    ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
                   ),
                 ),
               ),
-              const SizedBox(width: ThemeColor.paddingSmall),
-              GestureDetector(
-                onTap: _ctrl.searchQuotes,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: ThemeColor.primaryColor,
-                    borderRadius: ThemeColor.mediumBorderRadius,
-                  ),
-                  child: const Icon(
-                    Icons.search,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-              const SizedBox(width: ThemeColor.paddingSmall),
-              GestureDetector(
-                onTap: _openFilters,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: ThemeColor.backgroundColor,
-                    borderRadius: ThemeColor.mediumBorderRadius,
-                    border: Border.all(color: ThemeColor.dividerColor),
-                  ),
-                  child: const Icon(
-                    Icons.tune,
-                    color: ThemeColor.textPrimaryColor,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: ThemeColor.paddingSmall),
-     
-          Obx(
-            () => Row(
-              children: [
-                _toggleChip(
-                  label: 'Folio',
-                  selected: _ctrl.searchByFolio.value,
-                  onTap: () => _ctrl.searchByFolio.value = true,
-                ),
-                const SizedBox(width: ThemeColor.paddingSmall),
-                _toggleChip(
-                  label: 'ID',
-                  selected: !_ctrl.searchByFolio.value,
-                  onTap: () => _ctrl.searchByFolio.value = false,
-                ),
-              ],
             ),
           ),
+          const SizedBox(width: ThemeColor.paddingSmall),
+          GestureDetector(
+            onTap: _ctrl.searchQuotes,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: ThemeColor.primaryColor,
+                borderRadius: ThemeColor.mediumBorderRadius,
+              ),
+              child: const Icon(Icons.search, color: Colors.white, size: 20),
+            ),
+          ),
+          const SizedBox(width: ThemeColor.paddingSmall),
+          Obx(() {
+            final hasFilters = _ctrl.dateFromFilter.value.isNotEmpty ||
+                _ctrl.dateUntilFilter.value.isNotEmpty;
+            return GestureDetector(
+              onTap: _openFilters,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: ThemeColor.backgroundColor,
+                      borderRadius: ThemeColor.mediumBorderRadius,
+                      border: Border.all(color: ThemeColor.dividerColor),
+                    ),
+                    child: const Icon(
+                      Icons.tune,
+                      color: ThemeColor.textPrimaryColor,
+                      size: 20,
+                    ),
+                  ),
+                  if (hasFilters)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: const BoxDecoration(
+                          color: ThemeColor.primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Text(
+                            '!',
+                            style: TextStyle(color: Colors.white, fontSize: 10),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
   }
 
-  Widget _toggleChip({
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-        decoration: BoxDecoration(
-          color: selected ? ThemeColor.primaryColor : Colors.transparent,
-          borderRadius: ThemeColor.circularBorderRadius,
-          border: Border.all(
-            color: selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
-          ),
-        ),
-        child: Text(
-          label,
-          style: ThemeColor.bodySmall.copyWith(
-            color: selected
-                ? ThemeColor.textLightColor
-                : ThemeColor.textSecondaryColor,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildTabs() {
-    const labels = ['Todas', 'Vencidas', 'Vendidas'];
+    const labels = ['Todas', 'Cancelada', 'Vendidas'];
     return Container(
       color: ThemeColor.surfaceColor,
       padding: const EdgeInsets.only(
@@ -242,9 +204,7 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: selected
-                      ? ThemeColor.primaryColor
-                      : Colors.transparent,
+                  color: selected ? ThemeColor.primaryColor : Colors.transparent,
                   borderRadius: ThemeColor.mediumBorderRadius,
                   border: Border.all(
                     color: selected
@@ -258,7 +218,8 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
                     color: selected
                         ? ThemeColor.textLightColor
                         : ThemeColor.textSecondaryColor,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight:
+                        selected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ),
@@ -363,9 +324,7 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
 
   Widget _buildFab() {
     return FloatingActionButton(
-      onPressed: () {
-        Get.toNamed(RoutesNames.createQuotePage);
-      },
+      onPressed: () => Get.toNamed(RoutesNames.createQuotePage),
       backgroundColor: ThemeColor.accentColor,
       elevation: ThemeColor.elevationMedium,
       child: const Icon(Icons.add, color: ThemeColor.textDarkColor, size: 28),
@@ -373,13 +332,15 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
   }
 }
 
+// ── Tile ──────────────────────────────────────────────────────────────────────
+
 class _CotizacionTile extends StatelessWidget {
   final GetQuoteEntity item;
   const _CotizacionTile({required this.item});
 
   Color get _statusColor {
     switch (item.status?.toLowerCase()) {
-      case 'vencida':
+      case 'Cancelada':
         return ThemeColor.errorColor;
       case 'vendida':
         return ThemeColor.successColor;
@@ -445,7 +406,7 @@ class _CotizacionTile extends StatelessWidget {
                 borderRadius: ThemeColor.smallBorderRadius,
               ),
               child: Text(
-                item.status ?? 'Abierta',
+                item.status ?? 'Generada',
                 style: ThemeColor.caption.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -459,6 +420,8 @@ class _CotizacionTile extends StatelessWidget {
   }
 }
 
+// ── Filter Sheet ──────────────────────────────────────────────────────────────
+
 class _CotizacionFilterSheet extends StatefulWidget {
   final QuotesController controller;
   const _CotizacionFilterSheet({required this.controller});
@@ -470,29 +433,24 @@ class _CotizacionFilterSheet extends StatefulWidget {
 class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
   final TextEditingController _desdeController = TextEditingController();
   final TextEditingController _hastaController = TextEditingController();
-  String? _cliente;
-  int _activeFilters = 0;
 
-  final List<String> _clientes = [
-    'AUTOTRANSPORTES LA FLECHA',
-    'Cliente A',
-    'Cliente B',
-  ];
-
-  void _recalc() {
-    _activeFilters = [
-      if (_desdeController.text.isNotEmpty) true,
-      if (_hastaController.text.isNotEmpty) true,
-      if (_cliente != null) true,
-    ].length;
+  @override
+  void initState() {
+    super.initState();
+    // Restaura fechas previas si las hay
+    _desdeController.text = widget.controller.dateFromFilter.value;
+    _hastaController.text = widget.controller.dateUntilFilter.value;
   }
+
+  int get _activeFilters => [
+        if (_desdeController.text.isNotEmpty) true,
+        if (_hastaController.text.isNotEmpty) true,
+      ].length;
 
   void _onClear() {
     setState(() {
       _desdeController.clear();
       _hastaController.clear();
-      _cliente = null;
-      _activeFilters = 0;
     });
     widget.controller.clearFilters();
   }
@@ -518,7 +476,6 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
       setState(() {
         ctrl.text =
             '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
-        _recalc();
       });
     }
   }
@@ -540,8 +497,7 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
         ),
       ),
       padding: EdgeInsets.only(
-        bottom:
-            MediaQuery.of(context).viewInsets.bottom +
+        bottom: MediaQuery.of(context).viewInsets.bottom +
             MediaQuery.of(context).padding.bottom,
       ),
       child: Column(
@@ -556,7 +512,6 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
               borderRadius: ThemeColor.circularBorderRadius,
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -579,10 +534,8 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
               ],
             ),
           ),
-
           Divider(height: 1, color: ThemeColor.dividerColor),
           const SizedBox(height: ThemeColor.paddingMedium),
-
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -594,103 +547,50 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                 borderRadius: ThemeColor.mediumBorderRadius,
                 boxShadow: [ThemeColor.cardShadow],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'De',
-                              style: ThemeColor.bodySmall.copyWith(
-                                color: ThemeColor.textSecondaryColor,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            _DateField(
-                              controller: _desdeController,
-                              onTap: () => _pickDate(_desdeController),
-                            ),
-                          ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'De',
+                          style: ThemeColor.bodySmall.copyWith(
+                            color: ThemeColor.textSecondaryColor,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: ThemeColor.paddingMedium),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Hasta',
-                              style: ThemeColor.bodySmall.copyWith(
-                                color: ThemeColor.textSecondaryColor,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            _DateField(
-                              controller: _hastaController,
-                              onTap: () => _pickDate(_hastaController),
-                            ),
-                          ],
+                        const SizedBox(height: 4),
+                        _DateField(
+                          controller: _desdeController,
+                          onTap: () => _pickDate(_desdeController),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: ThemeColor.paddingMedium),
-
-                  Text(
-                    'Cliente',
-                    style: ThemeColor.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w500,
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Container(
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: ThemeColor.surfaceColor,
-                      borderRadius: ThemeColor.smallBorderRadius,
-                      border: Border.all(color: ThemeColor.dividerColor),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: ThemeColor.paddingSmall,
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _cliente,
-                        isExpanded: true,
-                        icon: const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: ThemeColor.textSecondaryColor,
-                          size: 20,
+                  const SizedBox(width: ThemeColor.paddingMedium),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Hasta',
+                          style: ThemeColor.bodySmall.copyWith(
+                            color: ThemeColor.textSecondaryColor,
+                          ),
                         ),
-                        style: ThemeColor.bodyMedium.copyWith(
-                          color: ThemeColor.textPrimaryColor,
+                        const SizedBox(height: 4),
+                        _DateField(
+                          controller: _hastaController,
+                          onTap: () => _pickDate(_hastaController),
                         ),
-                        dropdownColor: ThemeColor.surfaceColor,
-                        borderRadius: ThemeColor.smallBorderRadius,
-                        hint: const SizedBox.shrink(),
-                        items: _clientes
-                            .map(
-                              (e) => DropdownMenuItem(value: e, child: Text(e)),
-                            )
-                            .toList(),
-                        onChanged: (v) => setState(() {
-                          _cliente = v;
-                          _recalc();
-                        }),
-                      ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
           ),
-
           const SizedBox(height: ThemeColor.paddingLarge),
-
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -721,7 +621,6 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
                     text: 'Ver resultados',
                     onPressed: () {
                       widget.controller.applyFilters(
-                        client: _cliente ?? '',
                         dateFrom: _desdeController.text,
                         dateUntil: _hastaController.text,
                       );
@@ -748,10 +647,11 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
   }
 }
 
+// ── Date Field ────────────────────────────────────────────────────────────────
+
 class _DateField extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onTap;
-
   const _DateField({required this.controller, required this.onTap});
 
   @override
@@ -778,7 +678,7 @@ class _DateField extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(
+            const Icon(
               Icons.calendar_today_outlined,
               size: 14,
               color: ThemeColor.textSecondaryColor,

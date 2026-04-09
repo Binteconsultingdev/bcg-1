@@ -148,7 +148,6 @@ void onClientSelected(ClientEntity client) {
     }
   }
 
-  // ── Cargar cotización ──────────────────────────────────────────────────────
 
   Future<void> loadQuote(int id) async {
     try {
@@ -184,11 +183,9 @@ void onClientSelected(ClientEntity client) {
     quote.productos.map((p) => EditQuoteItem.fromProductoEntity(p)).toList(),
   );
 
-  // Sincroniza el campo visual del buscador de cliente
   Get.find<ClientSearchController>().searchCtrl.text = quote.cliente;
 }
 
-  // ── Cliente ────────────────────────────────────────────────────────────────
 
   void onClienteChanged(String value) => clienteName.value = value;
 
@@ -207,7 +204,6 @@ void onClientSelected(ClientEntity client) {
     );
   }
 
-  // ── Productos ──────────────────────────────────────────────────────────────
 
   void addProduct(InventoryEntity product) {
     if ((product.price ?? 0) <= 0) {
@@ -226,7 +222,6 @@ void onClientSelected(ClientEntity client) {
 
   void removeItem(EditQuoteItem item) => items.remove(item);
 
-  // ── Descuento ──────────────────────────────────────────────────────────────
 
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
@@ -242,7 +237,6 @@ void onClientSelected(ClientEntity client) {
         globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
   }
 
-  // ── Fecha ──────────────────────────────────────────────────────────────────
 
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -263,7 +257,6 @@ void onClientSelected(ClientEntity client) {
     if (picked != null) validUntil.value = picked;
   }
 
-  // ── Guardar ────────────────────────────────────────────────────────────────
 
   Future<void> generateAndOpenPdf(BuildContext context) async {
     final id = quoteId.value;
@@ -350,7 +343,6 @@ void onClientSelected(ClientEntity client) {
     }
   }
 
-  // ── PDF ────────────────────────────────────────────────────────────────────
 
   Future<void> sendWhatsApp() async {
     final url = pdfUrl.value;

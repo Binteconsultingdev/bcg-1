@@ -1,10 +1,13 @@
+import 'package:bcg/common/controller/product_search_controller.dart';
 import 'package:bcg/common/errors/convert_message.dart';
 import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
+import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
+import 'package:bcg/features/client/presentation/controller/client_search_controller.dart';
 import 'package:bcg/features/client/presentation/page/client_search_sheet.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
@@ -109,6 +112,16 @@ void onInit() {
     time: const Duration(milliseconds: 600),
   );
 }
+// ── Cliente ────────────────────────────────────────────────────────────────
+
+
+void onClientSelected(ClientEntity client) {
+  final name = client.displayName ?? '';
+  clienteController.text = name;
+  clienteName.value = name;
+  selectedClientId.value = client.id;
+  Get.find<ClientSearchController>().searchCtrl.text = name;
+}
   // ── Getters ────────────────────────────────────────────────────────────────
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount =>
@@ -128,8 +141,8 @@ void onInit() {
 
   // ── Cliente ────────────────────────────────────────────────────────────────
 
-  void onClienteChanged(String value) => clienteName.value = value;
-
+void onClienteChanged(String value) => clienteName.value = value;
+  
   void openClientSearch(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -153,21 +166,19 @@ void onInit() {
     isSearching.value = value.isNotEmpty;
   }
 
-  void addProduct(InventoryEntity product) {
-    if ((product.price ?? 0) <= 0) {
-      showErrorSnackbar('Este producto no tiene precio asignado');
-      return;
-    }
-    final existing = items.firstWhereOrNull((i) => i.product.id == product.id);
-    if (existing != null) {
-      existing.quantity.value++;
-    } else {
-      items.add(SaleItem(product: product));
-    }
-    productSearchCtrl.clear();
-    productSearchQuery.value = '';
-    isSearching.value = false;
+void addProduct(InventoryEntity product) {
+  if ((product.price ?? 0) <= 0) {
+    showErrorSnackbar('Este producto no tiene precio asignado');
+    return;
   }
+  final existing = items.firstWhereOrNull((i) => i.product.id == product.id);
+  if (existing != null) {
+    existing.quantity.value++;
+  } else {
+    items.add(SaleItem(product: product));
+  }
+  Get.find<ProductSearchController>().clearSearch();
+}
 
   void removeItem(SaleItem item) => items.remove(item);
 

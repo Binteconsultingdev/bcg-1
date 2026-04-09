@@ -2,7 +2,6 @@ import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 class QuotesController extends GetxController {
   final FetchQuoteUsecase fetchQuoteUsecase;
   QuotesController({required this.fetchQuoteUsecase});
@@ -15,27 +14,19 @@ class QuotesController extends GetxController {
   final RxBool hasMorePages = true.obs;
   final RxString errorMessage = ''.obs;
 
-  final RxString clientFilter = ''.obs;
   final RxString numParteFilter = ''.obs;
   final RxString dateFromFilter = ''.obs;
   final RxString dateUntilFilter = ''.obs;
 
-  // Búsqueda
   final RxString searchInput = ''.obs;
-  final RxBool searchByFolio = true.obs; // true = folio, false = id
   final TextEditingController searchController = TextEditingController();
 
   int _currentPage = 1;
   static const int _pageSize = 20;
 
-  int? get _parsedId =>
-      searchByFolio.value ? null : int.tryParse(searchInput.value.trim());
-
-  String? get _parsedFolio {
-    final trimmed = searchInput.value.trim();
-    if (trimmed.isEmpty || !searchByFolio.value) return null;
-    return trimmed;
-  }
+  String get _trimmed => searchInput.value.trim();
+  bool get _isEmpty => _trimmed.isEmpty;
+  bool get _isNumeric => int.tryParse(_trimmed) != null;
 
   @override
   void onReady() {
@@ -66,8 +57,61 @@ class QuotesController extends GetxController {
     return '${parts[2]}-${parts[1]}-${parts[0]}T$time';
   }
 
+  List<GetQuoteEntity> _mergeResults(List<List<GetQuoteEntity>> lists) {
+    final seen = <String>{};
+    final merged = <GetQuoteEntity>[];
+    for (final list in lists) {
+      for (final item in list) {
+        final key = item.id?.toString() ?? item.folito ?? '';
+        if (seen.add(key)) merged.add(item);
+      }
+    }
+    return merged;
+  }
+
+  Future<List<List<GetQuoteEntity>>> _buildSearchCalls(int page) {
+    final calls = <Future<List<GetQuoteEntity>>>[];
+
+    if (_isEmpty) {
+      
+      calls.add(fetchQuoteUsecase.cal(
+        '', numParteFilter.value,
+        dateFromFilter.value, dateUntilFilter.value,
+        page, _pageSize,
+      ));
+    } else if (_isNumeric) {
+      
+
+      calls.add(fetchQuoteUsecase.cal(
+        '', numParteFilter.value,
+        dateFromFilter.value, dateUntilFilter.value,
+        page, _pageSize,
+        id: _trimmed,
+      ));
+    } else {
+      
+      calls.add(fetchQuoteUsecase.cal(
+        '', numParteFilter.value,
+        dateFromFilter.value, dateUntilFilter.value,
+        page, _pageSize,
+        folio: _trimmed,
+      ));
+      calls.add(fetchQuoteUsecase.cal(
+        _trimmed, numParteFilter.value,
+        dateFromFilter.value, dateUntilFilter.value,
+        page, _pageSize,
+      ));
+      /*calls.add(fetchQuoteUsecase.cal(
+        '', _trimmed,
+        dateFromFilter.value, dateUntilFilter.value,
+        page, _pageSize,
+      ));*/
+    }
+
+    return Future.wait(calls);
+  }
+
   Future<void> fetchQuotes({
-    String client = '',
     String numParte = '',
     String dateFrom = '',
     String dateUntil = '',
@@ -80,24 +124,14 @@ class QuotesController extends GetxController {
       _currentPage = 1;
       hasMorePages.value = true;
 
-      clientFilter.value = client;
       numParteFilter.value = numParte;
       dateFromFilter.value = dateFrom;
       dateUntilFilter.value = dateUntil;
 
-      final result = await fetchQuoteUsecase.cal(
-        client,
-        numParte,
-        dateFrom,
-        dateUntil,
-        _currentPage,
-        _pageSize,
-        folio: _parsedFolio,
-        id: _parsedId,
-      );
-
-      quotes.assignAll(result);
-      if (result.length < _pageSize) hasMorePages.value = false;
+      final results = await _buildSearchCalls(_currentPage);
+      final combined = _mergeResults(results);
+      quotes.assignAll(combined);
+      if (combined.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al cargar cotizaciones: $e';
     } finally {
@@ -113,19 +147,10 @@ class QuotesController extends GetxController {
       _currentPage = 1;
       hasMorePages.value = true;
 
-      final result = await fetchQuoteUsecase.cal(
-        clientFilter.value,
-        numParteFilter.value,
-        dateFromFilter.value,
-        dateUntilFilter.value,
-        _currentPage,
-        _pageSize,
-        folio: _parsedFolio,
-        id: _parsedId,
-      );
-
-      quotes.assignAll(result);
-      if (result.length < _pageSize) hasMorePages.value = false;
+      final results = await _buildSearchCalls(_currentPage);
+      final combined = _mergeResults(results);
+      quotes.assignAll(combined);
+      if (combined.length < _pageSize) hasMorePages.value = false;
     } catch (e) {
       errorMessage.value = 'Error al buscar: $e';
     } finally {
@@ -139,21 +164,12 @@ class QuotesController extends GetxController {
       isLoadingMore.value = true;
       _currentPage++;
 
-      final result = await fetchQuoteUsecase.cal(
-        clientFilter.value,
-        numParteFilter.value,
-        dateFromFilter.value,
-        dateUntilFilter.value,
-        _currentPage,
-        _pageSize,
-        folio: _parsedFolio,
-        id: _parsedId,
-      );
-
-      if (result.isEmpty || result.length < _pageSize) {
+      final results = await _buildSearchCalls(_currentPage);
+      final combined = _mergeResults(results);
+      if (combined.isEmpty || combined.length < _pageSize) {
         hasMorePages.value = false;
       }
-      quotes.addAll(result);
+      quotes.addAll(combined);
     } catch (e) {
       _currentPage--;
       errorMessage.value = 'Error al cargar más cotizaciones: $e';
@@ -163,13 +179,10 @@ class QuotesController extends GetxController {
   }
 
   void applyFilters({
-    required String client,
     required String dateFrom,
     required String dateUntil,
   }) {
     fetchQuotes(
-      client: client,
-      numParte: numParteFilter.value,
       dateFrom: _toIso(dateFrom),
       dateUntil: _toIso(dateUntil, endOfDay: true),
     );
@@ -178,14 +191,16 @@ class QuotesController extends GetxController {
   void clearFilters() {
     searchController.clear();
     searchInput.value = '';
-    searchByFolio.value = true;
+    dateFromFilter.value = '';
+    dateUntilFilter.value = '';
+    numParteFilter.value = '';
     fetchQuotes();
   }
 
   List<GetQuoteEntity> filteredByTab(int tab) {
     return quotes.where((q) {
       return tab == 0 ||
-          (tab == 1 && q.status?.toLowerCase() == 'vencida') ||
+          (tab == 1 && q.status?.toLowerCase() == 'cancelada') ||
           (tab == 2 && q.status?.toLowerCase() == 'vendida');
     }).toList();
   }

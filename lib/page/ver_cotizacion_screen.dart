@@ -64,7 +64,7 @@ class _VerCotizacionScreenState extends State<VerCotizacionScreen> {
     _cot = widget.cotizacion ??
         const CotizacionDetalle(
           folio: '1',
-          status: 'Abierta',
+          status: 'Generada',
           cliente: 'Autotransportes la flecha',
           validoHasta: '06/03/2026',
           productos: [
@@ -85,8 +85,8 @@ class _VerCotizacionScreenState extends State<VerCotizacionScreen> {
 
   Color _statusColor(String s) {
     switch (s.toLowerCase()) {
-      case 'abierta': return ThemeColor.infoColor;
-      case 'vencida': return ThemeColor.errorColor;
+      case 'Generada': return ThemeColor.infoColor;
+      case 'Cancelada': return ThemeColor.errorColor;
       case 'vendida': return ThemeColor.successColor;
       default: return ThemeColor.textSecondaryColor;
     }

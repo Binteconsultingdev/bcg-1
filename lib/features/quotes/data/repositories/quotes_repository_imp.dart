@@ -29,7 +29,7 @@ class QuotesRepositoryImp implements QuotesRepository {
     int page,
     int pageSize,{
   String? folio,
-  int? id,
+  String? id,
 }) async {
     final token =
         await authService.getToken() ??

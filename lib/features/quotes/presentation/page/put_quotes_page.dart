@@ -56,7 +56,6 @@ class EditQuotePage extends StatelessWidget {
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
 
-// ── AppBar ───────────────────────────────────────────────────────────────────
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final PutQuotesController ctrl;
@@ -103,7 +102,6 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-// ── Top Section ──────────────────────────────────────────────────────────────
 
 class _TopSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -141,7 +139,6 @@ ClientSearchResults(onSelected: ctrl.onClientSelected),
   }
 }
 
-// ── Row Field ─────────────────────────────────────────────────────────────────
 
 class _RowField extends StatelessWidget {
   final String label;
@@ -170,11 +167,6 @@ class _RowField extends StatelessWidget {
     );
   }
 }
-
-// ── Client Selector ───────────────────────────────────────────────────────────
-
-
-// ── Price Selector ────────────────────────────────────────────────────────────
 
 class _PriceSelector extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -260,7 +252,6 @@ class _PriceBottomSheet extends StatelessWidget {
   }
 }
 
-// ── Product List ──────────────────────────────────────────────────────────────
 
 class _ProductList extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -369,7 +360,6 @@ class _ProductItem extends StatelessWidget {
   }
 }
 
-// ── Quantity Controls ─────────────────────────────────────────────────────────
 
 class _QuantityControls extends StatefulWidget {
   final EditQuoteItem item;
@@ -491,7 +481,6 @@ class _QuantityControlsState extends State<_QuantityControls> {
   }
 }
 
-// ── Totals ────────────────────────────────────────────────────────────────────
 
 class _TotalsSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -811,7 +800,6 @@ class _TotalRow extends StatelessWidget {
   }
 }
 
-// ── Valid Until ───────────────────────────────────────────────────────────────
 
 class _ValidUntilSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -870,7 +858,6 @@ class _ValidUntilSection extends StatelessWidget {
       '${d.year}';
 }
 
-// ── Comments ──────────────────────────────────────────────────────────────────
 
 class _CommentsSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -926,7 +913,6 @@ class _CommentsSection extends StatelessWidget {
   }
 }
 
-// ── Bottom Button ─────────────────────────────────────────────────────────────
 
 class _BottomButton extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -943,7 +929,6 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge + bottomPadding,
       ),
-      // ✅ Siempre muestra los dos botones desde el inicio
       child: Obx(
         () => Row(
           children: [
@@ -982,7 +967,6 @@ class _BottomButton extends StatelessWidget {
   }
 }
 
-// ── Product Thumbnail ─────────────────────────────────────────────────────────
 
 class _ProductThumbnail extends StatelessWidget {
   final String? imageUrl;

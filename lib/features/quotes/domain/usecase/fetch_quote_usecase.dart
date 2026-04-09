@@ -6,7 +6,7 @@ class FetchQuoteUsecase {
   FetchQuoteUsecase({required this.quotesRepository});
   Future <List<GetQuoteEntity>> cal(String client,String numParte,String dateFrom,String dateUntil,int page, int pageSize,{
   String? folio,
-  int? id,
+  String? id,
 }) async {
     return await quotesRepository.fetchQuote(client,numParte,dateFrom,dateUntil,page,pageSize,  folio: folio,
     id: id,);

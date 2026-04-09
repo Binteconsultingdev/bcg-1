@@ -50,7 +50,6 @@ class CreateQuotePage extends StatelessWidget {
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
 
-// ── AppBar ───────────────────────────────────────────────────────────────────
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final CreateQuoteController ctrl;
@@ -97,7 +96,6 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-// ── Top Section ──────────────────────────────────────────────────────────────
 class _TopSection extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _TopSection({required this.ctrl});
@@ -124,7 +122,6 @@ ClientSearchResults(onSelected: ctrl.onClientSelected),
             label: 'Producto',
             child: ProductSearchField(onSelected: ctrl.addProduct),
           ),
-          // ── Resultados fuera del RowField ──────────────────────────
           ProductSearchResults(onSelected: ctrl.addProduct),
         ],
       ),
@@ -132,7 +129,6 @@ ClientSearchResults(onSelected: ctrl.onClientSelected),
   }
 }
 
-// ── Row Field ─────────────────────────────────────────────────────────────────
 
 class _RowField extends StatelessWidget {
   final String label;
@@ -162,9 +158,6 @@ class _RowField extends StatelessWidget {
   }
 }
 
-// ── Client Selector ───────────────────────────────────────────────────────────
-
-// ── Price Selector ────────────────────────────────────────────────────────────
 
 class _PriceSelector extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -250,7 +243,6 @@ class _PriceBottomSheet extends StatelessWidget {
   }
 }
 
-// ── Product List ──────────────────────────────────────────────────────────────
 
 class _ProductList extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -355,7 +347,6 @@ class _ProductItem extends StatelessWidget {
   }
 }
 
-// ── Quantity Controls ─────────────────────────────────────────────────────────
 
 class _QuantityControls extends StatefulWidget {
   final CreateQuoteController ctrl;
@@ -476,7 +467,6 @@ class _QuantityControlsState extends State<_QuantityControls> {
   }
 }
 
-// ── Totals ────────────────────────────────────────────────────────────────────
 
 class _TotalsSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -553,7 +543,6 @@ class _TotalsSection extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Toggle monto / porcentaje
               Container(
                 decoration: BoxDecoration(
                   color: ThemeColor.backgroundColor,
@@ -620,7 +609,6 @@ class _TotalsSection extends StatelessWidget {
               ),
               const SizedBox(height: ThemeColor.paddingMedium),
 
-              // Monto fijo
               if (mode.value == 'monto')
                 TextField(
                   controller: ctrl.globalDiscountCtrl,
@@ -645,7 +633,6 @@ class _TotalsSection extends StatelessWidget {
                   ),
                 ),
 
-              // Porcentaje — chips
               if (mode.value == 'porcentaje')
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -801,7 +788,6 @@ class _TotalRow extends StatelessWidget {
   }
 }
 
-// ── Valid Until ───────────────────────────────────────────────────────────────
 
 class _ValidUntilSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -860,7 +846,6 @@ class _ValidUntilSection extends StatelessWidget {
       '${d.year}';
 }
 
-// ── Comments ──────────────────────────────────────────────────────────────────
 
 class _CommentsSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -916,7 +901,6 @@ class _CommentsSection extends StatelessWidget {
   }
 }
 
-// ── Bottom Button ─────────────────────────────────────────────────────────────
 
 class _BottomButton extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -988,4 +972,3 @@ class _BottomButton extends StatelessWidget {
   }
 }
 
-// ── Product Thumbnail ─────────────────────────────────────────────────────────

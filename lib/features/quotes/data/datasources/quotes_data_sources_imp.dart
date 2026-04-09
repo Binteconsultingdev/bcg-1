@@ -28,7 +28,7 @@ class QuotesDataSourcesImp {
     int page,
     int pageSize, {
     String? folio,
-    int? id,
+    String? id,
   }) async {
     try {
       final queryParams = {
@@ -46,7 +46,7 @@ class QuotesDataSourcesImp {
       Uri url = Uri.parse(
         '$defaultApiServer/Cotizaciones',
       ).replace(queryParameters: queryParams);
-
+ print('🔍 URL de búsqueda: $url');
       final response = await http.get(
         url,
         headers: {
