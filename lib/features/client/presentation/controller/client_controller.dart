@@ -85,15 +85,15 @@ class ClientController extends GetxController {
 
       await createClientUsecase.call(
         CreateClientEntity(
-          company: empresaCtrl.text.trim(),
-          name: nombreCtrl.text.trim(),
+          company: empresaCtrl.text.trim().toUpperCase(),
+          name: nombreCtrl.text.trim().toUpperCase(),
           phone: telefonoCtrl.text.trim(),
           email: emailCtrl.text.trim(),
         ),
       );
 
       resetForm();
-      Get.back(); 
+      Get.back();
       await fetchClients();
       showSuccessSnackbar('Cliente creado correctamente');
     } catch (e) {

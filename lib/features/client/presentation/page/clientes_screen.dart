@@ -2,6 +2,7 @@ import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
+import 'package:bcg/features/client/presentation/page/upper_case_text_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -421,6 +422,10 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                           controller: _ctrl.empresaCtrl,
                           focusNode: _ctrl.empresaFocus,
                           borderRadius: ThemeColor.smallBorderRadius,
+                          textCapitalization: TextCapitalization.characters,
+                          inputFormatters: [
+                            UpperCaseTextFormatter(),
+                          ],
                           isRequired: true,
                           onSubmitted: (_) => _ctrl.nombreFocus.requestFocus(),
                         ),
@@ -431,6 +436,10 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                           controller: _ctrl.nombreCtrl,
                           focusNode: _ctrl.nombreFocus,
                           borderRadius: ThemeColor.smallBorderRadius,
+                          textCapitalization: TextCapitalization.characters,
+                          inputFormatters: [
+                            UpperCaseTextFormatter(),
+                          ], 
                           isRequired: true,
                           onSubmitted: (_) =>
                               _ctrl.telefonoFocus.requestFocus(),

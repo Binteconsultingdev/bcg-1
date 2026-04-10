@@ -653,6 +653,8 @@ class ThemeColor {
     TextStyle? hintStyle,
     double? labelSpacing,
     bool isRequired = false,
+      TextCapitalization textCapitalization = TextCapitalization.none,
+  List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -688,7 +690,7 @@ class ThemeColor {
           onSubmitted: onSubmitted,
           onChanged: onChanged,
           enabled: enabled,
-          maxLines: maxLines,
+          maxLines: maxLines,inputFormatters: inputFormatters, 
           style:
               textStyle ??
               bodyMedium.copyWith(color: textColor ?? textDarkColor),

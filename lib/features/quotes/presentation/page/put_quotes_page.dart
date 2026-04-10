@@ -16,52 +16,78 @@ class EditQuotePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final PutQuotesController ctrl = Get.find<PutQuotesController>();
 
-    return  GestureDetector(
-  onTap: () {
-    FocusScope.of(context).unfocus();
-  },
-  child: Scaffold(
-      backgroundColor: ThemeColor.backgroundColor,
-      appBar: _AppBar(ctrl: ctrl),
-      body: Obx(() {
-        if (ctrl.isLoadingQuote.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: ThemeColor.primaryColor),
-          );
-        }
-        return Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                child: Column(
-                  children: [
-                    _TopSection(ctrl: ctrl),
-                    _sectionGap(),
-                    _ProductList(ctrl: ctrl),
-                    _TotalsSection(ctrl: ctrl),
-                    _sectionGap(),
-                    _ValidUntilSection(ctrl: ctrl),
-                    _sectionGap(),
-                    _CommentsSection(ctrl: ctrl),
-                    const SizedBox(height: 100),
-                  ],
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: ThemeColor.backgroundColor,
+        appBar: _AppBar(ctrl: ctrl),
+        body: Obx(() {
+          if (ctrl.isLoadingQuote.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: ThemeColor.primaryColor),
+            );
+          }
+          return Column(
+            children: [
+              if (!ctrl.isEditable)
+                Container(
+                  width: double.infinity,
+                  color: Colors.orange.shade50,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.lock_outline,
+                        size: 16,
+                        color: Colors.orange,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Cotización ${ctrl.quoteStatus.value} · Solo las cotizaciones GENERADA pueden editarse.',
+                          style: ThemeColor.bodySmall.copyWith(
+                            color: Colors.orange.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Column(
+                    children: [
+                      _TopSection(ctrl: ctrl),
+                      _sectionGap(),
+                      _ProductList(ctrl: ctrl),
+                      _TotalsSection(ctrl: ctrl),
+                      _sectionGap(),
+                      _ValidUntilSection(ctrl: ctrl),
+                      _sectionGap(),
+                      _CommentsSection(ctrl: ctrl),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            _BottomButton(ctrl: ctrl),
-          ],
-        );
-      }),
-    )
+              _BottomButton(ctrl: ctrl),
+            ],
+          );
+        }),
+      ),
     );
   }
 
   static Widget _sectionGap() =>
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
-
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final PutQuotesController ctrl;
@@ -108,7 +134,6 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-
 class _TopSection extends StatelessWidget {
   final PutQuotesController ctrl;
   const _TopSection({required this.ctrl});
@@ -124,10 +149,10 @@ class _TopSection extends StatelessWidget {
       child: Column(
         children: [
           _RowField(
-  label: 'Cliente',
-  child: ClientSearchField(onSelected: ctrl.onClientSelected),
-),
-ClientSearchResults(onSelected: ctrl.onClientSelected),
+            label: 'Cliente',
+            child: ClientSearchField(onSelected: ctrl.onClientSelected),
+          ),
+          ClientSearchResults(onSelected: ctrl.onClientSelected),
           Divider(height: 1, color: ThemeColor.dividerColor),
           _RowField(
             label: 'Precio',
@@ -144,7 +169,6 @@ ClientSearchResults(onSelected: ctrl.onClientSelected),
     );
   }
 }
-
 
 class _RowField extends StatelessWidget {
   final String label;
@@ -258,7 +282,6 @@ class _PriceBottomSheet extends StatelessWidget {
   }
 }
 
-
 class _ProductList extends StatelessWidget {
   final PutQuotesController ctrl;
   const _ProductList({required this.ctrl});
@@ -280,10 +303,11 @@ class _ProductList extends StatelessWidget {
                   description: item.descripcion.value,
                   unitPrice: item.precio.value,
                   total: item.totalRx,
-                  quantity: item.quantity,          
+                  quantity: item.quantity,
                   availableQuantity: item.disponible,
                   onRemove: () => ctrl.removeItem(item),
                   onQuantityChanged: (v) => item.quantity.value = v,
+                  readOnly: !ctrl.isEditable,
                 ),
                 if (!isLast)
                   Divider(
@@ -375,7 +399,6 @@ class _ProductItem extends StatelessWidget {
     );
   }
 }
-
 
 class _QuantityControls extends StatefulWidget {
   final EditQuoteItem item;
@@ -496,7 +519,6 @@ class _QuantityControlsState extends State<_QuantityControls> {
     });
   }
 }
-
 
 class _TotalsSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -816,7 +838,6 @@ class _TotalRow extends StatelessWidget {
   }
 }
 
-
 class _ValidUntilSection extends StatelessWidget {
   final PutQuotesController ctrl;
   const _ValidUntilSection({required this.ctrl});
@@ -874,7 +895,6 @@ class _ValidUntilSection extends StatelessWidget {
       '${d.year}';
 }
 
-
 class _CommentsSection extends StatelessWidget {
   final PutQuotesController ctrl;
   const _CommentsSection({required this.ctrl});
@@ -929,7 +949,6 @@ class _CommentsSection extends StatelessWidget {
   }
 }
 
-
 class _BottomButton extends StatelessWidget {
   final PutQuotesController ctrl;
   const _BottomButton({required this.ctrl});
@@ -945,13 +964,12 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge + bottomPadding,
       ),
-      // En _BottomButton de EditQuotePage
-child: Obx(
-  () {
-    final blocked = ctrl.hasOutOfStockItems; 
-    return Row(
-      children: [
-        Expanded(
+
+      child: Obx(() {
+        final blocked = ctrl.hasOutOfStockItems;
+        return Row(
+          children: [
+            Expanded(
               child: ThemeColor.widgetButton(
                 text: 'Ver PDF',
                 backgroundColor: ThemeColor.accentColor,
@@ -964,33 +982,33 @@ child: Obx(
                 onPressed: () => ctrl.generateAndOpenPdf(context),
               ),
             ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 2,
-          child: AnimatedOpacity(
-            opacity: blocked ? 0.5 : 1.0,
-            duration: const Duration(milliseconds: 250),
-            child: ThemeColor.widgetButton(
-              text: 'Guardar Cambios',
-              backgroundColor: ThemeColor.primaryColor,
-              textColor: ThemeColor.textLightColor,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              borderRadius: ThemeColor.mediumRadius,
-              isLoading: ctrl.isSaving.value,
-              onPressed: blocked ? null : ctrl.saveQuote,
-            ),
-          ),
-        ),
-      ],
-    );
-  },
-),
+            if (ctrl.isEditable) ...[
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: AnimatedOpacity(
+                  opacity: blocked ? 0.5 : 1.0,
+                  duration: const Duration(milliseconds: 250),
+                  child: ThemeColor.widgetButton(
+                    text: 'Guardar Cambios',
+                    backgroundColor: ThemeColor.primaryColor,
+                    textColor: ThemeColor.textLightColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    borderRadius: ThemeColor.mediumRadius,
+                    isLoading: ctrl.isSaving.value,
+                    onPressed: blocked ? null : ctrl.saveQuote,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+      }),
     );
   }
 }
-
 
 class _ProductThumbnail extends StatelessWidget {
   final String? imageUrl;

@@ -222,6 +222,10 @@ void onQuoteSearchChanged(String value) {
 
   Future<void> loadFromQuote(GetQuoteEntity quoteEntity) async {
     if (quoteEntity.id == null) return;
+     if ((quoteEntity.status ?? '').toUpperCase() != 'GENERADA') {
+    showErrorSnackbar('Solo se pueden cargar cotizaciones con estatus GENERADA');
+    return;
+  }
     try {
       isLoadingQuote.value = true;
       final quote = await fetchQuotesByidUsecase.call(quoteEntity.id!);

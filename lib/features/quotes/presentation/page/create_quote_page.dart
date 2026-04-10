@@ -13,51 +13,48 @@ import 'package:get/get.dart';
 
 class CreateQuotePage extends StatelessWidget {
   const CreateQuotePage({super.key});
-@override
-Widget build(BuildContext context) {
-  final CreateQuoteController ctrl = Get.find<CreateQuoteController>();
-WidgetsBinding.instance.addPostFrameCallback((_) {
-    ctrl.resetState();
-  });
-  return GestureDetector(
-    behavior: HitTestBehavior.translucent,
-    onTap: () {
-      FocusScope.of(context).unfocus();
-    },
-    child: Scaffold(
-      backgroundColor: ThemeColor.backgroundColor,
-      appBar: _AppBar(ctrl: ctrl),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: Column(
-                children: [
-                  _TopSection(ctrl: ctrl),
-                  _sectionGap(),
-                  _ProductList(ctrl: ctrl),
-                  _TotalsSection(ctrl: ctrl),
-                  _sectionGap(),
-                  _ValidUntilSection(ctrl: ctrl),
-                  _sectionGap(),
-                  _CommentsSection(ctrl: ctrl),
-                  const SizedBox(height: 100),
-                ],
+  @override
+  Widget build(BuildContext context) {
+    final CreateQuoteController ctrl = Get.find<CreateQuoteController>();
+  
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: ThemeColor.backgroundColor,
+        appBar: _AppBar(ctrl: ctrl),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Column(
+                  children: [
+                    _TopSection(ctrl: ctrl),
+                    _sectionGap(),
+                    _ProductList(ctrl: ctrl),
+                    _TotalsSection(ctrl: ctrl),
+                    _sectionGap(),
+                    _ValidUntilSection(ctrl: ctrl),
+                    _sectionGap(),
+                    _CommentsSection(ctrl: ctrl),
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
             ),
-          ),
-          _BottomButton(ctrl: ctrl),
-        ],
+            _BottomButton(ctrl: ctrl),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   static Widget _sectionGap() =>
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
-
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final CreateQuoteController ctrl;
@@ -118,13 +115,16 @@ class _TopSection extends StatelessWidget {
       ),
       child: Column(
         children: [
-         _RowField(
-  label: 'Cliente',
-  child: ClientSearchField(onSelected: ctrl.onClientSelected),
-),
-ClientSearchResults(onSelected: ctrl.onClientSelected),
+          _RowField(
+            label: 'Cliente',
+            child: ClientSearchField(onSelected: ctrl.onClientSelected),
+          ),
+          ClientSearchResults(onSelected: ctrl.onClientSelected),
           Divider(height: 1, color: ThemeColor.dividerColor),
-          _RowField(label: 'Precio', child: _PriceSelector(ctrl: ctrl)),
+          _RowField(
+            label: 'Precio',
+            child: _PriceSelector(ctrl: ctrl),
+          ),
           Divider(height: 1, color: ThemeColor.dividerColor),
           _RowField(
             label: 'Producto',
@@ -136,7 +136,6 @@ ClientSearchResults(onSelected: ctrl.onClientSelected),
     );
   }
 }
-
 
 class _RowField extends StatelessWidget {
   final String label;
@@ -165,7 +164,6 @@ class _RowField extends StatelessWidget {
     );
   }
 }
-
 
 class _PriceSelector extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -272,7 +270,7 @@ class _ProductList extends StatelessWidget {
                   description: item.product.description ?? '',
                   unitPrice: item.unitPrice,
                   total: item.totalRx,
-                  quantity: item.quantity,      
+                  quantity: item.quantity,
                   availableQuantity: item.product.availableQuantity ?? 0,
                   onRemove: () => ctrl.removeItem(item),
                   onQuantityChanged: (v) => item.quantity.value = v,
@@ -292,6 +290,7 @@ class _ProductList extends StatelessWidget {
     });
   }
 }
+
 class _QuantityControls extends StatefulWidget {
   final CreateQuoteController ctrl;
   final QuoteItem item;
@@ -410,7 +409,6 @@ class _QuantityControlsState extends State<_QuantityControls> {
     });
   }
 }
-
 
 class _TotalsSection extends StatelessWidget {
   final CreateQuoteController ctrl;
@@ -732,7 +730,6 @@ class _TotalRow extends StatelessWidget {
   }
 }
 
-
 class _ValidUntilSection extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _ValidUntilSection({required this.ctrl});
@@ -790,7 +787,6 @@ class _ValidUntilSection extends StatelessWidget {
       '${d.year}';
 }
 
-
 class _CommentsSection extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _CommentsSection({required this.ctrl});
@@ -845,7 +841,6 @@ class _CommentsSection extends StatelessWidget {
   }
 }
 
-
 class _BottomButton extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _BottomButton({required this.ctrl});
@@ -861,9 +856,9 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge + bottomPadding,
       ),
-     child: Obx(() {
-  if (ctrl.createdQuoteId.value != null) {
-      return  Row(
+      child: Obx(() {
+        if (ctrl.createdQuoteId.value != null) {
+          return Row(
             children: [
               Expanded(
                 child: ThemeColor.widgetButton(
@@ -895,30 +890,29 @@ class _BottomButton extends StatelessWidget {
               ),
             ],
           );
-  }
+        }
 
-  final blocked = ctrl.hasOutOfStockItems; // 👈 agrega esto
+        final blocked = ctrl.hasOutOfStockItems;
 
-  return AnimatedOpacity(
-    opacity: blocked ? 0.5 : 1.0,
-    duration: const Duration(milliseconds: 250),
-    child: SizedBox(
-      width: double.infinity,
-      child: ThemeColor.widgetButton(
-        text: 'Crear Cotización',
-        backgroundColor: ThemeColor.primaryColor,
-        textColor: ThemeColor.textLightColor,
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        borderRadius: ThemeColor.mediumRadius,
-        isLoading: ctrl.isCreating.value,
-        onPressed: blocked ? null : ctrl.createQuote, // 👈
-      ),
-    ),
-  );
-}),
+        return AnimatedOpacity(
+          opacity: blocked ? 0.5 : 1.0,
+          duration: const Duration(milliseconds: 250),
+          child: SizedBox(
+            width: double.infinity,
+            child: ThemeColor.widgetButton(
+              text: 'Crear Cotización',
+              backgroundColor: ThemeColor.primaryColor,
+              textColor: ThemeColor.textLightColor,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              borderRadius: ThemeColor.mediumRadius,
+              isLoading: ctrl.isCreating.value,
+              onPressed: blocked ? null : ctrl.createQuote, // 👈
+            ),
+          ),
+        );
+      }),
     );
   }
 }
-

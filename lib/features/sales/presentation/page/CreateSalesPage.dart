@@ -1,4 +1,5 @@
 import 'package:bcg/common/theme/App_Theme.dart';
+import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/common/widgets/product_search_field.dart';
 import 'package:bcg/common/widgets/product_search_results.dart';
 import 'package:bcg/features/client/presentation/page/client_search_field.dart';
@@ -186,34 +187,36 @@ class _TopSection extends StatelessWidget {
                 separatorBuilder: (_, __) =>
                     Divider(height: 1, color: ThemeColor.dividerColor),
                 itemBuilder: (_, i) {
-                  final q = ctrl.quoteResults[i];
-                  return ListTile(
-                    dense: true,
-                    leading: const Icon(
-                      Icons.receipt_outlined,
-                      color: ThemeColor.primaryColor,
-                      size: 20,
-                    ),
-                    title: Text(
-                      '${q.folito ?? '-'} · ${q.client ?? '-'}',
-                      style: ThemeColor.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      '\$${q.total?.toStringAsFixed(2) ?? '0.00'} · ${q.date ?? ''}',
-                      style: ThemeColor.caption,
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: ThemeColor.textSecondaryColor,
-                      size: 14,
-                    ),
-                    onTap: () => ctrl.loadFromQuote(q),
-                  );
-                },
+  final q = ctrl.quoteResults[i];
+  final isGenerada = (q.status ?? '').toUpperCase() == 'GENERADA';
+  
+  return ListTile(
+    dense: true,
+    enabled: isGenerada,
+    leading: Icon(
+      Icons.receipt_outlined,
+      color: isGenerada ? ThemeColor.primaryColor : ThemeColor.textSecondaryColor,
+      size: 20,
+    ),
+    title: Text(
+      '${q.folito ?? '-'} · ${q.client ?? '-'}',
+      style: ThemeColor.bodyMedium.copyWith(
+        fontWeight: FontWeight.w600,
+        color: isGenerada ? null : ThemeColor.textSecondaryColor,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    ),
+    subtitle: Text(
+      '\$${q.total?.toStringAsFixed(2) ?? '0.00'} · ${q.date ?? ''} · ${q.status ?? ''}',
+      style: ThemeColor.caption,
+    ),
+    trailing: isGenerada
+        ? const Icon(Icons.arrow_forward_ios, color: ThemeColor.textSecondaryColor, size: 14)
+        : const Icon(Icons.block, color: ThemeColor.textSecondaryColor, size: 14),
+    onTap: isGenerada ? () => ctrl.loadFromQuote(q) : () => showErrorSnackbar('Solo se pueden cargar cotizaciones con estatus GENERADA'),
+  );
+},
               ),
             );
           }),
@@ -1081,43 +1084,6 @@ class _BottomButton extends StatelessWidget {
       ),
     );
   }),
-    );
-  }
-}
-
-class _ProductThumbnail extends StatelessWidget {
-  final String? imageUrl;
-  final double size;
-  const _ProductThumbnail({this.imageUrl, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: ThemeColor.backgroundColor,
-        borderRadius: ThemeColor.smallBorderRadius,
-        border: Border.all(color: ThemeColor.dividerColor),
-      ),
-      child: imageUrl != null && imageUrl!.isNotEmpty
-          ? ClipRRect(
-              borderRadius: ThemeColor.smallBorderRadius,
-              child: Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(
-                  Icons.image_outlined,
-                  color: ThemeColor.textTertiaryColor,
-                  size: size * 0.48,
-                ),
-              ),
-            )
-          : Icon(
-              Icons.image_outlined,
-              color: ThemeColor.textTertiaryColor,
-              size: size * 0.48,
-            ),
     );
   }
 }

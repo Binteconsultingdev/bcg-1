@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -25,8 +26,8 @@ class QuoteItem {
   final RxDouble discount;
 
   QuoteItem({required this.product, double initialQty = 1.0})
-      : quantity = initialQty.obs,
-        discount = 0.0.obs;
+    : quantity = initialQty.obs,
+      discount = 0.0.obs;
 
   double get unitPrice => (product.price ?? 0).toDouble();
   double get subtotal => unitPrice * quantity.value;
@@ -34,6 +35,7 @@ class QuoteItem {
   double get total => subtotal - discountAmount;
   RxDouble get totalRx => total.obs;
 }
+
 class CreateQuoteController extends GetxController {
   final CreateQuotesUsecase createQuotesUsecase;
   final FetchFolioUsecase fetchFolioUsecase;
@@ -44,23 +46,22 @@ class CreateQuoteController extends GetxController {
     required this.fetchFolioUsecase,
     required this.generatePdfUsecase,
   });
-bool get hasOutOfStockItems =>
-    items.any((i) => (i.product.availableQuantity ?? 0) <= 0);
+  bool get hasOutOfStockItems =>
+      items.any((i) => (i.product.availableQuantity ?? 0) <= 0);
 
-  late final InventoryController _inventoryCtrl = Get.find<InventoryController>();
   late final QuotesController _quotesCtrl = Get.find<QuotesController>();
   late final ClientController _clientCtrl = Get.find<ClientController>();
-void onClientSelected(ClientEntity client) {
-  final name = client.displayName ?? '';
-  clienteController.text = name;
-  clienteName.value = name;
-  selectedClientId.value = client.id.toString();
-  selectedClientName.value = client.displayName;
+  void onClientSelected(ClientEntity client) {
+    final name = client.displayName ?? '';
+    clienteController.text = name;
+    clienteName.value = name;
+    selectedClientId.value = client.id.toString();
+    selectedClientName.value = client.displayName;
 
+    Get.find<ClientSearchController>().searchCtrl.text = name;
+    print('Cliente seleccionado: ${client.displayName}, ID: ${client.id}');
+  }
 
-  Get.find<ClientSearchController>().searchCtrl.text = name;
-}
- 
   final RxBool isDownloading = false.obs;
   final RxDouble downloadProgress = 0.0.obs;
   final pdfUrl = Rxn<String>();
@@ -76,7 +77,13 @@ void onClientSelected(ClientEntity client) {
   final selectedClientName = Rxn<String>();
 
   final selectedPriceType = 'REGULAR'.obs;
-  final List<String> priceOptions = ['REGULAR', 'MEDIO M', 'PAQUETE', 'MAYOREO', 'ESPECIAL'];
+  final List<String> priceOptions = [
+    'REGULAR',
+    'MEDIO M',
+    'PAQUETE',
+    'MAYOREO',
+    'ESPECIAL',
+  ];
 
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
 
@@ -86,43 +93,43 @@ void onClientSelected(ClientEntity client) {
   final RxList<InventoryEntity> searchResults = <InventoryEntity>[].obs;
   final RxBool isLoadingSearch = false.obs;
 
-
-
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
   final referencia = ''.obs;
 
-
   final isCreating = false.obs;
   final errorMessage = ''.obs;
-
-
 
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
 
-
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
+  final lastDownloadedPath = Rxn<String>();
 
-@override
-void onInit() {
-  super.onInit();
-  _loadFolio();
-  resetState();
-  Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
-  Get.find<ClientSearchController>().showResults.value = false;
-  Get.find<ClientSearchController>().manuallyClosed = true;  
-}
-void onFreeTextClient(String value) {
-  clienteName.value = value;
-  print('onFreeTextClient: "$value"');
-  selectedClientId.value = null;
-  selectedClientName.value = null;
-}
+  @override
+  void onInit() {
+    super.onInit();
+    _loadFolio();
+    resetState();
+    Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
+    Get.find<ClientSearchController>().showResults.value = false;
+    Get.find<ClientSearchController>().manuallyClosed = true;
+    print(
+      ' showResults al iniciar CreateQuoteController: ${Get.find<ClientSearchController>().showResults.value}',
+    );
+  }
+
+  void onFreeTextClient(String value) {
+    clienteName.value = value;
+    print('onFreeTextClient: "$value"');
+    selectedClientId.value = null;
+    selectedClientName.value = null;
+  }
+
   Future<void> _loadFolio() async {
     try {
       isLoadingFolio.value = true;
@@ -135,8 +142,6 @@ void onFreeTextClient(String value) {
       isLoadingFolio.value = false;
     }
   }
-
-
 
   void onClienteChanged(String value) => clienteName.value = value;
 
@@ -161,8 +166,6 @@ void onFreeTextClient(String value) {
     selectedClientId.value = id;
     selectedClientName.value = name;
   }
-
-
 
   void onProductSearchChanged(String value) {
     productSearchQuery.value = value;
@@ -190,10 +193,10 @@ void onFreeTextClient(String value) {
   void removeItem(QuoteItem item) => items.remove(item);
 
   void duplicateItem(QuoteItem item) {
-    items.add(QuoteItem(product: item.product, initialQty: item.quantity.value));
+    items.add(
+      QuoteItem(product: item.product, initialQty: item.quantity.value),
+    );
   }
-
-
 
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
@@ -205,11 +208,10 @@ void onFreeTextClient(String value) {
       globalDiscountPercent.value = 0;
       globalDiscount.value = value;
     }
-    globalDiscountCtrl.text =
-        globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
+    globalDiscountCtrl.text = globalDiscount.value > 0
+        ? globalDiscount.value.toStringAsFixed(2)
+        : '';
   }
-
-
 
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -230,10 +232,8 @@ void onFreeTextClient(String value) {
     if (picked != null) validUntil.value = picked;
   }
 
-
-
   Future<void> createQuote() async {
-      print('clienteName: "${clienteName.value}"'); 
+    print('clienteName: "${clienteName.value}"');
 
     if (clienteName.value.trim().isEmpty) {
       showErrorSnackbar('Selecciona un cliente para continuar');
@@ -288,8 +288,6 @@ void onFreeTextClient(String value) {
     }
   }
 
-
-
   Future<void> generateAndOpenPdf(BuildContext context) async {
     final id = createdQuoteId.value;
     if (id == null) return;
@@ -304,7 +302,14 @@ void onFreeTextClient(String value) {
         showModalBottomSheet(
           context: context,
           backgroundColor: Colors.transparent,
-          builder: (_) => PdfOptionsSheet(),
+          builder: (_) => PdfOptionsSheet(
+            onSendWhatsApp: sendWhatsApp,
+            onDownloadPdf: downloadPdf,
+            isDownloading: isDownloading,
+            downloadProgress: downloadProgress,
+            lastDownloadedPath: lastDownloadedPath,
+            onOpenPdf: openDownloadedPdf,
+          ),
         );
       }
     } catch (e) {
@@ -316,6 +321,7 @@ void onFreeTextClient(String value) {
 
   Future<void> sendWhatsApp() async {
     final url = pdfUrl.value;
+    print('sendWhatsApp - pdfUrl: $url');
     if (url == null || url.isEmpty) return;
 
     try {
@@ -323,7 +329,8 @@ void onFreeTextClient(String value) {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final directory = await getTemporaryDirectory();
-        final fileName = 'cotizacion_${DateTime.now().millisecondsSinceEpoch}.pdf';
+        final fileName =
+            'cotizacion_${DateTime.now().millisecondsSinceEpoch}.pdf';
         final file = File('${directory.path}/$fileName');
         await file.writeAsBytes(response.bodyBytes);
 
@@ -369,12 +376,21 @@ void onFreeTextClient(String value) {
 
       final file = File(savePath);
       await file.writeAsBytes(response.bodyBytes);
+
+      lastDownloadedPath.value = savePath;
+
       showSuccessSnackbar('PDF guardado en Descargas');
     } catch (e) {
       showErrorSnackbar('Error al descargar PDF: $e');
     } finally {
       isDownloading.value = false;
     }
+  }
+
+  Future<void> openDownloadedPdf() async {
+    final path = lastDownloadedPath.value;
+    if (path == null || path.isEmpty) return;
+    await OpenFilex.open(path);
   }
 
   @override
@@ -386,29 +402,29 @@ void onFreeTextClient(String value) {
     super.onClose();
   }
 
-void resetState() {
-  items.clear();
-  clienteName.value = '';
-  clienteController.clear();
-  selectedClientId.value = null;
-  selectedClientName.value = null;
-  commentsCtrl.clear();
-  productSearchCtrl.clear();
-  globalDiscountCtrl.clear();
-  globalDiscount.value = 0.0;
-  globalDiscountPercent.value = 0.0;
-  globalDiscountType.value = 'monto';
-  selectedPriceType.value = 'REGULAR';
-  validUntil.value = DateTime.now().add(const Duration(days: 15));
-  pdfUrl.value = null;
-  createdQuoteId.value = null;
-  errorMessage.value = '';
-  productSearchQuery.value = '';
-  isSearching.value = false;
-  searchResults.clear();
+  void resetState() {
+    items.clear();
+    clienteName.value = '';
+    clienteController.clear();
+    selectedClientId.value = null;
+    selectedClientName.value = null;
+    commentsCtrl.clear();
+    productSearchCtrl.clear();
+    globalDiscountCtrl.clear();
+    globalDiscount.value = 0.0;
+    globalDiscountPercent.value = 0.0;
+    globalDiscountType.value = 'monto';
+    selectedPriceType.value = 'REGULAR';
+    validUntil.value = DateTime.now().add(const Duration(days: 15));
+    pdfUrl.value = null;
+    createdQuoteId.value = null;
+    errorMessage.value = '';
+    productSearchQuery.value = '';
+    isSearching.value = false;
+    searchResults.clear();
 
-  final clientSearch = Get.find<ClientSearchController>();
-  clientSearch.onFreeText = null;
-  clientSearch.clearSearch();
-}
+    final clientSearch = Get.find<ClientSearchController>();
+   // clientSearch.onFreeText = null;
+    clientSearch.clearSearch();
+  }
 }

@@ -12,6 +12,7 @@ class QuoteProductItem extends StatelessWidget {
   final num availableQuantity;
   final VoidCallback onRemove;
   final void Function(double) onQuantityChanged;
+  final bool readOnly;
 
   const QuoteProductItem({
     super.key,
@@ -23,6 +24,7 @@ class QuoteProductItem extends StatelessWidget {
     required this.availableQuantity,
     required this.onRemove,
     required this.onQuantityChanged,
+    this.readOnly = false, // <-- default false
   });
 
   @override
@@ -60,8 +62,7 @@ class QuoteProductItem extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.warning_amber_rounded,
-                          size: 13, color: Colors.amber),
+                      const Icon(Icons.warning_amber_rounded, size: 13, color: Colors.amber),
                       const SizedBox(width: 4),
                       Text(
                         'Sin existencia',
@@ -74,10 +75,15 @@ class QuoteProductItem extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 8),
-                _QuantityControls(
-                  quantity: quantity,
-                  onChanged: onQuantityChanged,
-                ),
+                if (!readOnly) // <-- oculta controles en readOnly
+                  _QuantityControls(quantity: quantity, onChanged: onQuantityChanged)
+                else
+                  Obx(() => Text(
+                    'Cant: ${quantity.value % 1 == 0 ? quantity.value.toInt() : quantity.value}',
+                    style: ThemeColor.bodySmall.copyWith(
+                      color: ThemeColor.textSecondaryColor,
+                    ),
+                  )),
               ],
             ),
           ),
@@ -85,19 +91,21 @@ class QuoteProductItem extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              GestureDetector(
-                onTap: onRemove,
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: Icon(Icons.delete_outline,
-                      color: ThemeColor.errorColor, size: 20),
+              if (!readOnly) // <-- oculta botón eliminar en readOnly
+                GestureDetector(
+                  onTap: onRemove,
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.delete_outline, color: ThemeColor.errorColor, size: 20),
+                  ),
+                ),
+              SizedBox(height: readOnly ? 0 : 14),
+              Obx(
+                () => Text(
+                  '\$${total.value.toStringAsFixed(2)}',
+                  style: ThemeColor.subtitleMedium.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
-              const SizedBox(height: 14),
-             Obx(() => Text(
-  '\$${total.value.toStringAsFixed(2)}', // 👈 agrega .value
-  style: ThemeColor.subtitleMedium.copyWith(fontWeight: FontWeight.w700),
-)),
             ],
           ),
         ],
@@ -126,8 +134,9 @@ class _QuantityControlsState extends State<_QuantityControls> {
       final newText = val.toString();
       if (_textCtrl.text != newText) {
         _textCtrl.text = newText;
-        _textCtrl.selection =
-            TextSelection.fromPosition(TextPosition(offset: newText.length));
+        _textCtrl.selection = TextSelection.fromPosition(
+          TextPosition(offset: newText.length),
+        );
       }
     });
   }
@@ -172,7 +181,9 @@ class _QuantityControlsState extends State<_QuantityControls> {
                 focusedBorder: OutlineInputBorder(
                   borderRadius: ThemeColor.smallBorderRadius,
                   borderSide: const BorderSide(
-                      color: ThemeColor.accentColor, width: 1.5),
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
                 ),
               ),
               onChanged: (v) {
@@ -181,15 +192,23 @@ class _QuantityControlsState extends State<_QuantityControls> {
               },
             ),
           ),
-          _btn(Icons.add, () => widget.onChanged(qty + 1),
-              color: ThemeColor.primaryColor, iconColor: Colors.white),
+          _btn(
+            Icons.add,
+            () => widget.onChanged(qty + 1),
+            color: ThemeColor.primaryColor,
+            iconColor: Colors.white,
+          ),
         ],
       );
     });
   }
 
-  Widget _btn(IconData icon, VoidCallback onTap,
-      {required Color color, Color iconColor = ThemeColor.textPrimaryColor}) {
+  Widget _btn(
+    IconData icon,
+    VoidCallback onTap, {
+    required Color color,
+    Color iconColor = ThemeColor.textPrimaryColor,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

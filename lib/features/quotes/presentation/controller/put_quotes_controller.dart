@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -118,10 +119,13 @@ class PutQuotesController extends GetxController {
   final globalDiscountPercent = 0.0.obs;
 
   final items = <EditQuoteItem>[].obs;
+final lastDownloadedPath = Rxn<String>();
 
   final commentsCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
+final quoteStatus = ''.obs;
 
+bool get isEditable => quoteStatus.value.toUpperCase() == 'GENERADA';
 bool get hasOutOfStockItems =>
     items.any((i) => i.disponible <= 0);
   final List<String> priceOptions = [
@@ -175,6 +179,7 @@ void onFreeTextClient(String value) {
 
 void _populateFromEntity(QuoteEntity quote) {
   folio.value = quote.folio;
+  quoteStatus.value = quote.status ?? '';
   clienteName.value = quote.cliente;
   clienteController.text = quote.cliente;
   selectedPriceType.value = quote.cataPrecio;
@@ -278,11 +283,17 @@ void _populateFromEntity(QuoteEntity quote) {
 
       if (result.generated && result.urlpdf.isNotEmpty) {
         isLoadingPdf.value = false;
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          builder: (_) => PdfOptionsSheet(),
-        );
+      showModalBottomSheet(
+  context: context,
+  backgroundColor: Colors.transparent,
+  builder: (_) => PdfOptionsSheet(
+    onSendWhatsApp: sendWhatsApp,  onOpenPdf: openDownloadedPdf,   
+    onDownloadPdf: downloadPdf,
+    isDownloading: isDownloading,
+    downloadProgress: downloadProgress,    lastDownloadedPath: lastDownloadedPath,
+
+  ),
+);
       }
     } catch (e) {
       showErrorSnackbar('Error al generar PDF');
@@ -294,7 +305,10 @@ void _populateFromEntity(QuoteEntity quote) {
   Future<void> saveQuote() async {
     final id = quoteId.value;
     if (id == null) return;
-
+if (!isEditable) {
+    showErrorSnackbar('Solo se pueden editar cotizaciones con estatus GENERADA');
+    return;
+  }
     if (clienteName.value.trim().isEmpty) {
       showErrorSnackbar('Selecciona un cliente para continuar');
       return;
@@ -382,40 +396,51 @@ void _populateFromEntity(QuoteEntity quote) {
     }
   }
 
-  Future<void> downloadPdf() async {
-    final url = pdfUrl.value;
-    if (url == null || url.isEmpty) return;
+  
+Future<void> downloadPdf() async {
+  final url = pdfUrl.value;
+  if (url == null || url.isEmpty) return;
 
-    try {
-      isDownloading.value = true;
-      downloadProgress.value = 0;
+  try {
+    isDownloading.value = true;
+    downloadProgress.value = 0;
 
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode != 200) {
-        showErrorSnackbar('No se pudo descargar el PDF');
-        return;
-      }
-
-      final fileName =
-          'cotizacion_${folio.value}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      String savePath;
-
-      if (Platform.isAndroid) {
-        savePath = '/storage/emulated/0/Download/$fileName';
-      } else {
-        final dir = await getApplicationDocumentsDirectory();
-        savePath = '${dir.path}/$fileName';
-      }
-
-      final file = File(savePath);
-      await file.writeAsBytes(response.bodyBytes);
-      showSuccessSnackbar('PDF guardado en Descargas');
-    } catch (e) {
-      showErrorSnackbar('Error al descargar PDF: $e');
-    } finally {
-      isDownloading.value = false;
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode != 200) {
+      showErrorSnackbar('No se pudo descargar el PDF');
+      return;
     }
+
+    final fileName =
+        'cotizacion_${folio.value}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    String savePath;
+
+    if (Platform.isAndroid) {
+      savePath = '/storage/emulated/0/Download/$fileName';
+    } else {
+      final dir = await getApplicationDocumentsDirectory();
+      savePath = '${dir.path}/$fileName';
+    }
+
+    final file = File(savePath);
+    await file.writeAsBytes(response.bodyBytes);
+
+
+    lastDownloadedPath.value = savePath;
+
+    showSuccessSnackbar('PDF guardado en Descargas');
+  } catch (e) {
+    showErrorSnackbar('Error al descargar PDF: $e');
+  } finally {
+    isDownloading.value = false;
   }
+}
+
+Future<void> openDownloadedPdf() async {
+  final path = lastDownloadedPath.value;
+  if (path == null || path.isEmpty) return;
+  await OpenFilex.open(path);
+}
 
   @override
   void onClose() {

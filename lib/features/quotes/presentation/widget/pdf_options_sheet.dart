@@ -1,11 +1,23 @@
 import 'package:bcg/common/theme/App_Theme.dart';
-import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PdfOptionsSheet extends StatelessWidget {
-  const PdfOptionsSheet({super.key, });
-  CreateQuoteController get ctrl => Get.find<CreateQuoteController>();
+  final VoidCallback onSendWhatsApp;
+  final VoidCallback onDownloadPdf;
+  final RxBool isDownloading;
+  final RxDouble downloadProgress;
+final VoidCallback onOpenPdf;  
+  final Rxn<String> lastDownloadedPath; 
+  const PdfOptionsSheet({
+     super.key,
+    required this.onSendWhatsApp,
+    required this.onDownloadPdf,
+    required this.onOpenPdf,
+    required this.isDownloading,
+    required this.downloadProgress,
+    required this.lastDownloadedPath,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,13 +64,11 @@ class PdfOptionsSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingLarge),
             child: Text(
               'Tu cotización ha sido creada con éxito.\nPuedes consultarla en cualquier momento desde el módulo de cotizaciones.',
-              style: ThemeColor.bodySmall
-                  .copyWith(color: ThemeColor.textSecondaryColor),
+              style: ThemeColor.bodySmall.copyWith(color: ThemeColor.textSecondaryColor),
               textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: ThemeColor.paddingLarge),
-          // Botón WhatsApp
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingMedium),
             child: ThemeColor.widgetButton(
@@ -69,47 +79,81 @@ class PdfOptionsSheet extends StatelessWidget {
               fontWeight: FontWeight.w600,
               padding: const EdgeInsets.symmetric(vertical: 14),
               borderRadius: ThemeColor.mediumRadius,
-              onPressed: ctrl.sendWhatsApp,
+              onPressed: onSendWhatsApp,
               showShadow: false,
             ),
           ),
           const SizedBox(height: ThemeColor.paddingSmall),
-          // Botón Descargar con progreso
-          Padding(
+         Padding(
             padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingMedium),
-            child: Obx(() => ctrl.isDownloading.value
-                ? Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: ThemeColor.circularBorderRadius,
-                        child: LinearProgressIndicator(
-                          value: ctrl.downloadProgress.value,
-                          minHeight: 6,
-                          backgroundColor: ThemeColor.dividerColor,
-                          color: ThemeColor.primaryColor,
+            child: Obx(() {
+              if (isDownloading.value) {
+                return Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: ThemeColor.circularBorderRadius,
+                      child: LinearProgressIndicator(
+                        value: downloadProgress.value,
+                        minHeight: 6,
+                        backgroundColor: ThemeColor.dividerColor,
+                        color: ThemeColor.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Descargando ${(downloadProgress.value * 100).toStringAsFixed(0)}%',
+                      style: ThemeColor.caption.copyWith(color: ThemeColor.textSecondaryColor),
+                    ),
+                  ],
+                );
+              }
+
+              // Ya descargado: muestra botón "Abrir PDF"
+              if (lastDownloadedPath.value != null) {
+                return Column(
+                  children: [
+                    ThemeColor.widgetButton(
+                      text: 'Abrir PDF descargado',
+                      backgroundColor: ThemeColor.primaryColor,
+                      textColor: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      borderRadius: ThemeColor.mediumRadius,
+                      showShadow: false,
+                      onPressed: onOpenPdf,
+                    ),
+                    const SizedBox(height: ThemeColor.paddingSmall),
+                    // Botón secundario para volver a descargar
+                    GestureDetector(
+                      onTap: onDownloadPdf,
+                      child: Text(
+                        'Descargar de nuevo',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: ThemeColor.textSecondaryColor,
+                          decoration: TextDecoration.underline,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Descargando ${(ctrl.downloadProgress.value * 100).toStringAsFixed(0)}%',
-                        style: ThemeColor.caption
-                            .copyWith(color: ThemeColor.textSecondaryColor),
-                      ),
-                    ],
-                  )
-                : ThemeColor.widgetButton(
-                    text: 'Descargar PDF',
-                    backgroundColor: ThemeColor.backgroundColor,
-                    textColor: ThemeColor.textPrimaryColor,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    borderRadius: ThemeColor.mediumRadius,
-                    borderColor: ThemeColor.dividerColor,
-                    borderWidth: 1.5,
-                    showShadow: false,
-                    onPressed: ctrl.downloadPdf,
-                  )),
+                    ),
+                  ],
+                );
+              }
+
+              // Sin descarga aún
+              return ThemeColor.widgetButton(
+                text: 'Descargar PDF',
+                backgroundColor: ThemeColor.backgroundColor,
+                textColor: ThemeColor.textPrimaryColor,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                borderRadius: ThemeColor.mediumRadius,
+                borderColor: ThemeColor.dividerColor,
+                borderWidth: 1.5,
+                showShadow: false,
+                onPressed: onDownloadPdf,
+              );
+            }),
           ),
         ],
       ),
