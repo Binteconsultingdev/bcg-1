@@ -1,5 +1,5 @@
 class InventoryEntity {
-  final int id;
+  final int? id;
   final String? partNumber;
   final String? description;
   final String? family;
@@ -10,7 +10,7 @@ class InventoryEntity {
   final String? unit;
 
   InventoryEntity({
-    required this.id,
+     this.id,
      this.partNumber,
      this.description,
      this.family,

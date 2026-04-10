@@ -851,19 +851,19 @@ class ThemeColor {
       ),
     );
   }
-
-  static Widget searchTextField({
+static Widget searchTextField({
   required TextEditingController controller,
   required String hintText,
   required void Function(String) onChanged,
   VoidCallback? onClear,
+  VoidCallback? onTap,          // <-- agrega este
   bool isLoading = false,
   bool hasText = false,
   IconData? prefixIcon,
   BorderRadius? borderRadius,
   Color? fillColor,
-    VoidCallback? onPrefixTap, 
-  Color? prefixIconColor, 
+  VoidCallback? onPrefixTap,
+  Color? prefixIconColor,
   TextCapitalization textCapitalization = TextCapitalization.none,
 }) {
   return TextField(
@@ -871,26 +871,24 @@ class ThemeColor {
     style: bodyMedium.copyWith(color: textPrimaryColor),
     textCapitalization: textCapitalization,
     onChanged: onChanged,
+    onTap: onTap,               // <-- agrega este
     decoration: InputDecoration(
       hintText: hintText,
       hintStyle: bodyMedium.copyWith(color: textSecondaryColor),
       isDense: true,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 10,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       filled: true,
       fillColor: fillColor ?? backgroundColor,
-   prefixIcon: prefixIcon != null
-    ? GestureDetector(
-        onTap: onPrefixTap,
-        child: Icon(
-          prefixIcon,
-          color: prefixIconColor ?? textSecondaryColor, 
-          size: 18,
-        ),
-      )
-    : null,
+      prefixIcon: prefixIcon != null
+          ? GestureDetector(
+              onTap: onPrefixTap,
+              child: Icon(
+                prefixIcon,
+                color: prefixIconColor ?? textSecondaryColor,
+                size: 18,
+              ),
+            )
+          : null,
       suffixIcon: isLoading
           ? const Padding(
               padding: EdgeInsets.all(10),
@@ -903,28 +901,19 @@ class ThemeColor {
           : (hasText && onClear != null)
               ? GestureDetector(
                   onTap: onClear,
-                  child: const Icon(
-                    Icons.close,
-                    size: 16,
-                    color: textSecondaryColor,
-                  ),
+                  child: const Icon(Icons.close, size: 16, color: textSecondaryColor),
                 )
               : null,
       enabledBorder: OutlineInputBorder(
         borderRadius: borderRadius ?? extraLargeBorderRadius,
         borderSide: BorderSide(
-          color: hasText
-              ? accentColor.withOpacity(0.5)
-              : dividerColor,
+          color: hasText ? accentColor.withOpacity(0.5) : dividerColor,
           width: hasText ? 1.5 : 1,
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: borderRadius ?? extraLargeBorderRadius,
-        borderSide: const BorderSide(
-          color: accentColor,
-          width: 1.5,
-        ),
+        borderSide: const BorderSide(color: accentColor, width: 1.5),
       ),
       border: OutlineInputBorder(
         borderRadius: borderRadius ?? extraLargeBorderRadius,

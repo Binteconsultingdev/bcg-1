@@ -68,37 +68,51 @@ class SalesDataSourcesImp {
       }
       throw Exception(e);
     }
-  }
+  }Future<void> generateSales(CreateSalesEntity entity, String token) async {
+  try {
+    Uri url = Uri.parse('$defaultApiServer/VentaSalida/generar');
 
-  Future<void> generateSales(CreateSalesEntity entity, String token) async {
-    try {
-      Uri url = Uri.parse('$defaultApiServer/VentaSalida/generar');
+    final payload = jsonEncode(CreateSalesModel.fromEntity(entity).toJson());
 
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(CreateSalesModel.fromEntity(entity).toJson()),
-      );
+    print('🚀 Iniciando generateSales');
+    print('🌐 URL: $url');
+    print('📦 Payload: $payload');
+    print('🔑 Token: $token');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return;
-      }
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: payload,
+    );
 
-      ApiExceptionCustom exception = ApiExceptionCustom(response: response);
-      exception.validateMesage();
-      throw exception;
-    } catch (e) {
-      if (e is SocketException ||
-          e is http.ClientException ||
-          e is TimeoutException) {
-        print('🌐 Error de red detectado');
-        throw Exception(convertMessageException(error: e));
-      }
+    print('📥 Status Code: ${response.statusCode}');
+    print('📥 Response Body: ${response.body}');
 
-      throw Exception('$e');
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('✅ Venta generada correctamente');
+      return;
     }
+
+    print('⚠️ Error en la respuesta del servidor');
+
+    ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+    exception.validateMesage();
+    throw exception;
+
+  } catch (e) {
+    print('❌ Error capturado: $e');
+
+    if (e is SocketException ||
+        e is http.ClientException ||
+        e is TimeoutException) {
+      print('🌐 Error de red');
+      throw Exception(convertMessageException(error: e));
+    }
+
+    throw Exception('$e');
   }
+}
 }

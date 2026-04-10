@@ -1,3 +1,4 @@
+import 'package:bcg/common/errors/convert_message.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/common/controller/product_search_controller.dart';
@@ -360,7 +361,7 @@ if (!isEditable) {
       showSuccessSnackbar('Cotización actualizada correctamente');
     } catch (e) {
       errorMessage.value = 'Error al guardar: $e';
-      showErrorSnackbar('Error al guardar cotización');
+      showErrorSnackbar('Error al guardar cotización ${cleanExceptionMessage(e)}');
     } finally {
       isSaving.value = false;
     }

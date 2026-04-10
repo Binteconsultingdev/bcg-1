@@ -76,7 +76,7 @@ class QuotesDataSourcesImp {
   Future<QuoteEntity> fetchQuotebyid(String token, int id) async {
     try {
       Uri url = Uri.parse('$defaultApiServer/Cotizaciones/$id');
-
+ print('🔍 URL de búsqueda por ID: $url');
        final response = await http.get(
         url,
         headers: {
@@ -187,7 +187,6 @@ class QuotesDataSourcesImp {
           'Authorization': 'Bearer $token',
         },
       );
-
       if (response.statusCode == 200) {
         final folio = response.body.trim();
         return FolioModel.fromResponse(folio);

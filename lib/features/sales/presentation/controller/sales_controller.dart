@@ -95,15 +95,13 @@ class SalesController extends GetxController {
         page, _pageSize,
         id: _trimmed,
       ));
-    } else {
-      // Por folio
+    } else { 
       calls.add(pointSalesUsecase.call(
         dateFrom, dateUntil, ignoreDates,
         client, status, user,
         page, _pageSize,
         folio: _trimmed,
-      ));
-      // Por cliente
+      )); 
       calls.add(pointSalesUsecase.call(
         dateFrom, dateUntil, ignoreDates,
         _trimmed, status, user,

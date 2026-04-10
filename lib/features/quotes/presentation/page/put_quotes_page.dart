@@ -966,7 +966,7 @@ class _BottomButton extends StatelessWidget {
       ),
 
       child: Obx(() {
-        final blocked = ctrl.hasOutOfStockItems;
+
         return Row(
           children: [
             Expanded(
@@ -987,7 +987,7 @@ class _BottomButton extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: AnimatedOpacity(
-                  opacity: blocked ? 0.5 : 1.0,
+                  opacity:  1.0,
                   duration: const Duration(milliseconds: 250),
                   child: ThemeColor.widgetButton(
                     text: 'Guardar Cambios',
@@ -998,7 +998,7 @@ class _BottomButton extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     borderRadius: ThemeColor.mediumRadius,
                     isLoading: ctrl.isSaving.value,
-                    onPressed: blocked ? null : ctrl.saveQuote,
+                    onPressed:  ctrl.saveQuote,
                   ),
                 ),
               ),

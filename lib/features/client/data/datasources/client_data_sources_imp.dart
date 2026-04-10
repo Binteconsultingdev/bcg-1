@@ -59,9 +59,6 @@ class ClientDataSourcesImp {
 
     final body = jsonEncode(CreateClientModel.fromEntity(entity).toJson());
 
-    print('📤 URL: $url');
-    print('📤 BODY: $body');
-    print('📤 TOKEN: $token');
 
     final response = await http.post(
       url,
@@ -72,15 +69,11 @@ class ClientDataSourcesImp {
       body: body,
     );
 
-    print('📥 STATUS CODE: ${response.statusCode}');
-    print('📥 RESPONSE BODY: ${response.body}');
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      print('✅ Cliente creado correctamente');
+      
       return;
     }
-
-    print('❌ Error en la petición');
 
     ApiExceptionCustom exception = ApiExceptionCustom(response: response);
     exception.validateMesage();

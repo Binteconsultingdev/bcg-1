@@ -4,11 +4,8 @@ import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
-import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
-import 'package:bcg/features/client/presentation/controller/client_controller.dart';
 import 'package:bcg/features/client/presentation/controller/client_search_controller.dart';
-import 'package:bcg/features/client/presentation/page/client_search_sheet.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quotes_byid_usecase.dart';
@@ -22,16 +19,16 @@ class SaleItem {
   final InventoryEntity product;
   final RxDouble quantity;
   final RxDouble discount;
-RxDouble get totalRx => total.obs; 
 
   SaleItem({required this.product, double initialQty = 1.0})
-      : quantity = initialQty.obs,
-        discount = 0.0.obs;
+    : quantity = initialQty.obs,
+      discount = 0.0.obs;
 
   double get unitPrice => (product.price ?? 0).toDouble();
   double get subtotal => unitPrice * quantity.value;
-  double get discountAmount => subtotal * (discount.value / 100);
-  double get total => subtotal - discountAmount;
+  double get total => subtotal - (subtotal * (discount.value / 100));
+  double get stock => (product.availableQuantity ?? 0).toDouble();
+  RxDouble get totalRx => total.obs;
 }
 
 class CreateSalesController extends GetxController {
@@ -44,175 +41,114 @@ class CreateSalesController extends GetxController {
     required this.fetchQuotesByidUsecase,
     required this.fetchQuoteUsecase,
   });
-Worker? _quoteSearchDebounce;
 
-  final AuthService _authService = AuthService();
+  final _authService = AuthService();
+  late final _salesCtrl = Get.find<SalesController>();
 
-  late final InventoryController _inventoryCtrl =
-      Get.find<InventoryController>();
-  late final SalesController _salesCtrl = Get.find<SalesController>();
-  late final ClientController _clientCtrl = Get.find<ClientController>();
-
+  // — Cliente —
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<int>();
 
-
+  // — Config venta —
   final metodoEmbarque = 'CAMIONETA'.obs;
   final incIVA = true.obs;
-  final tipoCambio = 1.0.obs;
+  final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
-  final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
-
-
+ 
   final items = <SaleItem>[].obs;
-  final productSearchQuery = ''.obs;
-  final isSearching = false.obs;
-  final RxBool searchByDescription = true.obs;
-
-
-  final RxString quoteSearchInput = ''.obs;
-  final TextEditingController quoteSearchCtrl = TextEditingController();
-  final RxBool isSearchingQuote = false.obs;
-  final RxBool isSearchingQuoteApi = false.obs;
-  final RxBool isLoadingQuote = false.obs;
-  final RxString selectedFolioQuote = ''.obs;
-  final RxList<GetQuoteEntity> quoteResults = <GetQuoteEntity>[].obs;
-
-
+  final quoteSearchType = 'folio'.obs; 
+ 
+  final quoteSearchInput = ''.obs;
+  final quoteSearchCtrl = TextEditingController();
+  final isSearchingQuote = false.obs;
+  final isSearchingQuoteApi = false.obs;
+  final isLoadingQuote = false.obs;
+  final selectedFolioQuote = ''.obs;
+  final quoteResults = <GetQuoteEntity>[].obs;
+ 
   final isCreating = false.obs;
-  final isSuccess = false.obs;
   final errorMessage = ''.obs;
-
-
+ 
   final commentsCtrl = TextEditingController();
-  final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
   final referenciaCtrl = TextEditingController();
   final tipoCambioCtrl = TextEditingController(text: '1.00');
 
-  final List<String> metodosEmbarque = [
-    'CAMIONETA',
-    'CLIENTE RECOGE',
-    'PAQUETERIA',
-  ];
-@override
-void onInit() {
-  super.onInit();
-  _quoteSearchDebounce = debounce(
-    quoteSearchInput,
-    (value) {
-      if (value.trim().isNotEmpty) {
-        searchQuoteByFolio();
-      } else {
-        quoteResults.clear();
-      }
-    },
-    time: const Duration(milliseconds: 600),
-  );
-}
+  final metodosEmbarque = ['CAMIONETA', 'CLIENTE RECOGE', 'PAQUETERIA'];
 
-
-
-void onClientSelected(ClientEntity client) {
-  final name = client.displayName ?? '';
-  clienteController.text = name;
-  clienteName.value = name;
-  selectedClientId.value = client.id;
-  Get.find<ClientSearchController>().searchCtrl.text = name;
-}
-
+  Worker? _quoteSearchDebounce;
+ 
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount =>
       incIVA.value ? (subtotal - globalDiscount.value) * 0.16 : 0;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
+  bool get hasOutOfStockItems =>
+      items.any((i) => (i.product.availableQuantity ?? 0) <= 0);
 
-  List<InventoryEntity> get searchResults {
-    final q = productSearchQuery.value.toLowerCase();
-    if (q.isEmpty) return [];
-    return _inventoryCtrl.inventario
-        .where((p) => searchByDescription.value
-            ? (p.description?.toLowerCase().contains(q) ?? false)
-            : (p.partNumber?.toLowerCase().contains(q) ?? false))
-        .take(20)
-        .toList();
-  }
-
-
-
-void onClienteChanged(String value) => clienteName.value = value;
-
-  void openClientSearch(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ClientSearchSheet(
-        clientCtrl: _clientCtrl,
-        onSelected: (client) {
-          clienteController.text = client.displayName ?? '';
-          clienteName.value = client.displayName ?? '';
-          selectedClientId.value = client.id;
-        },
-      ),
+  @override
+  void onInit() {
+    super.onInit();
+    _quoteSearchDebounce = debounce(
+      quoteSearchInput,
+      (v) => v.trim().isNotEmpty ? searchQuoteByFolio() : quoteResults.clear(),
+      time: const Duration(milliseconds: 600),
     );
   }
 
 
-
-  void onProductSearchChanged(String value) {
-    productSearchQuery.value = value;
-    isSearching.value = value.isNotEmpty;
+  void onClientSelected(ClientEntity client) {
+    final name = client.displayName ?? '';
+    clienteController.text = name;
+    clienteName.value = name;
+    selectedClientId.value = client.id;
+    Get.find<ClientSearchController>().searchCtrl.text = name;
   }
-
-void addProduct(InventoryEntity product) {
-  if ((product.price ?? 0) <= 0) {
-    showErrorSnackbar('Este producto no tiene precio asignado');
-    return;
+ 
+  void addProduct(InventoryEntity product) {
+    if ((product.price ?? 0) <= 0) {
+      showErrorSnackbar('Este producto no tiene precio asignado');
+      return;
+    }
+    final existing = items.firstWhereOrNull((i) => i.product.id == product.id);
+    existing != null
+        ? existing.quantity.value++
+        : items.add(SaleItem(product: product));
+    Get.find<ProductSearchController>().clearSearch();
   }
-  final existing = items.firstWhereOrNull((i) => i.product.id == product.id);
-  if (existing != null) {
-    existing.quantity.value++;
-  } else {
-    items.add(SaleItem(product: product));
-  }
-  Get.find<ProductSearchController>().clearSearch();
-}
 
   void removeItem(SaleItem item) => items.remove(item);
-
-  void duplicateItem(SaleItem item) {
-    items.add(SaleItem(product: item.product, initialQty: item.quantity.value));
+ 
+  void onQuoteSearchChanged(String value) {
+    quoteSearchInput.value = value;
+    isSearchingQuote.value = value.isNotEmpty;
+    if (value.isEmpty) quoteResults.clear();
   }
 
-
-
-void onQuoteSearchChanged(String value) {
-  quoteSearchInput.value = value;
-  isSearchingQuote.value = value.isNotEmpty;
-  if (value.isEmpty) quoteResults.clear();
-}
   Future<void> searchQuoteByFolio() async {
-    final folio = quoteSearchInput.value.trim();
-    if (folio.isEmpty) return;
-
+    final query = quoteSearchInput.value.trim();
+    if (query.isEmpty) return;
     try {
       isSearchingQuoteApi.value = true;
-      quoteResults.clear();
 
-      final results = await fetchQuoteUsecase.cal(
-        '',
-        '',
-        '',
-        '',
-        1,  
-        10,
-        folio: folio,
-      );
+      final results = await Future.wait([
+        fetchQuoteUsecase.cal('', '', '', '', 1, 10, folio: query),
+        fetchQuoteUsecase.cal(query, '', '', '', 1, 10),
+        fetchQuoteUsecase.cal('', '', '', '', 1, 10, id: query),
+      ]);
+ 
+      final seen = <String>{};
+      final merged = <GetQuoteEntity>[];
+      for (final list in results) {
+        for (final item in list) {
+          final key = item.id?.toString() ?? item.folito ?? '';
+          if (seen.add(key)) merged.add(item);
+        }
+      }
 
-      quoteResults.assignAll(results);
+      quoteResults.assignAll(merged);
     } catch (e) {
       showErrorSnackbar('Error al buscar cotización: $e');
     } finally {
@@ -220,35 +156,51 @@ void onQuoteSearchChanged(String value) {
     }
   }
 
+  Future<void> loadInitialQuotes() async {
+    try {
+      isSearchingQuoteApi.value = true;
+      quoteResults.assignAll(
+        await fetchQuoteUsecase.cal('', '', '', '', 1, 20),
+      );
+    } catch (e) {
+      showErrorSnackbar('Error al cargar cotizaciones: $e');
+    } finally {
+      isSearchingQuoteApi.value = false;
+    }
+  }
+
   Future<void> loadFromQuote(GetQuoteEntity quoteEntity) async {
     if (quoteEntity.id == null) return;
-     if ((quoteEntity.status ?? '').toUpperCase() != 'GENERADA') {
-    showErrorSnackbar('Solo se pueden cargar cotizaciones con estatus GENERADA');
-    return;
-  }
+    if ((quoteEntity.status ?? '').toUpperCase() != 'GENERADA') {
+      showErrorSnackbar(
+        'Solo se pueden cargar cotizaciones con estatus GENERADA',
+      );
+      return;
+    }
     try {
       isLoadingQuote.value = true;
       final quote = await fetchQuotesByidUsecase.call(quoteEntity.id!);
 
-      final clienteRaw = quote.cliente;
-      int? clienteId;
-      String clienteNombre = clienteRaw;
-
-      final idMatch = RegExp(r'^\((\d+)\)\s*').firstMatch(clienteRaw);
+      final idMatch = RegExp(r'^\((\d+)\)\s*').firstMatch(quote.cliente);
       if (idMatch != null) {
-        clienteId = int.tryParse(idMatch.group(1) ?? '');
-        clienteNombre =
-            clienteRaw.replaceFirst(idMatch.group(0)!, '').trim();
-        clienteNombre =
-            clienteNombre.replaceAll('"', '').replaceAll("'", '').trim();
+        selectedClientId.value = int.tryParse(idMatch.group(1) ?? '');
+        final nombre = quote.cliente
+            .replaceFirst(idMatch.group(0)!, '')
+            .replaceAll('"', '')
+            .replaceAll("'", '')
+            .trim();
+        clienteController.text = nombre;
+        clienteName.value = nombre;
+        Get.find<ClientSearchController>().searchCtrl.text = nombre;
+      } else {
+        clienteController.text = quote.cliente;
+        clienteName.value = quote.cliente;
+        Get.find<ClientSearchController>().searchCtrl.text = quote.cliente;
       }
-
-      selectedClientId.value = clienteId;
-      clienteController.text = clienteNombre;
-      clienteName.value = clienteNombre;
 
       commentsCtrl.text = quote.comentarios;
       referenciaCtrl.text = quote.folio;
+      selectedFolioQuote.value = quote.folio;
 
       final desc = double.tryParse(quote.descuento) ?? 0;
       if (desc > 0) {
@@ -256,27 +208,23 @@ void onQuoteSearchChanged(String value) {
         globalDiscountCtrl.text = desc.toStringAsFixed(2);
       }
 
-      selectedFolioQuote.value = quote.folio;
+      items.assignAll(
+        quote.productos.map(
+          (p) => SaleItem(
+            product: InventoryEntity(
+              id: 0,
+              partNumber: p.codigo,
+              description: p.descripcion,
+              price: p.precio,
+              availableQuantity: p.disponible.toInt(),
+              imageUrl: p.url.isNotEmpty ? p.url : null,
+            ),
+            initialQty: p.cantidad,
+          ),
+        ),
+      );
 
-      final newItems = <SaleItem>[];
-      for (final producto in quote.productos) {
-        final inventoryProduct = _inventoryCtrl.inventario.firstWhereOrNull(
-          (p) => p.partNumber?.trim() == producto.codigo.trim(),
-        );
-        if (inventoryProduct != null) {
-          newItems.add(SaleItem(
-            product: inventoryProduct,
-            initialQty: producto.cantidad,
-          ));
-        }
-      }
-      items.assignAll(newItems);
-
-      quoteResults.clear();
-      quoteSearchCtrl.clear();
-      quoteSearchInput.value = '';
-      isSearchingQuote.value = false;
-
+      _clearQuoteSearch();
       showSuccessSnackbar('Cotización ${quote.folio} cargada correctamente');
     } catch (e) {
       showErrorSnackbar('Error al cargar cotización: $e');
@@ -285,8 +233,13 @@ void onQuoteSearchChanged(String value) {
     }
   }
 
-
-
+  void _clearQuoteSearch() {
+    quoteResults.clear();
+    quoteSearchCtrl.clear();
+    quoteSearchInput.value = '';
+    isSearchingQuote.value = false;
+  }
+ 
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
       globalDiscountType.value = 'porcentaje';
@@ -297,13 +250,12 @@ void onQuoteSearchChanged(String value) {
       globalDiscountPercent.value = 0;
       globalDiscount.value = value;
     }
-    globalDiscountCtrl.text =
-        globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
+    globalDiscountCtrl.text = globalDiscount.value > 0
+        ? globalDiscount.value.toStringAsFixed(2)
+        : '';
   }
 
-bool get hasOutOfStockItems =>
-    items.any((i) => (i.product.availableQuantity ?? 0) <= 0);
-
+  // — Fecha —
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
@@ -323,8 +275,7 @@ bool get hasOutOfStockItems =>
     if (picked != null) validUntil.value = picked;
   }
 
-
-
+  // — Crear venta —
   Future<void> createSale() async {
     if (clienteName.value.trim().isEmpty) {
       showErrorSnackbar('Selecciona un cliente para continuar');
@@ -334,41 +285,39 @@ bool get hasOutOfStockItems =>
       showErrorSnackbar('Agrega al menos un producto');
       return;
     }
-
     try {
       isCreating.value = true;
-      errorMessage.value = '';
+      final vendedor = (await _authService.getUserData())?.nombre ?? '';
 
-      final userData = await _authService.getUserData();
-      final vendedorName = userData?.nombre ?? '';
-
-      final entity = CreateSalesEntity(
-        numCliente: selectedClientId.value ?? 0,
-        cliente: clienteName.value.trim(),
-        vendedor: vendedorName,
-        user: vendedorName,
-        metodoEmb: metodoEmbarque.value,
-        comentarios: commentsCtrl.text.trim(),
-        refe: referenciaCtrl.text.trim(),
-        fechaEntrega: validUntil.value,
-        tc: double.tryParse(tipoCambioCtrl.text) ?? 1.0,
-        incIVA: incIVA.value,
-        folioPre: selectedFolioQuote.value,
-        descuento: globalDiscount.value,
-        partidas: items
-            .map((i) => PartidaEntity(
+      await generateSalesUsecase.call(
+        CreateSalesEntity(
+          numCliente: selectedClientId.value ?? 0,
+          cliente: clienteName.value.trim(),
+          vendedor: vendedor,
+          user: vendedor,
+          metodoEmb: metodoEmbarque.value,
+          comentarios: commentsCtrl.text.trim(),
+          refe: referenciaCtrl.text.trim(),
+          fechaEntrega: validUntil.value,
+          tc: double.tryParse(tipoCambioCtrl.text) ?? 1.0,
+          incIVA: incIVA.value,
+          folioPre: selectedFolioQuote.value,
+          descuento: globalDiscount.value,
+          partidas: items
+              .map(
+                (i) => PartidaEntity(
                   numParte: i.product.partNumber ?? '',
                   descripcion: i.product.description ?? '',
-                  cantidad: i.quantity.value.toDouble(),
+                  cantidad: i.quantity.value,
                   precio: i.unitPrice,
                   claveSat: '',
                   um: 'PZA',
-                ))
-            .toList(),
+                ),
+              )
+              .toList(),
+        ),
       );
 
-      await generateSalesUsecase.call(entity);
-      isSuccess.value = true;
       await _salesCtrl.fetchSales();
       showSuccessSnackbar('Venta creada correctamente');
     } catch (e) {
@@ -379,17 +328,19 @@ bool get hasOutOfStockItems =>
     }
   }
 
-@override
-void onClose() {
-  _quoteSearchDebounce?.dispose(); 
-  clienteController.dispose();
-  commentsCtrl.dispose();
-  productSearchCtrl.dispose();
-  globalDiscountCtrl.dispose();
-  referenciaCtrl.dispose();
-  tipoCambioCtrl.dispose();
-  quoteSearchCtrl.dispose();
-  quoteResults.clear();
-  super.onClose();
-}
+  @override
+  void onClose() {
+    _quoteSearchDebounce?.dispose();
+    for (final c in [
+      clienteController,
+      commentsCtrl,
+      globalDiscountCtrl,
+      referenciaCtrl,
+      tipoCambioCtrl,
+      quoteSearchCtrl,
+    ]) {
+      c.dispose();
+    }
+    super.onClose();
+  }
 }

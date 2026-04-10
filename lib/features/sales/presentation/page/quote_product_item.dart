@@ -13,6 +13,7 @@ class QuoteProductItem extends StatelessWidget {
   final VoidCallback onRemove;
   final void Function(double) onQuantityChanged;
   final bool readOnly;
+  final double? maxQuantity; // null = sin límite
 
   const QuoteProductItem({
     super.key,
@@ -24,7 +25,8 @@ class QuoteProductItem extends StatelessWidget {
     required this.availableQuantity,
     required this.onRemove,
     required this.onQuantityChanged,
-    this.readOnly = false, // <-- default false
+    this.readOnly = false,
+    this.maxQuantity,
   });
 
   @override
@@ -62,7 +64,8 @@ class QuoteProductItem extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.warning_amber_rounded, size: 13, color: Colors.amber),
+                      const Icon(Icons.warning_amber_rounded,
+                          size: 13, color: Colors.amber),
                       const SizedBox(width: 4),
                       Text(
                         'Sin existencia',
@@ -75,15 +78,19 @@ class QuoteProductItem extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 8),
-                if (!readOnly) // <-- oculta controles en readOnly
-                  _QuantityControls(quantity: quantity, onChanged: onQuantityChanged)
+                if (!readOnly)
+                  _QuantityControls(
+                    quantity: quantity,
+                    onChanged: onQuantityChanged,
+                    maxQuantity: maxQuantity,
+                  )
                 else
                   Obx(() => Text(
-                    'Cant: ${quantity.value % 1 == 0 ? quantity.value.toInt() : quantity.value}',
-                    style: ThemeColor.bodySmall.copyWith(
-                      color: ThemeColor.textSecondaryColor,
-                    ),
-                  )),
+                        'Cant: ${quantity.value % 1 == 0 ? quantity.value.toInt() : quantity.value}',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: ThemeColor.textSecondaryColor,
+                        ),
+                      )),
               ],
             ),
           ),
@@ -91,19 +98,21 @@ class QuoteProductItem extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (!readOnly) // <-- oculta botón eliminar en readOnly
+              if (!readOnly)
                 GestureDetector(
                   onTap: onRemove,
                   child: const Padding(
                     padding: EdgeInsets.all(4),
-                    child: Icon(Icons.delete_outline, color: ThemeColor.errorColor, size: 20),
+                    child: Icon(Icons.delete_outline,
+                        color: ThemeColor.errorColor, size: 20),
                   ),
                 ),
               SizedBox(height: readOnly ? 0 : 14),
               Obx(
                 () => Text(
                   '\$${total.value.toStringAsFixed(2)}',
-                  style: ThemeColor.subtitleMedium.copyWith(fontWeight: FontWeight.w700),
+                  style: ThemeColor.subtitleMedium
+                      .copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
             ],
@@ -117,7 +126,13 @@ class QuoteProductItem extends StatelessWidget {
 class _QuantityControls extends StatefulWidget {
   final RxDouble quantity;
   final void Function(double) onChanged;
-  const _QuantityControls({required this.quantity, required this.onChanged});
+  final double? maxQuantity;
+
+  const _QuantityControls({
+    required this.quantity,
+    required this.onChanged,
+    this.maxQuantity,
+  });
 
   @override
   State<_QuantityControls> createState() => _QuantityControlsState();
@@ -151,12 +166,17 @@ class _QuantityControlsState extends State<_QuantityControls> {
   Widget build(BuildContext context) {
     return Obx(() {
       final qty = widget.quantity.value;
+      final max = widget.maxQuantity;
+      final atMax = max != null && qty >= max;
+
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _btn(Icons.remove, () {
-            if (qty > 1) widget.onChanged(qty - 1);
-          }, color: ThemeColor.backgroundColor),
+          _btn(
+            Icons.remove,
+            qty > 1 ? () => widget.onChanged(qty - 1) : null,
+            color: ThemeColor.backgroundColor,
+          ),
           SizedBox(
             width: 44,
             height: 28,
@@ -188,15 +208,29 @@ class _QuantityControlsState extends State<_QuantityControls> {
               ),
               onChanged: (v) {
                 final parsed = double.tryParse(v);
-                if (parsed != null && parsed > 0) widget.onChanged(parsed);
+                if (parsed != null && parsed > 0) {
+                  if (max == null || parsed <= max) {
+                    widget.onChanged(parsed);
+                  } else {
+                    // Revierte al máximo permitido
+                    final maxText = max % 1 == 0
+                        ? max.toInt().toString()
+                        : max.toString();
+                    _textCtrl.text = maxText;
+                    _textCtrl.selection = TextSelection.fromPosition(
+                      TextPosition(offset: maxText.length),
+                    );
+                    widget.onChanged(max);
+                  }
+                }
               },
             ),
           ),
           _btn(
             Icons.add,
-            () => widget.onChanged(qty + 1),
-            color: ThemeColor.primaryColor,
-            iconColor: Colors.white,
+            atMax ? null : () => widget.onChanged(qty + 1),
+            color: atMax ? Colors.grey.shade300 : ThemeColor.primaryColor,
+            iconColor: atMax ? ThemeColor.textSecondaryColor : Colors.white,
           ),
         ],
       );
@@ -205,12 +239,12 @@ class _QuantityControlsState extends State<_QuantityControls> {
 
   Widget _btn(
     IconData icon,
-    VoidCallback onTap, {
+    VoidCallback? onTap, {
     required Color color,
     Color iconColor = ThemeColor.textPrimaryColor,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap, // null = no hace nada al tocar
       child: Container(
         width: 28,
         height: 28,

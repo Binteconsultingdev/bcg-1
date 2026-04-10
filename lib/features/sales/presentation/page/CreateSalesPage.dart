@@ -11,45 +11,47 @@ import 'package:get/get.dart';
 
 class CreateSalesPage extends StatelessWidget {
   const CreateSalesPage({super.key});
-@override
-Widget build(BuildContext context) {
-  final CreateSalesController ctrl = Get.find<CreateSalesController>();
+  @override
+  Widget build(BuildContext context) {
+    final CreateSalesController ctrl = Get.find<CreateSalesController>();
 
-  return GestureDetector(
-    onTap: () {
-      FocusScope.of(context).unfocus();
-    },
-    child: Scaffold(
-      backgroundColor: ThemeColor.backgroundColor,
-      appBar: _AppBar(ctrl: ctrl),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              child: Column(
-                children: [
-                  _TopSection(ctrl: ctrl),
-                  _sectionGap(),
-                  _ProductList(ctrl: ctrl),
-                  _TotalsSection(ctrl: ctrl),
-                  _sectionGap(),
-                  _DeliverySection(ctrl: ctrl),
-                  _sectionGap(),
-                  _ExtraFieldsSection(ctrl: ctrl),
-                  _sectionGap(),
-                  _CommentsSection(ctrl: ctrl),
-                  const SizedBox(height: 100),
-                ],
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: ThemeColor.backgroundColor,
+        appBar: _AppBar(ctrl: ctrl),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: Column(
+                  children: [
+                    _TopSection(ctrl: ctrl),
+                    _sectionGap(),
+                    _ProductList(ctrl: ctrl),
+                    _TotalsSection(ctrl: ctrl),
+                    _sectionGap(),
+                    _DeliverySection(ctrl: ctrl),
+                    _sectionGap(),
+                    _ExtraFieldsSection(ctrl: ctrl),
+                    _sectionGap(),
+                    _CommentsSection(ctrl: ctrl),
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
             ),
-          ),
-          _BottomButton(ctrl: ctrl),
-        ],
+            _BottomButton(ctrl: ctrl),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
+
   static Widget _sectionGap() =>
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
@@ -91,37 +93,71 @@ class _QuoteSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Obx(
-                () => ThemeColor.searchTextField(
-                  controller: ctrl.quoteSearchCtrl,
-                  hintText: ctrl.selectedFolioQuote.value.isNotEmpty
-                      ? 'Folio: ${ctrl.selectedFolioQuote.value}'
-                      : 'Buscar por folio',
+    return Obx(
+      () => ThemeColor.searchTextField(
+        controller: ctrl.quoteSearchCtrl,
+        hintText: ctrl.selectedFolioQuote.value.isNotEmpty
+            ? 'Folio: ${ctrl.selectedFolioQuote.value}'
+            : 'Buscar por folio o cliente...',
+        prefixIcon: Icons.receipt_long_outlined,
+        isLoading: ctrl.isSearchingQuoteApi.value,
+        hasText:
+            ctrl.isSearchingQuote.value ||
+            ctrl.selectedFolioQuote.value.isNotEmpty,
+        onChanged: ctrl.onQuoteSearchChanged,
+        onTap: () {
+          if (ctrl.quoteResults.isEmpty &&
+              ctrl.quoteSearchInput.value.trim().isEmpty) {
+            ctrl.loadInitialQuotes();
+          }
+          ctrl.isSearchingQuote.value = true;
+        },
+        onClear: () {
+          ctrl.selectedFolioQuote.value = '';
+          ctrl.quoteSearchCtrl.clear();
+          ctrl.onQuoteSearchChanged('');
+          ctrl.quoteResults.clear();
+          ctrl.isSearchingQuote.value = false;
+        },
+      ),
+    );
+  }
+}
 
-                  prefixIcon: Icons.receipt_long_outlined,
-                  isLoading: ctrl.isSearchingQuoteApi.value,
-                  hasText:
-                      ctrl.isSearchingQuote.value ||
-                      ctrl.selectedFolioQuote.value.isNotEmpty,
-                  onChanged: ctrl.onQuoteSearchChanged,
-                  onClear: () {
-                    ctrl.selectedFolioQuote.value = '';
-                    ctrl.quoteSearchCtrl.clear();
-                    ctrl.onQuoteSearchChanged('');
-                    ctrl.quoteResults.clear();
-                  },
-                ),
-              ),
-            ),
-          ],
+class _SearchChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _SearchChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: selected
+              ? ThemeColor.primaryColor
+              : ThemeColor.backgroundColor,
+          borderRadius: ThemeColor.circularBorderRadius,
+          border: Border.all(
+            color: selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
+          ),
         ),
-      ],
+        child: Text(
+          label,
+          style: ThemeColor.bodySmall.copyWith(
+            color: selected ? Colors.white : ThemeColor.textSecondaryColor,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -165,7 +201,7 @@ class _TopSection extends StatelessWidget {
                 ),
               );
             }
-            if (ctrl.quoteResults.isEmpty && ctrl.isSearchingQuote.value) {
+            if (ctrl.quoteResults.isEmpty) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text('Sin cotizaciones', style: ThemeColor.bodySmall),
@@ -187,36 +223,52 @@ class _TopSection extends StatelessWidget {
                 separatorBuilder: (_, __) =>
                     Divider(height: 1, color: ThemeColor.dividerColor),
                 itemBuilder: (_, i) {
-  final q = ctrl.quoteResults[i];
-  final isGenerada = (q.status ?? '').toUpperCase() == 'GENERADA';
-  
-  return ListTile(
-    dense: true,
-    enabled: isGenerada,
-    leading: Icon(
-      Icons.receipt_outlined,
-      color: isGenerada ? ThemeColor.primaryColor : ThemeColor.textSecondaryColor,
-      size: 20,
-    ),
-    title: Text(
-      '${q.folito ?? '-'} · ${q.client ?? '-'}',
-      style: ThemeColor.bodyMedium.copyWith(
-        fontWeight: FontWeight.w600,
-        color: isGenerada ? null : ThemeColor.textSecondaryColor,
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    ),
-    subtitle: Text(
-      '\$${q.total?.toStringAsFixed(2) ?? '0.00'} · ${q.date ?? ''} · ${q.status ?? ''}',
-      style: ThemeColor.caption,
-    ),
-    trailing: isGenerada
-        ? const Icon(Icons.arrow_forward_ios, color: ThemeColor.textSecondaryColor, size: 14)
-        : const Icon(Icons.block, color: ThemeColor.textSecondaryColor, size: 14),
-    onTap: isGenerada ? () => ctrl.loadFromQuote(q) : () => showErrorSnackbar('Solo se pueden cargar cotizaciones con estatus GENERADA'),
-  );
-},
+                  final q = ctrl.quoteResults[i];
+                  final isGenerada =
+                      (q.status ?? '').toUpperCase() == 'GENERADA';
+                  return ListTile(
+                    dense: true,
+                    enabled: isGenerada,
+                    leading: Icon(
+                      Icons.receipt_outlined,
+                      color: isGenerada
+                          ? ThemeColor.primaryColor
+                          : ThemeColor.textSecondaryColor,
+                      size: 20,
+                    ),
+                    title: Text(
+                      '${q.folito ?? '-'} · ${q.client ?? '-'}',
+                      style: ThemeColor.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: isGenerada
+                            ? null
+                            : ThemeColor.textSecondaryColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      '\$${q.total?.toStringAsFixed(2) ?? '0.00'} · ${q.date ?? ''} · ${q.status ?? ''}',
+                      style: ThemeColor.caption,
+                    ),
+                    trailing: isGenerada
+                        ? const Icon(
+                            Icons.arrow_forward_ios,
+                            color: ThemeColor.textSecondaryColor,
+                            size: 14,
+                          )
+                        : const Icon(
+                            Icons.block,
+                            color: ThemeColor.textSecondaryColor,
+                            size: 14,
+                          ),
+                    onTap: isGenerada
+                        ? () => ctrl.loadFromQuote(q)
+                        : () => showErrorSnackbar(
+                            'Solo se pueden cargar cotizaciones con estatus GENERADA',
+                          ),
+                  );
+                },
               ),
             );
           }),
@@ -348,6 +400,7 @@ class _MetodoBottomSheet extends StatelessWidget {
     );
   }
 }
+
 class _ProductList extends StatelessWidget {
   final CreateSalesController ctrl;
   const _ProductList({required this.ctrl});
@@ -364,7 +417,6 @@ class _ProductList extends StatelessWidget {
             final item = entry.value;
             return Column(
               children: [
-               
                 QuoteProductItem(
                   imageUrl: item.product.imageUrl,
                   description: item.product.description ?? '',
@@ -374,6 +426,8 @@ class _ProductList extends StatelessWidget {
                   availableQuantity: item.product.availableQuantity ?? 0,
                   onRemove: () => ctrl.removeItem(item),
                   onQuantityChanged: (v) => item.quantity.value = v,
+                  maxQuantity: item.stock
+                      .toDouble(),
                 ),
                 if (!isLast)
                   Divider(
@@ -1067,23 +1121,23 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingLarge + bottomPadding,
       ),
       child: Obx(() {
-    final blocked = ctrl.hasOutOfStockItems;
-    return AnimatedOpacity(
-      opacity: blocked ? 0.5 : 1.0,
-      duration: const Duration(milliseconds: 250),
-      child: ThemeColor.widgetButton(
-        text: 'Crear Venta',
-        backgroundColor: ThemeColor.primaryColor,
-        textColor: ThemeColor.textLightColor,
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        borderRadius: ThemeColor.mediumRadius,
-        isLoading: ctrl.isCreating.value,
-        onPressed: blocked ? null : ctrl.createSale,
-      ),
-    );
-  }),
+        final blocked = ctrl.hasOutOfStockItems;
+        return AnimatedOpacity(
+          opacity: blocked ? 0.5 : 1.0,
+          duration: const Duration(milliseconds: 250),
+          child: ThemeColor.widgetButton(
+            text: 'Crear Venta',
+            backgroundColor: ThemeColor.primaryColor,
+            textColor: ThemeColor.textLightColor,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            borderRadius: ThemeColor.mediumRadius,
+            isLoading: ctrl.isCreating.value,
+            onPressed: blocked ? null : ctrl.createSale,
+          ),
+        );
+      }),
     );
   }
 }
