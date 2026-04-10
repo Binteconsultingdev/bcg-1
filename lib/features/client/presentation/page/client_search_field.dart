@@ -5,7 +5,7 @@ import 'package:bcg/features/client/presentation/controller/client_search_contro
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-// ── Campo ─────────────────────────────────────────────────────────────────────
+
 class ClientSearchField extends StatelessWidget {
   final Function(ClientEntity) onSelected;
   const ClientSearchField({required this.onSelected});
@@ -18,6 +18,8 @@ class ClientSearchField extends StatelessWidget {
       controller: ctrl.searchCtrl,
       hintText: 'Buscar cliente...',
       prefixIcon: Icons.person_search_outlined,
+      onPrefixTap: ctrl.toggleResults, 
+      prefixIconColor: ThemeColor.primaryColor, 
       isLoading: ctrl.isLoadingSearch.value,
       onChanged: ctrl.onSearchChanged,
       onClear: ctrl.clearSearch,
@@ -25,7 +27,7 @@ class ClientSearchField extends StatelessWidget {
   }
 }
 
-// ── Resultados ────────────────────────────────────────────────────────────────
+
 
 class ClientSearchResults extends StatelessWidget {
   final Function(ClientEntity) onSelected;
@@ -36,7 +38,7 @@ class ClientSearchResults extends StatelessWidget {
     final ctrl = Get.find<ClientSearchController>();
 
     return Obx(() {
-      if (!ctrl.isSearching.value) return const SizedBox.shrink();
+  if (!ctrl.showResults.value) return const SizedBox.shrink();
       if (ctrl.isLoadingSearch.value) {
         return const Padding(
           padding: EdgeInsets.symmetric(vertical: 12),

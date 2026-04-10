@@ -7,6 +7,7 @@ import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
 import 'package:bcg/features/client/presentation/page/client_search_field.dart';
 import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
+import 'package:bcg/features/sales/presentation/page/quote_product_item.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -15,7 +16,9 @@ class CreateQuotePage extends StatelessWidget {
 @override
 Widget build(BuildContext context) {
   final CreateQuoteController ctrl = Get.find<CreateQuoteController>();
-
+WidgetsBinding.instance.addPostFrameCallback((_) {
+    ctrl.resetState();
+  });
   return GestureDetector(
     behavior: HitTestBehavior.translucent,
     onTap: () {
@@ -248,7 +251,6 @@ class _PriceBottomSheet extends StatelessWidget {
   }
 }
 
-
 class _ProductList extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _ProductList({required this.ctrl});
@@ -262,9 +264,19 @@ class _ProductList extends StatelessWidget {
         child: Column(
           children: ctrl.items.asMap().entries.map((entry) {
             final isLast = entry.key == ctrl.items.length - 1;
+            final item = entry.value;
             return Column(
               children: [
-                _ProductItem(ctrl: ctrl, item: entry.value),
+                QuoteProductItem(
+                  imageUrl: item.product.imageUrl,
+                  description: item.product.description ?? '',
+                  unitPrice: item.unitPrice,
+                  total: item.totalRx,
+                  quantity: item.quantity,      
+                  availableQuantity: item.product.availableQuantity ?? 0,
+                  onRemove: () => ctrl.removeItem(item),
+                  onQuantityChanged: (v) => item.quantity.value = v,
+                ),
                 if (!isLast)
                   Divider(
                     height: 1,
@@ -280,79 +292,6 @@ class _ProductList extends StatelessWidget {
     });
   }
 }
-
-class _ProductItem extends StatelessWidget {
-  final CreateQuoteController ctrl;
-  final QuoteItem item;
-  const _ProductItem({required this.ctrl, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingMedium,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ProductThumbnail(imageUrl: item.product.imageUrl, size: 54),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.product.description ?? '',
-                  style: ThemeColor.subtitleMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '\$${item.unitPrice.toStringAsFixed(2)}',
-                  style: ThemeColor.bodyMedium.copyWith(
-                    color: ThemeColor.textSecondaryColor,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _QuantityControls(ctrl: ctrl, item: item),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              GestureDetector(
-                onTap: () => ctrl.removeItem(item),
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: Icon(
-                    Icons.delete_outline,
-                    color: ThemeColor.errorColor,
-                    size: 20,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Obx(
-                () => Text(
-                  '\$${item.total.toStringAsFixed(2)}',
-                  style: ThemeColor.subtitleMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
 class _QuantityControls extends StatefulWidget {
   final CreateQuoteController ctrl;
   final QuoteItem item;

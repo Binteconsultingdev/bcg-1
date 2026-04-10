@@ -17,6 +17,7 @@ class QuotesController extends GetxController {
   final RxString numParteFilter = ''.obs;
   final RxString dateFromFilter = ''.obs;
   final RxString dateUntilFilter = ''.obs;
+final RxInt selectedTab = 0.obs;
 
   final RxString searchInput = ''.obs;
   final TextEditingController searchController = TextEditingController();
@@ -196,12 +197,16 @@ class QuotesController extends GetxController {
     numParteFilter.value = '';
     fetchQuotes();
   }
-
-  List<GetQuoteEntity> filteredByTab(int tab) {
-    return quotes.where((q) {
-      return tab == 0 ||
-          (tab == 1 && q.status?.toLowerCase() == 'cancelada') ||
-          (tab == 2 && q.status?.toLowerCase() == 'vendida');
-    }).toList();
-  }
+List<GetQuoteEntity> filteredByTab(int tab) {
+  return quotes.where((q) {
+    final status = q.status?.toLowerCase() ?? '';
+    switch (tab) {
+      case 1: return status == 'generada';
+      case 2: return status == 'vencida';
+      case 3: return status == 'vendida';
+      case 4: return status == 'cancelada';
+      default: return true; 
+    }
+  }).toList();
+}
 }

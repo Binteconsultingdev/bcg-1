@@ -81,22 +81,28 @@ class InventoryController extends GetxController {
     ]);
   }
 
-  Future<void> _fetchCategorias() async {
-    try {
-      isLoadingCategorias.value = true;
-      final results = await Future.wait([
-        fetchFamiliasUsecase.call(),
-        fetchSubfamiliasUsecase.call(),
-      ]);
-      familias.assignAll(results[0]);
-      subfamilias.assignAll(results[1]);
-    } catch (e) {
-      errorMessage.value = 'Error al cargar categorías: $e';
-    } finally {
-      isLoadingCategorias.value = false;
-    }
+Future<void> _fetchCategorias() async {
+  try {
+    isLoadingCategorias.value = true;
+    familias.assignAll(await fetchFamiliasUsecase.call());
+  } catch (e) {
+    errorMessage.value = 'Error al cargar categorías: $e';
+  } finally {
+    isLoadingCategorias.value = false;
   }
-
+}Future<void> fetchSubfamiliasByFamilia(String familia) async {
+  try {
+    isLoadingCategorias.value = true;
+    subfamilias.clear();
+    selectedSubfamilia.value = null; // resetea subfamilia al cambiar familia
+    final results = await fetchSubfamiliasUsecase.call(familia);
+    subfamilias.assignAll(results);
+  } catch (e) {
+    errorMessage.value = 'Error al cargar subfamilias: $e';
+  } finally {
+    isLoadingCategorias.value = false;
+  }
+}
   List<InventoryEntity> _mergeResults(
     List<InventoryEntity> byDescription,
     List<InventoryEntity> byNumParte,

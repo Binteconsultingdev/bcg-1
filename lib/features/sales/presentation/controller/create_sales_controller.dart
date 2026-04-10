@@ -20,10 +20,11 @@ import 'package:get/get.dart';
 
 class SaleItem {
   final InventoryEntity product;
-  final RxInt quantity;
+  final RxDouble quantity;
   final RxDouble discount;
+RxDouble get totalRx => total.obs; 
 
-  SaleItem({required this.product, int initialQty = 1})
+  SaleItem({required this.product, double initialQty = 1.0})
       : quantity = initialQty.obs,
         discount = 0.0.obs;
 
@@ -56,7 +57,7 @@ Worker? _quoteSearchDebounce;
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<int>();
 
-  // ── Campos de venta ────────────────────────────────────────────────────────
+
   final metodoEmbarque = 'CAMIONETA'.obs;
   final incIVA = true.obs;
   final tipoCambio = 1.0.obs;
@@ -65,13 +66,13 @@ Worker? _quoteSearchDebounce;
   final globalDiscountPercent = 0.0.obs;
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
 
-  // ── Productos ──────────────────────────────────────────────────────────────
+
   final items = <SaleItem>[].obs;
   final productSearchQuery = ''.obs;
   final isSearching = false.obs;
   final RxBool searchByDescription = true.obs;
 
-  // ── Búsqueda de cotizaciones ───────────────────────────────────────────────
+
   final RxString quoteSearchInput = ''.obs;
   final TextEditingController quoteSearchCtrl = TextEditingController();
   final RxBool isSearchingQuote = false.obs;
@@ -80,12 +81,12 @@ Worker? _quoteSearchDebounce;
   final RxString selectedFolioQuote = ''.obs;
   final RxList<GetQuoteEntity> quoteResults = <GetQuoteEntity>[].obs;
 
-  // ── Estado ─────────────────────────────────────────────────────────────────
+
   final isCreating = false.obs;
   final isSuccess = false.obs;
   final errorMessage = ''.obs;
 
-  // ── Controllers ────────────────────────────────────────────────────────────
+
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
@@ -112,7 +113,7 @@ void onInit() {
     time: const Duration(milliseconds: 600),
   );
 }
-// ── Cliente ────────────────────────────────────────────────────────────────
+
 
 
 void onClientSelected(ClientEntity client) {
@@ -122,7 +123,7 @@ void onClientSelected(ClientEntity client) {
   selectedClientId.value = client.id;
   Get.find<ClientSearchController>().searchCtrl.text = name;
 }
-  // ── Getters ────────────────────────────────────────────────────────────────
+
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount =>
       incIVA.value ? (subtotal - globalDiscount.value) * 0.16 : 0;
@@ -139,10 +140,10 @@ void onClientSelected(ClientEntity client) {
         .toList();
   }
 
-  // ── Cliente ────────────────────────────────────────────────────────────────
+
 
 void onClienteChanged(String value) => clienteName.value = value;
-  
+
   void openClientSearch(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -159,7 +160,7 @@ void onClienteChanged(String value) => clienteName.value = value;
     );
   }
 
-  // ── Productos ──────────────────────────────────────────────────────────────
+
 
   void onProductSearchChanged(String value) {
     productSearchQuery.value = value;
@@ -186,7 +187,7 @@ void addProduct(InventoryEntity product) {
     items.add(SaleItem(product: item.product, initialQty: item.quantity.value));
   }
 
-  // ── Cotizaciones ───────────────────────────────────────────────────────────
+
 
 void onQuoteSearchChanged(String value) {
   quoteSearchInput.value = value;
@@ -261,7 +262,7 @@ void onQuoteSearchChanged(String value) {
         if (inventoryProduct != null) {
           newItems.add(SaleItem(
             product: inventoryProduct,
-            initialQty: producto.cantidad.toInt(),
+            initialQty: producto.cantidad,
           ));
         }
       }
@@ -280,7 +281,7 @@ void onQuoteSearchChanged(String value) {
     }
   }
 
-  // ── Descuento ──────────────────────────────────────────────────────────────
+
 
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
@@ -296,7 +297,8 @@ void onQuoteSearchChanged(String value) {
         globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
   }
 
-  // ── Fecha ──────────────────────────────────────────────────────────────────
+bool get hasOutOfStockItems =>
+    items.any((i) => (i.product.availableQuantity ?? 0) <= 0);
 
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -317,7 +319,7 @@ void onQuoteSearchChanged(String value) {
     if (picked != null) validUntil.value = picked;
   }
 
-  // ── Crear venta ────────────────────────────────────────────────────────────
+
 
   Future<void> createSale() async {
     if (clienteName.value.trim().isEmpty) {

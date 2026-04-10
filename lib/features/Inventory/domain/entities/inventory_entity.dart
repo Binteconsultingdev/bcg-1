@@ -7,6 +7,7 @@ class InventoryEntity {
   final num? availableQuantity;
   final num? price;
   final String? imageUrl;
+  final String? unit;
 
   InventoryEntity({
     required this.id,
@@ -17,5 +18,6 @@ class InventoryEntity {
      this.availableQuantity,
      this.price,
      this.imageUrl,
+     this.unit,
   });
 }

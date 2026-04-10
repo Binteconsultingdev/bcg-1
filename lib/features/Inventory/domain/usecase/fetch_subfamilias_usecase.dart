@@ -5,7 +5,7 @@ class FetchSubfamiliasUsecase {
   final InventoryRepository inventoryRepository;
 
   FetchSubfamiliasUsecase({required this.inventoryRepository});
-  Future<List<InventoryCategoryEntity>> call() async {
-    return await inventoryRepository.fetchSubfamilias();
+  Future<List<InventoryCategoryEntity>> call(String familia) async {
+    return await inventoryRepository.fetchSubfamilias(familia);
   }
 }

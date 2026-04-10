@@ -3,6 +3,7 @@ import 'package:bcg/common/widgets/product_search_field.dart';
 import 'package:bcg/common/widgets/product_search_results.dart';
 import 'package:bcg/features/client/presentation/page/client_search_field.dart';
 import 'package:bcg/features/sales/presentation/controller/create_sales_controller.dart';
+import 'package:bcg/features/sales/presentation/page/quote_product_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -15,7 +16,7 @@ Widget build(BuildContext context) {
 
   return GestureDetector(
     onTap: () {
-      FocusScope.of(context).unfocus(); // 👈 cierra teclado
+      FocusScope.of(context).unfocus();
     },
     child: Scaffold(
       backgroundColor: ThemeColor.backgroundColor,
@@ -344,7 +345,6 @@ class _MetodoBottomSheet extends StatelessWidget {
     );
   }
 }
-
 class _ProductList extends StatelessWidget {
   final CreateSalesController ctrl;
   const _ProductList({required this.ctrl});
@@ -358,9 +358,20 @@ class _ProductList extends StatelessWidget {
         child: Column(
           children: ctrl.items.asMap().entries.map((entry) {
             final isLast = entry.key == ctrl.items.length - 1;
+            final item = entry.value;
             return Column(
               children: [
-                _ProductItem(ctrl: ctrl, item: entry.value),
+               
+                QuoteProductItem(
+                  imageUrl: item.product.imageUrl,
+                  description: item.product.description ?? '',
+                  unitPrice: item.unitPrice,
+                  total: item.totalRx,
+                  quantity: item.quantity,
+                  availableQuantity: item.product.availableQuantity ?? 0,
+                  onRemove: () => ctrl.removeItem(item),
+                  onQuantityChanged: (v) => item.quantity.value = v,
+                ),
                 if (!isLast)
                   Divider(
                     height: 1,
@@ -374,77 +385,6 @@ class _ProductList extends StatelessWidget {
         ),
       );
     });
-  }
-}
-
-class _ProductItem extends StatelessWidget {
-  final CreateSalesController ctrl;
-  final SaleItem item;
-  const _ProductItem({required this.ctrl, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingMedium,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _ProductThumbnail(imageUrl: item.product.imageUrl, size: 54),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.product.description ?? '',
-                  style: ThemeColor.subtitleMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '\$${item.unitPrice.toStringAsFixed(2)}',
-                  style: ThemeColor.bodyMedium.copyWith(
-                    color: ThemeColor.textSecondaryColor,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _QuantityControls(ctrl: ctrl, item: item),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              GestureDetector(
-                onTap: () => ctrl.removeItem(item),
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: Icon(
-                    Icons.delete_outline,
-                    color: ThemeColor.errorColor,
-                    size: 20,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Obx(
-                () => Text(
-                  '\$${item.total.toStringAsFixed(2)}',
-                  style: ThemeColor.subtitleMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -483,7 +423,7 @@ class _QuantityControlsState extends State<_QuantityControls> {
     super.dispose();
   }
 
-  void _update(int newVal) {
+  void _update(double newVal) {
     if (newVal < 1) return;
     widget.item.quantity.value = newVal;
   }
@@ -542,7 +482,7 @@ class _QuantityControlsState extends State<_QuantityControls> {
                 ),
               ),
               onChanged: (v) {
-                final parsed = int.tryParse(v);
+                final parsed = double.tryParse(v);
                 if (parsed != null && parsed > 0) {
                   widget.item.quantity.value = parsed;
                 }
@@ -1123,33 +1063,24 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge + bottomPadding,
       ),
-      child: Obx(
-        () => SizedBox(
-          width: double.infinity,
-          child: ctrl.isSuccess.value
-              ? ThemeColor.widgetButton(
-                  text: 'Cerrar',
-                  backgroundColor: ThemeColor.backgroundColor,
-                  textColor: ThemeColor.textPrimaryColor,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  borderRadius: ThemeColor.mediumRadius,
-                  onPressed: () => Get.back(result: true),
-                )
-              : ThemeColor.widgetButton(
-                  text: 'Crear Venta',
-                  backgroundColor: ThemeColor.primaryColor,
-                  textColor: ThemeColor.textLightColor,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  borderRadius: ThemeColor.mediumRadius,
-                  isLoading: ctrl.isCreating.value,
-                  onPressed: ctrl.createSale,
-                ),
-        ),
+      child: Obx(() {
+    final blocked = ctrl.hasOutOfStockItems;
+    return AnimatedOpacity(
+      opacity: blocked ? 0.5 : 1.0,
+      duration: const Duration(milliseconds: 250),
+      child: ThemeColor.widgetButton(
+        text: 'Crear Venta',
+        backgroundColor: ThemeColor.primaryColor,
+        textColor: ThemeColor.textLightColor,
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        borderRadius: ThemeColor.mediumRadius,
+        isLoading: ctrl.isCreating.value,
+        onPressed: blocked ? null : ctrl.createSale,
       ),
+    );
+  }),
     );
   }
 }

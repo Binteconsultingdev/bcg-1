@@ -41,29 +41,29 @@ class _VentasPageState extends State<VentasPage> {
     );
   }
 
-@override
-Widget build(BuildContext context) {
-  return GestureDetector(
-    onTap: () {
-      FocusScope.of(context).unfocus(); 
-    },
-    child: AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
-      child: Scaffold(
-        backgroundColor: ThemeColor.backgroundColor,
-        appBar: _buildAppBar(),
-        body: Column(
-          children: [
-            _buildSearchBar(),
-            _buildTabs(),
-            Expanded(child: _buildList()),
-          ],
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.dark,
+        child: Scaffold(
+          backgroundColor: ThemeColor.backgroundColor,
+          appBar: _buildAppBar(),
+          body: Column(
+            children: [
+              _buildSearchBar(),
+              _buildTabs(),
+              Expanded(child: _buildList()),
+            ],
+          ),
+          floatingActionButton: _buildFab(),
         ),
-        floatingActionButton: _buildFab(),
       ),
-    ),
-  );
-}
+    );
+  }
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
@@ -90,145 +90,149 @@ Widget build(BuildContext context) {
       ),
     );
   }
-Widget _buildSearchBar() {
-  return Container(
-    color: ThemeColor.surfaceColor,
-    padding: const EdgeInsets.symmetric(
-      horizontal: ThemeColor.paddingMedium,
-      vertical: ThemeColor.paddingSmall,
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Container(
-            height: 40,
-            decoration: BoxDecoration(
-              color: ThemeColor.backgroundColor,
-              borderRadius: ThemeColor.mediumBorderRadius,
-              border: Border.all(color: ThemeColor.dividerColor),
-            ),
-            child: TextField(
-              controller: _ctrl.searchController,
-              onChanged: (v) => _ctrl.searchInput.value = v,
-              onSubmitted: (_) => _ctrl.searchSales(),
-              textInputAction: TextInputAction.search,
-              style: ThemeColor.bodyMedium,
-              decoration: InputDecoration(
-                hintText: 'Buscar por folio, ID o cliente...',
-                hintStyle: ThemeColor.bodyMedium.copyWith(
-                  color: ThemeColor.textSecondaryColor,
-                ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 10,
+
+  Widget _buildSearchBar() {
+    return Container(
+      color: ThemeColor.surfaceColor,
+      padding: const EdgeInsets.symmetric(
+        horizontal: ThemeColor.paddingMedium,
+        vertical: ThemeColor.paddingSmall,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: ThemeColor.backgroundColor,
+                borderRadius: ThemeColor.mediumBorderRadius,
+                border: Border.all(color: ThemeColor.dividerColor),
+              ),
+              child: TextField(
+                controller: _ctrl.searchController,
+                onChanged: (v) => _ctrl.searchInput.value = v,
+                onSubmitted: (_) => _ctrl.searchSales(),
+                textInputAction: TextInputAction.search,
+                style: ThemeColor.bodyMedium,
+                decoration: InputDecoration(
+                  hintText: 'Buscar por folio, ID o cliente...',
+                  hintStyle: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.textSecondaryColor,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: ThemeColor.paddingSmall),
-        GestureDetector(
-          onTap: _ctrl.searchSales,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: ThemeColor.primaryColor,
-              borderRadius: ThemeColor.mediumBorderRadius,
-            ),
-            child: const Icon(Icons.search, color: Colors.white, size: 20),
-          ),
-        ),
-        const SizedBox(width: ThemeColor.paddingSmall),
-        GestureDetector(
-          onTap: _openFilters,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: ThemeColor.backgroundColor,
-              borderRadius: ThemeColor.mediumBorderRadius,
-              border: Border.all(color: ThemeColor.dividerColor),
-            ),
-            child: const Icon(
-              Icons.tune,
-              color: ThemeColor.textPrimaryColor,
-              size: 20,
+          const SizedBox(width: ThemeColor.paddingSmall),
+          GestureDetector(
+            onTap: _ctrl.searchSales,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: ThemeColor.primaryColor,
+                borderRadius: ThemeColor.mediumBorderRadius,
+              ),
+              child: const Icon(Icons.search, color: Colors.white, size: 20),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+          const SizedBox(width: ThemeColor.paddingSmall),
+          GestureDetector(
+            onTap: _openFilters,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: ThemeColor.backgroundColor,
+                borderRadius: ThemeColor.mediumBorderRadius,
+                border: Border.all(color: ThemeColor.dividerColor),
+              ),
+              child: const Icon(
+                Icons.tune,
+                color: ThemeColor.textPrimaryColor,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-Widget _toggleChip({
-  required String label,
-  required bool selected,
-  required VoidCallback onTap,
-}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+  Widget _toggleChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        decoration: BoxDecoration(
+          color: selected ? ThemeColor.primaryColor : Colors.transparent,
+          borderRadius: ThemeColor.circularBorderRadius,
+          border: Border.all(
+            color: selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
+          ),
+        ),
+        child: Text(
+          label,
+          style: ThemeColor.bodySmall.copyWith(
+            color: selected
+                ? ThemeColor.textLightColor
+                : ThemeColor.textSecondaryColor,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _searchField({
+    required TextEditingController controller,
+    required String hint,
+    TextInputType keyboardType = TextInputType.text,
+    required ValueChanged<String> onChanged,
+    required ValueChanged<String> onSubmitted,
+  }) {
+    return Container(
+      height: 40,
       decoration: BoxDecoration(
-        color: selected ? ThemeColor.primaryColor : Colors.transparent,
-        borderRadius: ThemeColor.circularBorderRadius,
-        border: Border.all(
-          color: selected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
+        color: ThemeColor.backgroundColor,
+        borderRadius: ThemeColor.mediumBorderRadius,
+        border: Border.all(color: ThemeColor.dividerColor),
+      ),
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        onSubmitted: onSubmitted,
+        keyboardType: keyboardType,
+        textInputAction: TextInputAction.search,
+        style: ThemeColor.bodyMedium,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: ThemeColor.bodyMedium.copyWith(
+            color: ThemeColor.textSecondaryColor,
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 10,
+          ),
         ),
       ),
-      child: Text(
-        label,
-        style: ThemeColor.bodySmall.copyWith(
-          color: selected
-              ? ThemeColor.textLightColor
-              : ThemeColor.textSecondaryColor,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-        ),
-      ),
-    ),
-  );
-}
-
-Widget _searchField({
-  required TextEditingController controller,
-  required String hint,
-  TextInputType keyboardType = TextInputType.text,
-  required ValueChanged<String> onChanged,
-  required ValueChanged<String> onSubmitted,
-}) {
-  return Container(
-    height: 40,
-    decoration: BoxDecoration(
-      color: ThemeColor.backgroundColor,
-      borderRadius: ThemeColor.mediumBorderRadius,
-      border: Border.all(color: ThemeColor.dividerColor),
-    ),
-    child: TextField(
-      controller: controller,
-      onChanged: onChanged,
-      onSubmitted: onSubmitted,
-      keyboardType: keyboardType,
-      textInputAction: TextInputAction.search,
-      style: ThemeColor.bodyMedium,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: ThemeColor.bodyMedium.copyWith(
-          color: ThemeColor.textSecondaryColor,
-        ),
-        border: InputBorder.none,
-        enabledBorder: InputBorder.none,
-        focusedBorder: InputBorder.none,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildTabs() {
     const labels = ['Todas', 'Pagos Pendientes'];
@@ -310,7 +314,7 @@ Widget _searchField({
         );
       }
 
-final items = _ctrl.filteredByTab(_selectedTab);
+      final items = _ctrl.filteredByTab(_selectedTab);
 
       if (items.isEmpty) {
         return Center(
@@ -386,8 +390,9 @@ final items = _ctrl.filteredByTab(_selectedTab);
 
   Widget _buildFab() {
     return FloatingActionButton(
-      onPressed: () {        Get.toNamed(RoutesNames.createSalesPage);
-},
+      onPressed: () {
+        Get.toNamed(RoutesNames.createSalesPage);
+      },
       backgroundColor: ThemeColor.accentColor,
       elevation: ThemeColor.elevationMedium,
       child: const Icon(Icons.add, color: ThemeColor.textDarkColor, size: 28),
@@ -402,9 +407,6 @@ class _VentaTile extends StatelessWidget {
   Color get _badgeColor => item.status?.toLowerCase() == 'pendiente'
       ? ThemeColor.errorColor
       : ThemeColor.successColor;
-
-  String get _badgeLabel =>
-      item.status?.toLowerCase() == 'pendiente' ? 'PENDIENTE' : 'PAGADO';
 
   @override
   Widget build(BuildContext context) {
@@ -452,12 +454,17 @@ class _VentaTile extends StatelessWidget {
               color: _badgeColor,
               borderRadius: ThemeColor.circularBorderRadius,
             ),
-            child: Text(
-              _badgeLabel,
-              style: ThemeColor.caption.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: Text(
+                item.status?.toUpperCase() ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: ThemeColor.caption.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ),
@@ -553,7 +560,7 @@ class _VentaFilterSheetState extends State<_VentaFilterSheet> {
       padding: EdgeInsets.only(
         bottom:
             MediaQuery.of(context).viewInsets.bottom +
-            MediaQuery.of(context).padding.bottom, 
+            MediaQuery.of(context).padding.bottom,
       ),
       child: SingleChildScrollView(
         child: Column(

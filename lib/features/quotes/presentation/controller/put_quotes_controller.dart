@@ -48,7 +48,7 @@ class EditQuoteItem {
         precio = precio.obs,
         quantity = quantity.obs,
         descuento = descuento.obs;
-
+RxDouble get totalRx => total.obs;
   double get subtotal => precio.value * quantity.value;
   double get discountAmount => subtotal * (descuento.value / 100);
   double get total => subtotal - discountAmount;
@@ -146,9 +146,15 @@ void onClientSelected(ClientEntity client) {
     if (args != null && args['idQuote'] != null) {
       loadQuote(args['idQuote'] as int);
     }
+
+  Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
+  Get.find<ClientSearchController>().showResults.value = false;
+  Get.find<ClientSearchController>().manuallyClosed = true; 
   }
 
-
+void onFreeTextClient(String value) {
+  clienteName.value = value;
+}
   Future<void> loadQuote(int id) async {
     try {
       quoteId.value = id;
@@ -165,7 +171,7 @@ void onClientSelected(ClientEntity client) {
     }
   }
 
-  void _populateFromEntity(QuoteEntity quote) {
+void _populateFromEntity(QuoteEntity quote) {
   folio.value = quote.folio;
   clienteName.value = quote.cliente;
   clienteController.text = quote.cliente;
@@ -183,7 +189,8 @@ void onClientSelected(ClientEntity client) {
     quote.productos.map((p) => EditQuoteItem.fromProductoEntity(p)).toList(),
   );
 
-  Get.find<ClientSearchController>().searchCtrl.text = quote.cliente;
+  final clientSearch = Get.find<ClientSearchController>();
+  clientSearch.searchCtrl.text = quote.cliente;
 }
 
 

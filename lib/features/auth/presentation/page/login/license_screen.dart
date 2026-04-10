@@ -81,7 +81,6 @@ class _LicenseScreenState extends State<LicenseScreen>
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: ThemeColor.backgroundColor,
-        
         body: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnim,

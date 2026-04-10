@@ -189,14 +189,16 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
   }
 
   Widget _buildTabs() {
-    const labels = ['Todas', 'Cancelada', 'Vendidas'];
-    return Container(
-      color: ThemeColor.surfaceColor,
-      padding: const EdgeInsets.only(
-        left: ThemeColor.paddingMedium,
-        right: ThemeColor.paddingMedium,
-        bottom: ThemeColor.paddingSmall,
-      ),
+  const labels = ['Todas', 'Generadas', 'Vencidas', 'Vendidas', 'Canceladas'];
+  return Container(
+    color: ThemeColor.surfaceColor,
+    padding: const EdgeInsets.only(
+      left: ThemeColor.paddingMedium,
+      right: ThemeColor.paddingMedium,
+      bottom: ThemeColor.paddingSmall,
+    ),
+    child: SingleChildScrollView( 
+      scrollDirection: Axis.horizontal,
       child: Row(
         children: List.generate(labels.length, (i) {
           final selected = _selectedTab == i;
@@ -211,9 +213,7 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: selected
-                      ? ThemeColor.primaryColor
-                      : Colors.transparent,
+                  color: selected ? ThemeColor.primaryColor : Colors.transparent,
                   borderRadius: ThemeColor.mediumBorderRadius,
                   border: Border.all(
                     color: selected
@@ -227,7 +227,8 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
                     color: selected
                         ? ThemeColor.textLightColor
                         : ThemeColor.textSecondaryColor,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight:
+                        selected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
               ),
@@ -235,8 +236,9 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
           );
         }),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildList() {
     return Obx(() {

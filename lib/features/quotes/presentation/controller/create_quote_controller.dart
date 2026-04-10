@@ -32,6 +32,7 @@ class QuoteItem {
   double get subtotal => unitPrice * quantity.value;
   double get discountAmount => subtotal * (discount.value / 100);
   double get total => subtotal - discountAmount;
+  RxDouble get totalRx => total.obs;
 }
 class CreateQuoteController extends GetxController {
   final CreateQuotesUsecase createQuotesUsecase;
@@ -54,71 +55,78 @@ void onClientSelected(ClientEntity client) {
   selectedClientId.value = client.id.toString();
   selectedClientName.value = client.displayName;
 
-  // Actualiza el campo visual del buscador
+
   Get.find<ClientSearchController>().searchCtrl.text = name;
 }
-  // PDF
+ 
   final RxBool isDownloading = false.obs;
   final RxDouble downloadProgress = 0.0.obs;
   final pdfUrl = Rxn<String>();
   final RxBool isLoadingPdf = false.obs;
   final createdQuoteId = Rxn<int>();
 
-  // Folio
   final folio = ''.obs;
   final RxBool isLoadingFolio = false.obs;
 
-  // Cliente
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<String>();
   final selectedClientName = Rxn<String>();
 
-  // Precio
   final selectedPriceType = 'REGULAR'.obs;
   final List<String> priceOptions = ['REGULAR', 'MEDIO M', 'PAQUETE', 'MAYOREO', 'ESPECIAL'];
 
-  // Fecha
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
 
-  // Productos
   final items = <QuoteItem>[].obs;
   final productSearchQuery = ''.obs;
   final isSearching = false.obs;
   final RxList<InventoryEntity> searchResults = <InventoryEntity>[].obs;
   final RxBool isLoadingSearch = false.obs;
 
-  // Descuento
+
+
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
   final referencia = ''.obs;
 
-  // Estado
+
   final isCreating = false.obs;
   final errorMessage = ''.obs;
 
-  // Text controllers
+
+
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
 
-  // Totales
+
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
 
-  @override
-  void onInit() {
-    super.onInit();
-    _loadFolio();
-  }
-
+@override
+void onInit() {
+  super.onInit();
+  _loadFolio();
+  resetState();
+  Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
+  Get.find<ClientSearchController>().showResults.value = false;
+  Get.find<ClientSearchController>().manuallyClosed = true;  
+}
+void onFreeTextClient(String value) {
+  clienteName.value = value;
+  print('onFreeTextClient: "$value"');
+  selectedClientId.value = null;
+  selectedClientName.value = null;
+}
   Future<void> _loadFolio() async {
     try {
       isLoadingFolio.value = true;
       final folioEntity = await fetchFolioUsecase.call();
       folio.value = folioEntity.folio;
+      print('nuevo folio: ${folio.value}');
     } catch (e) {
       errorMessage.value = 'No se pudo obtener el folio';
     } finally {
@@ -126,7 +134,7 @@ void onClientSelected(ClientEntity client) {
     }
   }
 
-  // ── Cliente ────────────────────────────────────────────────────────────────
+
 
   void onClienteChanged(String value) => clienteName.value = value;
 
@@ -152,7 +160,7 @@ void onClientSelected(ClientEntity client) {
     selectedClientName.value = name;
   }
 
-  // ── Productos ──────────────────────────────────────────────────────────────
+
 
   void onProductSearchChanged(String value) {
     productSearchQuery.value = value;
@@ -183,7 +191,7 @@ void onClientSelected(ClientEntity client) {
     items.add(QuoteItem(product: item.product, initialQty: item.quantity.value));
   }
 
-  // ── Descuento ──────────────────────────────────────────────────────────────
+
 
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
@@ -199,7 +207,7 @@ void onClientSelected(ClientEntity client) {
         globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
   }
 
-  // ── Fecha ──────────────────────────────────────────────────────────────────
+
 
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -220,9 +228,11 @@ void onClientSelected(ClientEntity client) {
     if (picked != null) validUntil.value = picked;
   }
 
-  // ── Crear cotización ───────────────────────────────────────────────────────
+
 
   Future<void> createQuote() async {
+      print('clienteName: "${clienteName.value}"'); 
+
     if (clienteName.value.trim().isEmpty) {
       showErrorSnackbar('Selecciona un cliente para continuar');
       return;
@@ -276,7 +286,7 @@ void onClientSelected(ClientEntity client) {
     }
   }
 
-  // ── PDF ────────────────────────────────────────────────────────────────────
+
 
   Future<void> generateAndOpenPdf(BuildContext context) async {
     final id = createdQuoteId.value;
@@ -373,4 +383,30 @@ void onClientSelected(ClientEntity client) {
     globalDiscountCtrl.dispose();
     super.onClose();
   }
+
+void resetState() {
+  items.clear();
+  clienteName.value = '';
+  clienteController.clear();
+  selectedClientId.value = null;
+  selectedClientName.value = null;
+  commentsCtrl.clear();
+  productSearchCtrl.clear();
+  globalDiscountCtrl.clear();
+  globalDiscount.value = 0.0;
+  globalDiscountPercent.value = 0.0;
+  globalDiscountType.value = 'monto';
+  selectedPriceType.value = 'REGULAR';
+  validUntil.value = DateTime.now().add(const Duration(days: 15));
+  pdfUrl.value = null;
+  createdQuoteId.value = null;
+  errorMessage.value = '';
+  productSearchQuery.value = '';
+  isSearching.value = false;
+  searchResults.clear();
+
+  final clientSearch = Get.find<ClientSearchController>();
+  clientSearch.onFreeText = null;
+  clientSearch.clearSearch();
+}
 }

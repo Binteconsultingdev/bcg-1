@@ -5,6 +5,7 @@ import 'package:bcg/common/widgets/product_search_results.dart';
 import 'package:bcg/features/client/presentation/page/client_search_field.dart';
 import 'package:bcg/features/quotes/presentation/controller/put_quotes_controller.dart';
 import 'package:bcg/features/quotes/presentation/page/create_quote_page.dart';
+import 'package:bcg/features/sales/presentation/page/quote_product_item.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -15,7 +16,11 @@ class EditQuotePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final PutQuotesController ctrl = Get.find<PutQuotesController>();
 
-    return Scaffold(
+    return  GestureDetector(
+  onTap: () {
+    FocusScope.of(context).unfocus();
+  },
+  child: Scaffold(
       backgroundColor: ThemeColor.backgroundColor,
       appBar: _AppBar(ctrl: ctrl),
       body: Obx(() {
@@ -49,6 +54,7 @@ class EditQuotePage extends StatelessWidget {
           ],
         );
       }),
+    )
     );
   }
 
@@ -266,9 +272,19 @@ class _ProductList extends StatelessWidget {
         child: Column(
           children: ctrl.items.asMap().entries.map((entry) {
             final isLast = entry.key == ctrl.items.length - 1;
+            final item = entry.value;
             return Column(
               children: [
-                _ProductItem(ctrl: ctrl, item: entry.value),
+                QuoteProductItem(
+                  imageUrl: item.url,
+                  description: item.descripcion.value,
+                  unitPrice: item.precio.value,
+                  total: item.totalRx,
+                  quantity: item.quantity,          
+                  availableQuantity: item.disponible,
+                  onRemove: () => ctrl.removeItem(item),
+                  onQuantityChanged: (v) => item.quantity.value = v,
+                ),
                 if (!isLast)
                   Divider(
                     height: 1,

@@ -45,7 +45,7 @@ class InventoryDatasourcesImp {
       Uri url = Uri.parse(
         '$defaultApiServer/inventario/buscar?familia=$familia&descripcion=$description&numparte=$numparte&subfamilia=$subfamilia&pagina=$page&tamanoPagina=$pageSize',
       );
-      print(url);
+      print('Fetching inventory with URL: $url'); // DEBUG
       final response = await http.get(
         url,
         headers: {'Content-Type': 'application/json' , 'Authorization': 'Bearer $token'},
@@ -68,9 +68,10 @@ class InventoryDatasourcesImp {
     }
   }
 
-  Future<List<InventoryCategoryEntity>> fetchSubfamilias(String token) async {
+  Future<List<InventoryCategoryEntity>> fetchSubfamilias(String token,String familia) async {
+    print('fetchSubfamilias called with familia="$familia"');
     try {
-      Uri url = Uri.parse('$defaultApiServer/inventario/subfamilias');
+      Uri url = Uri.parse('$defaultApiServer/inventario/subfamilias?familia=$familia');
       final response = await http.get(
         url,
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},

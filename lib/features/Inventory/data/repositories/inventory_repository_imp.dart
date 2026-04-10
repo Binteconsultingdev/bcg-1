@@ -22,9 +22,9 @@ class InventoryRepositoryImp implements InventoryRepository {
   }
 
   @override
-  Future<List<InventoryCategoryEntity>> fetchSubfamilias() async {
+  Future<List<InventoryCategoryEntity>> fetchSubfamilias(String familia) async {
      final token = await authService.getToken() ?? (throw Exception( 'No hay sesión activa. El usuario debe iniciar sesión.'));
-    return await inventoryDatasourcesImp.fetchSubfamilias(token);
+    return await inventoryDatasourcesImp.fetchSubfamilias(token,familia);
   }
 
   

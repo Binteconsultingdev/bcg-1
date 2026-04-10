@@ -860,6 +860,8 @@ class ThemeColor {
   IconData? prefixIcon,
   BorderRadius? borderRadius,
   Color? fillColor,
+    VoidCallback? onPrefixTap, 
+  Color? prefixIconColor, 
   TextCapitalization textCapitalization = TextCapitalization.none,
 }) {
   return TextField(
@@ -877,9 +879,16 @@ class ThemeColor {
       ),
       filled: true,
       fillColor: fillColor ?? backgroundColor,
-      prefixIcon: prefixIcon != null
-          ? Icon(prefixIcon, color: textSecondaryColor, size: 18)
-          : null,
+   prefixIcon: prefixIcon != null
+    ? GestureDetector(
+        onTap: onPrefixTap,
+        child: Icon(
+          prefixIcon,
+          color: prefixIconColor ?? textSecondaryColor, 
+          size: 18,
+        ),
+      )
+    : null,
       suffixIcon: isLoading
           ? const Padding(
               padding: EdgeInsets.all(10),

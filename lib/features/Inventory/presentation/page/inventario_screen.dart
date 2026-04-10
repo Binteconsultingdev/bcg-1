@@ -15,22 +15,22 @@ class InventarioScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<InventoryController>();
 
-    return  GestureDetector(
-    onTap: () {
-      FocusScope.of(context).unfocus(); 
-    },
-    child:AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
-      child: Scaffold(
-        backgroundColor: ThemeColor.backgroundColor,
-        appBar: _buildAppBar(controller),
-        body: Column(
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.dark,
+        child: Scaffold(
+          backgroundColor: ThemeColor.backgroundColor,
+          appBar: _buildAppBar(controller),
+          body: Column(
             children: [
               _buildSearchBar(controller, context),
               Expanded(child: _buildBody(controller)),
             ],
           ),
-      ),
+        ),
       ),
     );
   }
@@ -335,20 +335,25 @@ class _ProductTile extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: ThemeColor.paddingSmall,
-              vertical: 4,
-            ),
-            decoration: BoxDecoration(
-              color: ThemeColor.successColor,
-              borderRadius: ThemeColor.smallBorderRadius,
-            ),
-            child: Text(
-              '${product.availableQuantity} uds',
-              style: ThemeColor.caption.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 120),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: ThemeColor.paddingSmall,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: ThemeColor.successColor,
+                borderRadius: ThemeColor.smallBorderRadius,
+              ),
+              child: Text(
+                '${product.availableQuantity} ${product.unit ?? ""}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: ThemeColor.caption.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
@@ -467,15 +472,30 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                     label: 'Familia',
                     value: _familia,
                     items: familiaItems,
-                    onChanged: (v) => setState(() => _familia = v),
+                    onChanged: (v) async {
+                      setState(() {
+                        _familia = v;
+                        _subfamilia = null;
+                      });
+                      if (v != null) {
+                        await widget.controller.fetchSubfamiliasByFamilia(v);
+                      } else {
+                        widget.controller.subfamilias.clear();
+                      }
+                    },
                   ),
                   const SizedBox(height: ThemeColor.paddingMedium),
-                  _buildDropdown(
-                    label: 'Subfamilia',
-                    value: _subfamilia,
-                    items: subfamiliaItems,
-                    onChanged: (v) => setState(() => _subfamilia = v),
-                  ),
+                  Obx(() {
+                    final subfamiliaItems = widget.controller.subfamilias
+                        .map((e) => e.category)
+                        .toList();
+                    return _buildDropdown(
+                      label: 'Subfamilia',
+                      value: _subfamilia,
+                      items: subfamiliaItems,
+                      onChanged: (v) => setState(() => _subfamilia = v),
+                    );
+                  }),
                 ],
               ),
             ),
