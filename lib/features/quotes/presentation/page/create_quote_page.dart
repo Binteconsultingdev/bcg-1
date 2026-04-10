@@ -861,9 +861,9 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge + bottomPadding,
       ),
-      child: Obx(() {
-        if (ctrl.createdQuoteId.value != null) {
-          return Row(
+     child: Obx(() {
+  if (ctrl.createdQuoteId.value != null) {
+      return  Row(
             children: [
               Expanded(
                 child: ThemeColor.widgetButton(
@@ -895,23 +895,29 @@ class _BottomButton extends StatelessWidget {
               ),
             ],
           );
-        }
+  }
 
-        return SizedBox(
-          width: double.infinity,
-          child: ThemeColor.widgetButton(
-            text: 'Crear Cotización',
-            backgroundColor: ThemeColor.primaryColor,
-            textColor: ThemeColor.textLightColor,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            borderRadius: ThemeColor.mediumRadius,
-            isLoading: ctrl.isCreating.value,
-            onPressed: ctrl.createQuote,
-          ),
-        );
-      }),
+  final blocked = ctrl.hasOutOfStockItems; // 👈 agrega esto
+
+  return AnimatedOpacity(
+    opacity: blocked ? 0.5 : 1.0,
+    duration: const Duration(milliseconds: 250),
+    child: SizedBox(
+      width: double.infinity,
+      child: ThemeColor.widgetButton(
+        text: 'Crear Cotización',
+        backgroundColor: ThemeColor.primaryColor,
+        textColor: ThemeColor.textLightColor,
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        borderRadius: ThemeColor.mediumRadius,
+        isLoading: ctrl.isCreating.value,
+        onPressed: blocked ? null : ctrl.createQuote, // 👈
+      ),
+    ),
+  );
+}),
     );
   }
 }

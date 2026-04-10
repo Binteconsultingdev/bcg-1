@@ -44,6 +44,8 @@ class CreateQuoteController extends GetxController {
     required this.fetchFolioUsecase,
     required this.generatePdfUsecase,
   });
+bool get hasOutOfStockItems =>
+    items.any((i) => (i.product.availableQuantity ?? 0) <= 0);
 
   late final InventoryController _inventoryCtrl = Get.find<InventoryController>();
   late final QuotesController _quotesCtrl = Get.find<QuotesController>();

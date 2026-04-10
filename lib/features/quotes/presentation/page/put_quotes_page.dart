@@ -945,10 +945,13 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge + bottomPadding,
       ),
-      child: Obx(
-        () => Row(
-          children: [
-            Expanded(
+      // En _BottomButton de EditQuotePage
+child: Obx(
+  () {
+    final blocked = ctrl.hasOutOfStockItems; 
+    return Row(
+      children: [
+        Expanded(
               child: ThemeColor.widgetButton(
                 text: 'Ver PDF',
                 backgroundColor: ThemeColor.accentColor,
@@ -961,24 +964,29 @@ class _BottomButton extends StatelessWidget {
                 onPressed: () => ctrl.generateAndOpenPdf(context),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 2,
-              child: ThemeColor.widgetButton(
-                text: 'Guardar Cambios',
-                backgroundColor: ThemeColor.primaryColor,
-                textColor: ThemeColor.textLightColor,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                borderRadius: ThemeColor.mediumRadius,
-                isLoading: ctrl.isSaving.value,
-                onPressed: ctrl.saveQuote,
-              ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: AnimatedOpacity(
+            opacity: blocked ? 0.5 : 1.0,
+            duration: const Duration(milliseconds: 250),
+            child: ThemeColor.widgetButton(
+              text: 'Guardar Cambios',
+              backgroundColor: ThemeColor.primaryColor,
+              textColor: ThemeColor.textLightColor,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              borderRadius: ThemeColor.mediumRadius,
+              isLoading: ctrl.isSaving.value,
+              onPressed: blocked ? null : ctrl.saveQuote,
             ),
-          ],
+          ),
         ),
-      ),
+      ],
+    );
+  },
+),
     );
   }
 }

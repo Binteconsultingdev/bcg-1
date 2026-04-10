@@ -122,6 +122,8 @@ class PutQuotesController extends GetxController {
   final commentsCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
 
+bool get hasOutOfStockItems =>
+    items.any((i) => i.disponible <= 0);
   final List<String> priceOptions = [
     'REGULAR',
     'MEDIO M',
