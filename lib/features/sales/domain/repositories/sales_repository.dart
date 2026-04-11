@@ -1,5 +1,7 @@
 import 'package:bcg/features/sales/domain/entities/create_sales_entity.dart';
 import 'package:bcg/features/sales/domain/entities/point_sale_entity.dart';
+import 'package:bcg/features/sales/domain/entities/response_create_sales_entity.dart';
+import 'package:bcg/features/sales/domain/entities/sales_pdf_entity.dart';
 
 abstract class SalesRepository {
   Future<List<PointSaleEntity>> pointSales(
@@ -15,5 +17,7 @@ abstract class SalesRepository {
   String? id,
 }
   );
-  Future<void>generateSales(CreateSalesEntity entity);
+  Future<ResponseCreateSalesEntity>generateSales(CreateSalesEntity entity);
+
+  Future<SalesPdfEntity> generatepdfSales(int saleId);
 }

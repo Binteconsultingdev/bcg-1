@@ -9,7 +9,9 @@ import 'package:bcg/features/client/presentation/controller/client_search_contro
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quotes_byid_usecase.dart';
+import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
 import 'package:bcg/features/sales/domain/entities/create_sales_entity.dart';
+import 'package:bcg/features/sales/domain/usecase/generate_pdf_sales.dart';
 import 'package:bcg/features/sales/domain/usecase/generate_sales_usecase.dart';
 import 'package:bcg/features/sales/presentation/controller/sales_controller.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +23,8 @@ class SaleItem {
   final RxDouble discount;
 
   SaleItem({required this.product, double initialQty = 1.0})
-    : quantity = initialQty.obs,
-      discount = 0.0.obs;
+      : quantity = initialQty.obs,
+        discount = 0.0.obs;
 
   double get unitPrice => (product.price ?? 0).toDouble();
   double get subtotal => unitPrice * quantity.value;
@@ -35,15 +37,24 @@ class CreateSalesController extends GetxController {
   final GenerateSalesUsecase generateSalesUsecase;
   final FetchQuotesByidUsecase fetchQuotesByidUsecase;
   final FetchQuoteUsecase fetchQuoteUsecase;
+  final GeneratePdfSales generatePdfSales;
 
   CreateSalesController({
     required this.generateSalesUsecase,
     required this.fetchQuotesByidUsecase,
     required this.fetchQuoteUsecase,
+    required this.generatePdfSales,
   });
 
   final _authService = AuthService();
   late final _salesCtrl = Get.find<SalesController>();
+  late final PdfController _pdfCtrl = Get.find<PdfController>();
+
+  // Getter para widgets
+  bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
+
+  // — ID de la venta creada —
+  final createdSaleId = Rxn<int>();
 
   // — Cliente —
   final clienteName = ''.obs;
@@ -57,10 +68,10 @@ class CreateSalesController extends GetxController {
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
- 
+
   final items = <SaleItem>[].obs;
-  final quoteSearchType = 'folio'.obs; 
- 
+  final quoteSearchType = 'folio'.obs;
+
   final quoteSearchInput = ''.obs;
   final quoteSearchCtrl = TextEditingController();
   final isSearchingQuote = false.obs;
@@ -68,10 +79,10 @@ class CreateSalesController extends GetxController {
   final isLoadingQuote = false.obs;
   final selectedFolioQuote = ''.obs;
   final quoteResults = <GetQuoteEntity>[].obs;
- 
+
   final isCreating = false.obs;
   final errorMessage = ''.obs;
- 
+
   final commentsCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
   final referenciaCtrl = TextEditingController();
@@ -80,7 +91,7 @@ class CreateSalesController extends GetxController {
   final metodosEmbarque = ['CAMIONETA', 'CLIENTE RECOGE', 'PAQUETERIA'];
 
   Worker? _quoteSearchDebounce;
- 
+
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount =>
       incIVA.value ? (subtotal - globalDiscount.value) * 0.16 : 0;
@@ -98,7 +109,6 @@ class CreateSalesController extends GetxController {
     );
   }
 
-
   void onClientSelected(ClientEntity client) {
     final name = client.displayName ?? '';
     clienteController.text = name;
@@ -106,7 +116,7 @@ class CreateSalesController extends GetxController {
     selectedClientId.value = client.id;
     Get.find<ClientSearchController>().searchCtrl.text = name;
   }
- 
+
   void addProduct(InventoryEntity product) {
     if ((product.price ?? 0) <= 0) {
       showErrorSnackbar('Este producto no tiene precio asignado');
@@ -120,7 +130,7 @@ class CreateSalesController extends GetxController {
   }
 
   void removeItem(SaleItem item) => items.remove(item);
- 
+
   void onQuoteSearchChanged(String value) {
     quoteSearchInput.value = value;
     isSearchingQuote.value = value.isNotEmpty;
@@ -138,7 +148,7 @@ class CreateSalesController extends GetxController {
         fetchQuoteUsecase.cal(query, '', '', '', 1, 10),
         fetchQuoteUsecase.cal('', '', '', '', 1, 10, id: query),
       ]);
- 
+
       final seen = <String>{};
       final merged = <GetQuoteEntity>[];
       for (final list in results) {
@@ -239,7 +249,7 @@ class CreateSalesController extends GetxController {
     quoteSearchInput.value = '';
     isSearchingQuote.value = false;
   }
- 
+
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
       globalDiscountType.value = 'porcentaje';
@@ -250,12 +260,10 @@ class CreateSalesController extends GetxController {
       globalDiscountPercent.value = 0;
       globalDiscount.value = value;
     }
-    globalDiscountCtrl.text = globalDiscount.value > 0
-        ? globalDiscount.value.toStringAsFixed(2)
-        : '';
+    globalDiscountCtrl.text =
+        globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
   }
 
-  // — Fecha —
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
@@ -275,7 +283,6 @@ class CreateSalesController extends GetxController {
     if (picked != null) validUntil.value = picked;
   }
 
-  // — Crear venta —
   Future<void> createSale() async {
     if (clienteName.value.trim().isEmpty) {
       showErrorSnackbar('Selecciona un cliente para continuar');
@@ -289,7 +296,7 @@ class CreateSalesController extends GetxController {
       isCreating.value = true;
       final vendedor = (await _authService.getUserData())?.nombre ?? '';
 
-      await generateSalesUsecase.call(
+      final response = await generateSalesUsecase.call(
         CreateSalesEntity(
           numCliente: selectedClientId.value ?? 0,
           cliente: clienteName.value.trim(),
@@ -318,6 +325,7 @@ class CreateSalesController extends GetxController {
         ),
       );
 
+      createdSaleId.value = response.saleId;
       await _salesCtrl.fetchSales();
       showSuccessSnackbar('Venta creada correctamente');
     } catch (e) {
@@ -325,6 +333,27 @@ class CreateSalesController extends GetxController {
       showErrorSnackbar(errorMessage.value);
     } finally {
       isCreating.value = false;
+    }
+  }
+
+  Future<void> generateAndOpenPdf(BuildContext context) async {
+    final id = createdSaleId.value;
+    if (id == null) return;
+
+    try {
+      _pdfCtrl.isLoadingPdf.value = true;
+      final result = await generatePdfSales.call(id);
+
+      if (result.generated && result.urlpdf.isNotEmpty) {
+        _pdfCtrl.folio = 'venta_$id';
+        _pdfCtrl.setPdfUrl(result.urlpdf);
+        _pdfCtrl.isLoadingPdf.value = false;
+        _pdfCtrl.showOptionsSheet(context);
+      }
+    } catch (e) {
+      showErrorSnackbar('Error al generar PDF');
+    } finally {
+      _pdfCtrl.isLoadingPdf.value = false;
     }
   }
 

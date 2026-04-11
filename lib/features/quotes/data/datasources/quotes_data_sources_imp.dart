@@ -104,40 +104,58 @@ class QuotesDataSourcesImp {
       throw Exception('$e');
     }
   }
-   Future<void> updateQuote(
-    String token,
-    QuoteEntity entity,int id,
-  ) async {
-    try {
-      Uri url = Uri.parse('$defaultApiServer/Cotizaciones/$id');
+ Future<void> updateQuote(
+  String token,
+  QuoteEntity entity,
+  int id,
+) async {
+  try {
+    Uri url = Uri.parse('$defaultApiServer/Cotizaciones/$id');
 
-      final response = await http.put(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(QuoteModel.fromEntity(entity).toJson()),
-      );
+    final payload = jsonEncode(QuoteModel.fromEntity(entity).toJson());
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-         return;
-      }
+    print('🚀 Iniciando updateQuote');
+    print('🆔 ID de cotización: $id');
+    print('🌐 URL: $url');
+    print('📦 Payload: $payload');
+    print('🔑 Token: $token');
 
-      ApiExceptionCustom exception = ApiExceptionCustom(response: response);
-      exception.validateMesage();
-      throw exception;
-    } catch (e) {
-      if (e is SocketException ||
-          e is http.ClientException ||
-          e is TimeoutException) {
-        print('🌐 Error de red detectado');
-        throw Exception(convertMessageException(error: e));
-      }
+    final response = await http.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: payload,
+    );
 
-      throw Exception('$e');
+    print('📥 Status Code: ${response.statusCode}');
+    print('📥 Response Body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print('✅ Cotización actualizada correctamente');
+      return;
     }
+
+    print('⚠️ Error en la respuesta del servidor');
+
+    ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+    exception.validateMesage();
+    throw exception;
+
+  } catch (e) {
+    print('❌ Error capturado: $e');
+
+    if (e is SocketException ||
+        e is http.ClientException ||
+        e is TimeoutException) {
+      print('🌐 Error de red detectado');
+      throw Exception(convertMessageException(error: e));
+    }
+
+    throw Exception('$e');
   }
+}
   Future<ResponseCreateEntity> createQuote(
     QuoteEntity entity,
     String token,

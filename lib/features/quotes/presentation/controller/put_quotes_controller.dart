@@ -3,7 +3,6 @@ import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/common/controller/product_search_controller.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
-import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
 import 'package:bcg/features/client/presentation/controller/client_search_controller.dart';
@@ -13,14 +12,9 @@ import 'package:bcg/features/quotes/domain/usecase/fetch_quotes_byid_usecase.dar
 import 'package:bcg/features/quotes/domain/usecase/generate_pdf_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/put_quotes_usecase.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
-import 'package:bcg/features/quotes/presentation/widget/pdf_options_sheet.dart';
+import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'package:open_filex/open_filex.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
 
 class EditQuoteItem {
   final RxString codigo;
@@ -50,7 +44,8 @@ class EditQuoteItem {
         precio = precio.obs,
         quantity = quantity.obs,
         descuento = descuento.obs;
-RxDouble get totalRx => total.obs;
+
+  RxDouble get totalRx => total.obs;
   double get subtotal => precio.value * quantity.value;
   double get discountAmount => subtotal * (descuento.value / 100);
   double get total => subtotal - discountAmount;
@@ -85,6 +80,7 @@ RxDouble get totalRx => total.obs;
     );
   }
 }
+
 class PutQuotesController extends GetxController {
   final PutQuotesUsecase putQuotesUsecase;
   final FetchQuotesByidUsecase fetchQuotesByidUsecase;
@@ -98,17 +94,16 @@ class PutQuotesController extends GetxController {
 
   late final QuotesController _quotesCtrl = Get.find<QuotesController>();
   late final ClientController _clientCtrl = Get.find<ClientController>();
+  late final PdfController _pdfCtrl = Get.find<PdfController>();
+
+  // Getter para el widget
+bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
 
   final Rxn<int> quoteId = Rxn<int>();
 
   final isLoadingQuote = false.obs;
   final isSaving = false.obs;
   final errorMessage = ''.obs;
-
-  final RxBool isDownloading = false.obs;
-  final RxDouble downloadProgress = 0.0.obs;
-  final pdfUrl = Rxn<String>();
-  final RxBool isLoadingPdf = false.obs;
 
   final folio = ''.obs;
   final clienteName = ''.obs;
@@ -120,15 +115,15 @@ class PutQuotesController extends GetxController {
   final globalDiscountPercent = 0.0.obs;
 
   final items = <EditQuoteItem>[].obs;
-final lastDownloadedPath = Rxn<String>();
 
   final commentsCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
-final quoteStatus = ''.obs;
 
-bool get isEditable => quoteStatus.value.toUpperCase() == 'GENERADA';
-bool get hasOutOfStockItems =>
-    items.any((i) => i.disponible <= 0);
+  final quoteStatus = ''.obs;
+
+  bool get isEditable => quoteStatus.value.toUpperCase() == 'GENERADA';
+  bool get hasOutOfStockItems => items.any((i) => i.disponible <= 0);
+
   final List<String> priceOptions = [
     'REGULAR',
     'MEDIO M',
@@ -136,12 +131,7 @@ bool get hasOutOfStockItems =>
     'MAYOREO',
     'ESPECIAL',
   ];
-void onClientSelected(ClientEntity client) {
-  final name = client.displayName ?? '';
-  clienteController.text = name;
-  clienteName.value = name;
-  Get.find<ClientSearchController>().searchCtrl.text = name;
-}
+
   double get subtotal => items.fold(0, (s, i) => s + i.total);
   double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
@@ -154,14 +144,22 @@ void onClientSelected(ClientEntity client) {
       loadQuote(args['idQuote'] as int);
     }
 
-  Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
-  Get.find<ClientSearchController>().showResults.value = false;
-  Get.find<ClientSearchController>().manuallyClosed = true; 
+    Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
+    Get.find<ClientSearchController>().showResults.value = false;
+    Get.find<ClientSearchController>().manuallyClosed = true;
   }
 
-void onFreeTextClient(String value) {
-  clienteName.value = value;
-}
+  void onFreeTextClient(String value) {
+    clienteName.value = value;
+  }
+
+  void onClientSelected(ClientEntity client) {
+    final name = client.displayName ?? '';
+    clienteController.text = name;
+    clienteName.value = name;
+    Get.find<ClientSearchController>().searchCtrl.text = name;
+  }
+
   Future<void> loadQuote(int id) async {
     try {
       quoteId.value = id;
@@ -178,29 +176,28 @@ void onFreeTextClient(String value) {
     }
   }
 
-void _populateFromEntity(QuoteEntity quote) {
-  folio.value = quote.folio;
-  quoteStatus.value = quote.status ?? '';
-  clienteName.value = quote.cliente;
-  clienteController.text = quote.cliente;
-  selectedPriceType.value = quote.cataPrecio;
-  commentsCtrl.text = quote.comentarios;
+  void _populateFromEntity(QuoteEntity quote) {
+    folio.value = quote.folio;
+    quoteStatus.value = quote.status ?? '';
+    clienteName.value = quote.cliente;
+    clienteController.text = quote.cliente;
+    selectedPriceType.value = quote.cataPrecio;
+    commentsCtrl.text = quote.comentarios;
 
-  final daysToAdd = quote.diasEnt > 0 ? quote.diasEnt : 15;
-  validUntil.value = DateTime.now().add(Duration(days: daysToAdd));
+    final daysToAdd = quote.diasEnt > 0 ? quote.diasEnt : 15;
+    validUntil.value = DateTime.now().add(Duration(days: daysToAdd));
 
-  final desc = double.tryParse(quote.descuento) ?? 0;
-  globalDiscount.value = desc;
-  if (desc > 0) globalDiscountCtrl.text = desc.toStringAsFixed(2);
+    final desc = double.tryParse(quote.descuento) ?? 0;
+    globalDiscount.value = desc;
+    if (desc > 0) globalDiscountCtrl.text = desc.toStringAsFixed(2);
 
-  items.assignAll(
-    quote.productos.map((p) => EditQuoteItem.fromProductoEntity(p)).toList(),
-  );
+    items.assignAll(
+      quote.productos.map((p) => EditQuoteItem.fromProductoEntity(p)).toList(),
+    );
 
-  final clientSearch = Get.find<ClientSearchController>();
-  clientSearch.searchCtrl.text = quote.cliente;
-}
-
+    final clientSearch = Get.find<ClientSearchController>();
+    clientSearch.searchCtrl.text = quote.cliente;
+  }
 
   void onClienteChanged(String value) => clienteName.value = value;
 
@@ -219,7 +216,6 @@ void _populateFromEntity(QuoteEntity quote) {
     );
   }
 
-
   void addProduct(InventoryEntity product) {
     if ((product.price ?? 0) <= 0) {
       showErrorSnackbar('Este producto no tiene precio asignado');
@@ -237,7 +233,6 @@ void _populateFromEntity(QuoteEntity quote) {
 
   void removeItem(EditQuoteItem item) => items.remove(item);
 
-
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
       globalDiscountType.value = 'porcentaje';
@@ -251,7 +246,6 @@ void _populateFromEntity(QuoteEntity quote) {
     globalDiscountCtrl.text =
         globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
   }
-
 
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -272,44 +266,14 @@ void _populateFromEntity(QuoteEntity quote) {
     if (picked != null) validUntil.value = picked;
   }
 
-
-  Future<void> generateAndOpenPdf(BuildContext context) async {
-    final id = quoteId.value;
-    if (id == null) return;
-
-    try {
-      isLoadingPdf.value = true;
-      final result = await generatePdfUsecase.call(id);
-      pdfUrl.value = result.urlpdf;
-
-      if (result.generated && result.urlpdf.isNotEmpty) {
-        isLoadingPdf.value = false;
-      showModalBottomSheet(
-  context: context,
-  backgroundColor: Colors.transparent,
-  builder: (_) => PdfOptionsSheet(
-    onSendWhatsApp: sendWhatsApp,  onOpenPdf: openDownloadedPdf,   
-    onDownloadPdf: downloadPdf,
-    isDownloading: isDownloading,
-    downloadProgress: downloadProgress,    lastDownloadedPath: lastDownloadedPath,
-
-  ),
-);
-      }
-    } catch (e) {
-      showErrorSnackbar('Error al generar PDF');
-    } finally {
-      isLoadingPdf.value = false;
-    }
-  }
-
   Future<void> saveQuote() async {
     final id = quoteId.value;
     if (id == null) return;
-if (!isEditable) {
-    showErrorSnackbar('Solo se pueden editar cotizaciones con estatus GENERADA');
-    return;
-  }
+
+    if (!isEditable) {
+      showErrorSnackbar('Solo se pueden editar cotizaciones con estatus GENERADA');
+      return;
+    }
     if (clienteName.value.trim().isEmpty) {
       showErrorSnackbar('Selecciona un cliente para continuar');
       return;
@@ -356,7 +320,8 @@ if (!isEditable) {
       await _quotesCtrl.fetchQuotes();
 
       final result = await generatePdfUsecase.call(id);
-      pdfUrl.value = result.urlpdf;
+      _pdfCtrl.folio = folio.value;
+      _pdfCtrl.setPdfUrl(result.urlpdf);
 
       showSuccessSnackbar('Cotización actualizada correctamente');
     } catch (e) {
@@ -367,81 +332,26 @@ if (!isEditable) {
     }
   }
 
-
-  Future<void> sendWhatsApp() async {
-    final url = pdfUrl.value;
-    if (url == null || url.isEmpty) return;
+  Future<void> generateAndOpenPdf(BuildContext context) async {
+    final id = quoteId.value;
+    if (id == null) return;
 
     try {
-      isLoadingPdf.value = true;
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final directory = await getTemporaryDirectory();
-        final fileName =
-            'cotizacion_${DateTime.now().millisecondsSinceEpoch}.pdf';
-        final file = File('${directory.path}/$fileName');
-        await file.writeAsBytes(response.bodyBytes);
+      _pdfCtrl.isLoadingPdf.value = true;
+      final result = await generatePdfUsecase.call(id);
 
-        await Share.shareXFiles(
-          [XFile(file.path)],
-          subject: 'Cotización ${folio.value}',
-          text: 'Te comparto la cotización ${folio.value}',
-        );
-      } else {
-        showErrorSnackbar('No se pudo descargar el PDF');
+      if (result.generated && result.urlpdf.isNotEmpty) {
+        _pdfCtrl.folio = folio.value;
+        _pdfCtrl.setPdfUrl(result.urlpdf);
+        _pdfCtrl.isLoadingPdf.value = false;
+        _pdfCtrl.showOptionsSheet(context);
       }
     } catch (e) {
-      showErrorSnackbar('Error al compartir PDF');
+      showErrorSnackbar('Error al generar PDF');
     } finally {
-      isLoadingPdf.value = false;
+      _pdfCtrl.isLoadingPdf.value = false;
     }
   }
-
-  
-Future<void> downloadPdf() async {
-  final url = pdfUrl.value;
-  if (url == null || url.isEmpty) return;
-
-  try {
-    isDownloading.value = true;
-    downloadProgress.value = 0;
-
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode != 200) {
-      showErrorSnackbar('No se pudo descargar el PDF');
-      return;
-    }
-
-    final fileName =
-        'cotizacion_${folio.value}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    String savePath;
-
-    if (Platform.isAndroid) {
-      savePath = '/storage/emulated/0/Download/$fileName';
-    } else {
-      final dir = await getApplicationDocumentsDirectory();
-      savePath = '${dir.path}/$fileName';
-    }
-
-    final file = File(savePath);
-    await file.writeAsBytes(response.bodyBytes);
-
-
-    lastDownloadedPath.value = savePath;
-
-    showSuccessSnackbar('PDF guardado en Descargas');
-  } catch (e) {
-    showErrorSnackbar('Error al descargar PDF: $e');
-  } finally {
-    isDownloading.value = false;
-  }
-}
-
-Future<void> openDownloadedPdf() async {
-  final path = lastDownloadedPath.value;
-  if (path == null || path.isEmpty) return;
-  await OpenFilex.open(path);
-}
 
   @override
   void onClose() {

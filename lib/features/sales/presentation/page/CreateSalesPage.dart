@@ -1121,20 +1121,60 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingLarge + bottomPadding,
       ),
       child: Obx(() {
+        // — Venta ya creada: mostrar Cerrar + Ver PDF —
+        if (ctrl.createdSaleId.value != null) {
+          return Row(
+            children: [
+              Expanded(
+                child: ThemeColor.widgetButton(
+                  text: 'Cerrar',
+                  backgroundColor: ThemeColor.backgroundColor,
+                  textColor: ThemeColor.textPrimaryColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  borderRadius: ThemeColor.mediumRadius,
+                  isLoading: false,
+                  onPressed: () => Get.back(result: true),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ThemeColor.widgetButton(
+                  text: 'Ver PDF',
+                  backgroundColor: ThemeColor.accentColor,
+                  textColor: ThemeColor.textLightColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  borderRadius: ThemeColor.mediumRadius,
+                  isLoading: ctrl.isLoadingPdf,
+                  onPressed: () => ctrl.generateAndOpenPdf(context),
+                ),
+              ),
+            ],
+          );
+        }
+
+        // — Aún no creada: botón Crear Venta —
         final blocked = ctrl.hasOutOfStockItems;
         return AnimatedOpacity(
           opacity: blocked ? 0.5 : 1.0,
           duration: const Duration(milliseconds: 250),
-          child: ThemeColor.widgetButton(
-            text: 'Crear Venta',
-            backgroundColor: ThemeColor.primaryColor,
-            textColor: ThemeColor.textLightColor,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            borderRadius: ThemeColor.mediumRadius,
-            isLoading: ctrl.isCreating.value,
-            onPressed: blocked ? null : ctrl.createSale,
+          child: SizedBox(
+            width: double.infinity,
+            child: ThemeColor.widgetButton(
+              text: 'Crear Venta',
+              backgroundColor: ThemeColor.primaryColor,
+              textColor: ThemeColor.textLightColor,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              borderRadius: ThemeColor.mediumRadius,
+              isLoading: ctrl.isCreating.value,
+              onPressed: blocked ? null : ctrl.createSale,
+            ),
           ),
         );
       }),

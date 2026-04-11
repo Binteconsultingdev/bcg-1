@@ -2,6 +2,8 @@ import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/features/sales/data/datasources/sales_data_sources_imp.dart';
 import 'package:bcg/features/sales/domain/entities/create_sales_entity.dart';
 import 'package:bcg/features/sales/domain/entities/point_sale_entity.dart';
+import 'package:bcg/features/sales/domain/entities/response_create_sales_entity.dart';
+import 'package:bcg/features/sales/domain/entities/sales_pdf_entity.dart';
 import 'package:bcg/features/sales/domain/repositories/sales_repository.dart';
 
 class SalesRepositoryImp extends SalesRepository {
@@ -31,9 +33,15 @@ Future<List<PointSaleEntity>> pointSales(
 }
 
   @override
-  Future<void> generateSales(CreateSalesEntity entity) async {
+  Future<ResponseCreateSalesEntity> generateSales(CreateSalesEntity entity) async {
   final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
 
    return await salesDataSourcesImp.generateSales(entity,token);
+  }
+
+  @override
+  Future<SalesPdfEntity> generatepdfSales(int saleId)async {
+  final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
+    return await salesDataSourcesImp.generatePdf(saleId, token);
   }
 }

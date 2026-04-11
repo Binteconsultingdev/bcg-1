@@ -6,8 +6,12 @@ import 'package:bcg/common/constants/constants.dart';
 import 'package:bcg/common/errors/api_errors.dart';
 import 'package:bcg/features/sales/data/model/create_sales_model.dart';
 import 'package:bcg/features/sales/data/model/point_sale_model.dart';
+import 'package:bcg/features/sales/data/model/response_create_sales_model.dart';
+import 'package:bcg/features/sales/data/model/sales_pdf_model.dart';
 import 'package:bcg/features/sales/domain/entities/create_sales_entity.dart';
 import 'package:bcg/features/sales/domain/entities/point_sale_entity.dart';
+import 'package:bcg/features/sales/domain/entities/response_create_sales_entity.dart';
+import 'package:bcg/features/sales/domain/entities/sales_pdf_entity.dart';
 import 'package:http/http.dart' as http;
 
 class SalesDataSourcesImp {
@@ -68,7 +72,7 @@ class SalesDataSourcesImp {
       }
       throw Exception(e);
     }
-  }Future<void> generateSales(CreateSalesEntity entity, String token) async {
+  }Future<ResponseCreateSalesEntity> generateSales(CreateSalesEntity entity, String token) async {
   try {
     Uri url = Uri.parse('$defaultApiServer/VentaSalida/generar');
 
@@ -91,10 +95,13 @@ class SalesDataSourcesImp {
     print('📥 Status Code: ${response.statusCode}');
     print('📥 Response Body: ${response.body}');
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print('✅ Venta generada correctamente');
-      return;
-    }
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final dataUTF8 = utf8.decode(response.bodyBytes);
+        final responseDecode = jsonDecode(dataUTF8);
+
+        return ResponseCreateSalesModel.fromJson(responseDecode);
+      }
+
 
     print('⚠️ Error en la respuesta del servidor');
 
@@ -115,4 +122,41 @@ class SalesDataSourcesImp {
     throw Exception('$e');
   }
 }
+
+
+
+  Future<SalesPdfEntity> generatePdf(int folio, String token) async {
+    try {
+      final uri = Uri.parse(
+        '$defaultApiServer/VentaSalida/$folio/generar-pdf',
+      );
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/pdf',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dataUTF8 = utf8.decode(response.bodyBytes);
+        final responseDecode = jsonDecode(dataUTF8);
+
+        return SalesPdfModel.fromJson(responseDecode);
+      }
+      ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+      exception.validateMesage();
+      throw exception;
+    } catch (e) {
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is TimeoutException) {
+        print('🌐 Error de red detectado');
+        throw Exception(convertMessageException(error: e));
+      }
+
+      throw Exception('$e');
+    }
+  }
 }

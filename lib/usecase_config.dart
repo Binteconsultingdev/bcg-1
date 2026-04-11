@@ -25,6 +25,7 @@ import 'package:bcg/features/quotes/domain/usecase/generate_pdf_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/put_quotes_usecase.dart';
 import 'package:bcg/features/sales/data/datasources/sales_data_sources_imp.dart';
 import 'package:bcg/features/sales/data/repositories/sales_repository_imp.dart';
+import 'package:bcg/features/sales/domain/usecase/generate_pdf_sales.dart';
 import 'package:bcg/features/sales/domain/usecase/generate_sales_usecase.dart';
 import 'package:bcg/features/sales/domain/usecase/point_sales_usecase.dart';
 
@@ -63,6 +64,7 @@ FetchQuotesByidUsecase? fetchQuotesByidUsecase;
 
  PointSalesUsecase?pointSalesUsecase;
  GenerateSalesUsecase?generateSalesUsecase;
+ GeneratePdfSales? generatePdfSales;
   UsecaseConfig(){
     authDataSourceImp = AuthDataSourceImp();
     quotesDataSourcesImp = QuotesDataSourcesImp();
@@ -93,6 +95,7 @@ FetchQuotesByidUsecase? fetchQuotesByidUsecase;
     
     pointSalesUsecase = PointSalesUsecase(salesRepository: salesRepositoryImp!);
     generateSalesUsecase = GenerateSalesUsecase(salesRepository: salesRepositoryImp!);
+    generatePdfSales = GeneratePdfSales(salesRepository: salesRepositoryImp!);
 
     fetchClientsUsecase = FetchClientsUsecase(clientRepository: clientRepositoryImp!);
     createClientUsecase = CreateClientUsecase(clientRepository: clientRepositoryImp!);
