@@ -5,6 +5,7 @@ import 'package:bcg/features/sales/domain/entities/sales_pdf_entity.dart';
 
 abstract class SalesRepository {
   Future<List<PointSaleEntity>> pointSales(
+    String status,
    String startDate,
   String endDate,
   bool ignoreDates,

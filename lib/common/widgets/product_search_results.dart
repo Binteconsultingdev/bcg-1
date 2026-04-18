@@ -47,24 +47,84 @@ class ProductSearchResults extends StatelessWidget {
           itemCount: results.length,
           separatorBuilder: (_, __) =>
               Divider(height: 1, color: ThemeColor.dividerColor),
-          itemBuilder: (_, i) {
-            final p = results[i];
-            return ListTile(
-              dense: true,
-              leading: ProductThumbnail(imageUrl: p.imageUrl, size: 36),
-              title: Text(p.description ?? '',
-                  style: ThemeColor.bodyMedium,
+       itemBuilder: (_, i) {
+  final p = results[i];
+  final stock = p.availableQuantity ?? 0;
+  final hasStock = stock > 0;
+
+  return InkWell(
+    onTap: () => ctrl.selectProduct(p, onSelected: onSelected),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: ThemeColor.paddingMedium,
+        vertical: ThemeColor.paddingSmall,
+      ),
+      child: Row(
+        children: [
+          ProductThumbnail(imageUrl: p.imageUrl ?? '', size: 54),
+          const SizedBox(width: ThemeColor.paddingMedium),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  p.description ?? 'Sin descripción',
+                  style: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.infoColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
-              subtitle: Text(
-                '${p.partNumber ?? ''} · \$${(p.price ?? 0).toStringAsFixed(2)}',
-                style: ThemeColor.caption,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  p.partNumber ?? 'Sin número de parte',
+                  style: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.textSecondaryColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '\$${(p.price ?? 0).toStringAsFixed(2)}',
+                  style: ThemeColor.bodyMedium.copyWith(
+                    color: ThemeColor.textPrimaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 120),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: ThemeColor.paddingSmall,
+                vertical: 4,
               ),
-              trailing: const Icon(Icons.add_circle_outline,
-                  color: ThemeColor.accentColor, size: 20),
-              onTap: () => ctrl.selectProduct(p, onSelected: onSelected),
-            );
-          },
+              decoration: BoxDecoration(
+                color: hasStock
+                    ? ThemeColor.successColor
+                    : Colors.amber.shade700,
+                borderRadius: ThemeColor.smallBorderRadius,
+              ),
+              child: Text(
+                hasStock
+                    ? '${stock} ${p.unit ?? ""}'
+                    : 'Sin existencia',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: ThemeColor.caption.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+},
         ),
       );
     });

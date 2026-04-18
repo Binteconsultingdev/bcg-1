@@ -117,7 +117,7 @@ showCustomAlert(
 
       onConfirm: () {
        Get.back();
-       Get.offNamed(RoutesNames.loginPage);
+       Get.offNamed(RoutesNames.licensePage);
        logout();
       },
 

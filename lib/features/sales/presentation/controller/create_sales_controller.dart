@@ -23,8 +23,8 @@ class SaleItem {
   final RxDouble discount;
 
   SaleItem({required this.product, double initialQty = 1.0})
-      : quantity = initialQty.obs,
-        discount = 0.0.obs;
+    : quantity = initialQty.obs,
+      discount = 0.0.obs;
 
   double get unitPrice => (product.price ?? 0).toDouble();
   double get subtotal => unitPrice * quantity.value;
@@ -86,7 +86,6 @@ class CreateSalesController extends GetxController {
   final commentsCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
   final referenciaCtrl = TextEditingController();
-  final tipoCambioCtrl = TextEditingController(text: '1.00');
 
   final metodosEmbarque = ['CAMIONETA', 'CLIENTE RECOGE', 'PAQUETERIA'];
 
@@ -96,9 +95,10 @@ class CreateSalesController extends GetxController {
   double get ivaAmount =>
       incIVA.value ? (subtotal - globalDiscount.value) * 0.16 : 0;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
-  bool get hasOutOfStockItems =>
-      items.any((i) => (i.product.availableQuantity ?? 0) <= 0);
-
+  bool get hasOutOfStockItems => items.any((i) {
+    final stock = (i.product.availableQuantity ?? 0);
+    return stock <= 0 || i.quantity.value > stock;
+  });
   @override
   void onInit() {
     super.onInit();
@@ -144,9 +144,9 @@ class CreateSalesController extends GetxController {
       isSearchingQuoteApi.value = true;
 
       final results = await Future.wait([
-        fetchQuoteUsecase.cal('', '', '', '', 1, 10, folio: query),
-        fetchQuoteUsecase.cal(query, '', '', '', 1, 10),
-        fetchQuoteUsecase.cal('', '', '', '', 1, 10, id: query),
+        fetchQuoteUsecase.cal('', '', '', '', '', 1, 10, folio: query),
+        fetchQuoteUsecase.cal(query, '', '', '', '', 1, 10),
+        fetchQuoteUsecase.cal('', '', '', '', '', 1, 10, id: query),
       ]);
 
       final seen = <String>{};
@@ -160,23 +160,28 @@ class CreateSalesController extends GetxController {
 
       quoteResults.assignAll(merged);
     } catch (e) {
-      showErrorSnackbar('Error al buscar cotización: $e');
+      print(e);
     } finally {
       isSearchingQuoteApi.value = false;
     }
   }
 
-  Future<void> loadInitialQuotes() async {
-    try {
-      isSearchingQuoteApi.value = true;
-      quoteResults.assignAll(
-        await fetchQuoteUsecase.cal('', '', '', '', 1, 20),
-      );
-    } catch (e) {
-      showErrorSnackbar('Error al cargar cotizaciones: $e');
-    } finally {
-      isSearchingQuoteApi.value = false;
-    }
+Future<void> loadInitialQuotes() async {
+  try {
+    isSearchingQuoteApi.value = true;
+    quoteResults.assignAll(
+      await fetchQuoteUsecase.cal('', '', 'GENERADA', '', '', 1, 20),
+    );
+  } catch (e) {
+    print(e);
+  } finally {
+    isSearchingQuoteApi.value = false;
+  }
+}
+  // Utilidad para extraer el ID del formato "(2069) NOMBRE"
+  int? _parseClientIdFromName(String nombre) {
+    final match = RegExp(r'^\((\d+)\)').firstMatch(nombre.trim());
+    return match != null ? int.tryParse(match.group(1)!) : null;
   }
 
   Future<void> loadFromQuote(GetQuoteEntity quoteEntity) async {
@@ -189,25 +194,14 @@ class CreateSalesController extends GetxController {
     }
     try {
       isLoadingQuote.value = true;
+
       final quote = await fetchQuotesByidUsecase.call(quoteEntity.id!);
 
-      final idMatch = RegExp(r'^\((\d+)\)\s*').firstMatch(quote.cliente);
-      if (idMatch != null) {
-        selectedClientId.value = int.tryParse(idMatch.group(1) ?? '');
-        final nombre = quote.cliente
-            .replaceFirst(idMatch.group(0)!, '')
-            .replaceAll('"', '')
-            .replaceAll("'", '')
-            .trim();
-        clienteController.text = nombre;
-        clienteName.value = nombre;
-        Get.find<ClientSearchController>().searchCtrl.text = nombre;
-      } else {
-        clienteController.text = quote.cliente;
-        clienteName.value = quote.cliente;
-        Get.find<ClientSearchController>().searchCtrl.text = quote.cliente;
-      }
+      clienteController.text = quote.cliente;
+      clienteName.value = quote.cliente;
+      Get.find<ClientSearchController>().searchCtrl.text = quote.cliente;
 
+      selectedClientId.value = _parseClientIdFromName(quote.cliente);
       commentsCtrl.text = quote.comentarios;
       referenciaCtrl.text = quote.folio;
       selectedFolioQuote.value = quote.folio;
@@ -260,8 +254,9 @@ class CreateSalesController extends GetxController {
       globalDiscountPercent.value = 0;
       globalDiscount.value = value;
     }
-    globalDiscountCtrl.text =
-        globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
+    globalDiscountCtrl.text = globalDiscount.value > 0
+        ? globalDiscount.value.toStringAsFixed(2)
+        : '';
   }
 
   Future<void> pickDate(BuildContext context) async {
@@ -306,7 +301,6 @@ class CreateSalesController extends GetxController {
           comentarios: commentsCtrl.text.trim(),
           refe: referenciaCtrl.text.trim(),
           fechaEntrega: validUntil.value,
-          tc: double.tryParse(tipoCambioCtrl.text) ?? 1.0,
           incIVA: incIVA.value,
           folioPre: selectedFolioQuote.value,
           descuento: globalDiscount.value,
@@ -365,7 +359,6 @@ class CreateSalesController extends GetxController {
       commentsCtrl,
       globalDiscountCtrl,
       referenciaCtrl,
-      tipoCambioCtrl,
       quoteSearchCtrl,
     ]) {
       c.dispose();

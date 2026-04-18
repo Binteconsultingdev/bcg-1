@@ -18,6 +18,7 @@ class SalesDataSourcesImp {
   String defaultApiServer = AppConstants.serverBase;
   Future<List<PointSaleEntity>> fetchQuote(
     String token,
+    String status,
     String startDate,
     String endDate,
     bool ignoreDates,
@@ -31,6 +32,7 @@ class SalesDataSourcesImp {
   }) async {
     try {
       final queryParams = {
+          'status': status,
         'FechaInicio': startDate,
         'FechaFin': endDate,
         'IgnorarFechas': ignoreDates.toString(),
@@ -72,7 +74,10 @@ class SalesDataSourcesImp {
       }
       throw Exception(e);
     }
-  }Future<ResponseCreateSalesEntity> generateSales(CreateSalesEntity entity, String token) async {
+  }
+  
+  
+  Future<ResponseCreateSalesEntity> generateSales(CreateSalesEntity entity, String token) async {
   try {
     Uri url = Uri.parse('$defaultApiServer/VentaSalida/generar');
 
@@ -95,12 +100,18 @@ class SalesDataSourcesImp {
     print('📥 Status Code: ${response.statusCode}');
     print('📥 Response Body: ${response.body}');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final dataUTF8 = utf8.decode(response.bodyBytes);
-        final responseDecode = jsonDecode(dataUTF8);
+ if (response.statusCode == 200 || response.statusCode == 201) {
+  final dataUTF8 = utf8.decode(response.bodyBytes);
+  final responseDecode = jsonDecode(dataUTF8);
 
-        return ResponseCreateSalesModel.fromJson(responseDecode);
-      }
+  // ← Verifica success antes de retornar
+  if (responseDecode['success'] == false) {
+    final message = responseDecode['message'] ?? 'Error desconocido';
+    throw Exception(message);
+  }
+
+  return ResponseCreateSalesModel.fromJson(responseDecode);
+}
 
 
     print('⚠️ Error en la respuesta del servidor');

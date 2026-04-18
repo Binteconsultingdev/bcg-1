@@ -176,14 +176,14 @@ class _TopSection extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _RowField(
+          RowField(
             label: 'Cliente',
             child: ClientSearchField(onSelected: ctrl.onClientSelected),
           ),
           ClientSearchResults(onSelected: ctrl.onClientSelected),
 
           Divider(height: 1, color: ThemeColor.dividerColor),
-          _RowField(
+          RowField(
             label: 'Cotiz.',
             child: _QuoteSelector(ctrl: ctrl),
           ),
@@ -273,12 +273,12 @@ class _TopSection extends StatelessWidget {
             );
           }),
           Divider(height: 1, color: ThemeColor.dividerColor),
-          _RowField(
+          RowField(
             label: 'Método',
             child: _MetodoEmbarqueSelector(ctrl: ctrl),
           ),
           Divider(height: 1, color: ThemeColor.dividerColor),
-          _RowField(
+          RowField(
             label: 'Producto',
             child: ProductSearchField(onSelected: ctrl.addProduct),
           ),
@@ -289,10 +289,10 @@ class _TopSection extends StatelessWidget {
   }
 }
 
-class _RowField extends StatelessWidget {
+class RowField extends StatelessWidget {
   final String label;
   final Widget child;
-  const _RowField({required this.label, required this.child});
+  const RowField({required this.label, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -972,7 +972,7 @@ class _ExtraFieldsSection extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _RowField(
+          RowField(
             label: 'Referencia',
             child: _SimpleTextField(
               controller: ctrl.referenciaCtrl,
@@ -980,19 +980,7 @@ class _ExtraFieldsSection extends StatelessWidget {
             ),
           ),
           Divider(height: 1, color: ThemeColor.dividerColor),
-          _RowField(
-            label: 'T.C.',
-            child: _SimpleTextField(
-              controller: ctrl.tipoCambioCtrl,
-              hint: '1.00',
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,4}')),
-              ],
-            ),
-          ),
+          
         ],
       ),
     );

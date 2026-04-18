@@ -91,16 +91,23 @@ bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
   double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
 
-  @override
-  void onInit() {
-    super.onInit();
-    _loadFolio();
-    resetState();
-    Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
-    Get.find<ClientSearchController>().showResults.value = false;
-    Get.find<ClientSearchController>().manuallyClosed = true;
-  }
-
+void onInit() {
+  super.onInit();
+  _loadFolio();
+  // ← quita resetState() y la config del ClientSearchController de aquí
+}
+@override
+void onReady() {
+  super.onReady();
+  resetState();
+  // Esto se ejecuta después del build, sin conflicto
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final clientSearch = Get.find<ClientSearchController>();
+    clientSearch.onFreeText = onFreeTextClient;
+    clientSearch.showResults.value = false;
+    clientSearch.manuallyClosed = true;
+  });
+}
   void onClientSelected(ClientEntity client) {
     final name = client.displayName ?? '';
     clienteController.text = name;

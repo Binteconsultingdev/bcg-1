@@ -1,12 +1,18 @@
+import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
+import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
+import 'package:bcg/features/sales/domain/usecase/generate_pdf_sales.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 class QuotesController extends GetxController {
   final FetchQuoteUsecase fetchQuoteUsecase;
-  QuotesController({required this.fetchQuoteUsecase});
+    final GeneratePdfSales generatePdfSales; // ← agrega
+
+  QuotesController({required this.fetchQuoteUsecase, required this.generatePdfSales}); // ← agrega
 
   final ScrollController scrollController = ScrollController();
+final RxString statusFilter = ''.obs;
 
   final RxList<GetQuoteEntity> quotes = <GetQuoteEntity>[].obs;
   final RxBool isLoading = false.obs;
@@ -18,6 +24,7 @@ class QuotesController extends GetxController {
   final RxString dateFromFilter = ''.obs;
   final RxString dateUntilFilter = ''.obs;
 final RxInt selectedTab = 0.obs;
+List<GetQuoteEntity> get filteredItems => quotes;
 
   final RxString searchInput = ''.obs;
   final TextEditingController searchController = TextEditingController();
@@ -49,7 +56,24 @@ final RxInt selectedTab = 0.obs;
       loadMoreQuotes();
     }
   }
-
+String _tabToStatus(int tab) {
+  switch (tab) {
+    case 1: return 'generada';
+    case 2: return 'vencida';
+    case 3: return 'vendida';
+    case 4: return 'cancelada';
+    default: return '';
+  }
+}
+void onTabChanged(int tab) {
+  selectedTab.value = tab;
+  statusFilter.value = _tabToStatus(tab);
+  fetchQuotes(
+    numParte: numParteFilter.value,
+    dateFrom: dateFromFilter.value,
+    dateUntil: dateUntilFilter.value,
+  );
+}
   String _toIso(String ddMMyyyy, {bool endOfDay = false}) {
     if (ddMMyyyy.isEmpty) return '';
     final parts = ddMMyyyy.split('/');
@@ -70,47 +94,43 @@ final RxInt selectedTab = 0.obs;
     return merged;
   }
 
-  Future<List<List<GetQuoteEntity>>> _buildSearchCalls(int page) {
-    final calls = <Future<List<GetQuoteEntity>>>[];
+ Future<List<List<GetQuoteEntity>>> _buildSearchCalls(int page) {
+  final calls = <Future<List<GetQuoteEntity>>>[];
+  final status = statusFilter.value; // <-- usar este
 
-    if (_isEmpty) {
-      
-      calls.add(fetchQuoteUsecase.cal(
-        '', numParteFilter.value,
-        dateFromFilter.value, dateUntilFilter.value,
-        page, _pageSize,
-      ));
-    } else if (_isNumeric) {
-      
-
-      calls.add(fetchQuoteUsecase.cal(
-        '', numParteFilter.value,
-        dateFromFilter.value, dateUntilFilter.value,
-        page, _pageSize,
-        id: _trimmed,
-      ));
-    } else {
-      
-      calls.add(fetchQuoteUsecase.cal(
-        '', numParteFilter.value,
-        dateFromFilter.value, dateUntilFilter.value,
-        page, _pageSize,
-        folio: _trimmed,
-      ));
-      calls.add(fetchQuoteUsecase.cal(
-        _trimmed, numParteFilter.value,
-        dateFromFilter.value, dateUntilFilter.value,
-        page, _pageSize,
-      ));
-      /*calls.add(fetchQuoteUsecase.cal(
-        '', _trimmed,
-        dateFromFilter.value, dateUntilFilter.value,
-        page, _pageSize,
-      ));*/
-    }
-
-    return Future.wait(calls);
+  if (_isEmpty) {
+    calls.add(fetchQuoteUsecase.cal(
+      '', numParteFilter.value,
+      status, // <-- aquí
+      dateFromFilter.value, dateUntilFilter.value,
+      page, _pageSize,
+    ));
+  } else if (_isNumeric) {
+    calls.add(fetchQuoteUsecase.cal(
+      '', numParteFilter.value,
+      status,
+      dateFromFilter.value, dateUntilFilter.value,
+      page, _pageSize,
+      id: _trimmed,
+    ));
+  } else {
+    calls.add(fetchQuoteUsecase.cal(
+      '', numParteFilter.value,
+      status,
+      dateFromFilter.value, dateUntilFilter.value,
+      page, _pageSize,
+      folio: _trimmed,
+    ));
+    calls.add(fetchQuoteUsecase.cal(
+      _trimmed, numParteFilter.value,
+      status,
+      dateFromFilter.value, dateUntilFilter.value,
+      page, _pageSize,
+    ));
   }
+
+  return Future.wait(calls);
+}
 
   Future<void> fetchQuotes({
     String numParte = '',
@@ -176,6 +196,24 @@ final RxInt selectedTab = 0.obs;
       errorMessage.value = 'Error al cargar más cotizaciones: $e';
     } finally {
       isLoadingMore.value = false;
+    }
+  }
+
+  Future<void> openSalePdf(BuildContext context, int saleId, String folio) async {
+    final pdfCtrl = Get.find<PdfController>();
+    try {
+      pdfCtrl.isLoadingPdf.value = true;
+      final result = await generatePdfSales.call(saleId);
+      if (result.generated && result.urlpdf.isNotEmpty) {
+        pdfCtrl.folio = 'venta_$folio';
+        pdfCtrl.setPdfUrl(result.urlpdf);
+        pdfCtrl.isLoadingPdf.value = false;
+        pdfCtrl.showOptionsSheet(context);
+      }
+    } catch (e) {
+      showErrorSnackbar('Error al generar PDF');
+    } finally {
+      pdfCtrl.isLoadingPdf.value = false;
     }
   }
 

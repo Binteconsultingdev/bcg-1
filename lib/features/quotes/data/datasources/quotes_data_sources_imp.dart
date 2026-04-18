@@ -23,9 +23,11 @@ class QuotesDataSourcesImp {
     String token,
     String client,
     String numParte,
+    String status,
     String dateFrom,
     String dateUntil,
     int page,
+
     int pageSize, {
     String? folio,
     String? id,
@@ -34,6 +36,7 @@ class QuotesDataSourcesImp {
       final queryParams = {
         'cliente': client,
         'numParte': numParte,
+         'status': status,
         'fechaDesde': dateFrom,
         'fechaHasta': dateUntil,
         'pagina': page.toString(),
@@ -113,12 +116,7 @@ class QuotesDataSourcesImp {
     Uri url = Uri.parse('$defaultApiServer/Cotizaciones/$id');
 
     final payload = jsonEncode(QuoteModel.fromEntity(entity).toJson());
-
-    print('🚀 Iniciando updateQuote');
-    print('🆔 ID de cotización: $id');
-    print('🌐 URL: $url');
-    print('📦 Payload: $payload');
-    print('🔑 Token: $token');
+ 
 
     final response = await http.put(
       url,
@@ -128,16 +126,14 @@ class QuotesDataSourcesImp {
       },
       body: payload,
     );
-
-    print('📥 Status Code: ${response.statusCode}');
+ 
     print('📥 Response Body: ${response.body}');
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       print('✅ Cotización actualizada correctamente');
       return;
     }
-
-    print('⚠️ Error en la respuesta del servidor');
+ 
 
     ApiExceptionCustom exception = ApiExceptionCustom(response: response);
     exception.validateMesage();

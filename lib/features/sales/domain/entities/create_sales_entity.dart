@@ -7,7 +7,7 @@ class CreateSalesEntity {
   final String comentarios;
   final String refe;
   final DateTime fechaEntrega;
-  final double tc;
+ 
   final bool incIVA;
   final String folioPre;
   final double descuento;
@@ -22,7 +22,7 @@ class CreateSalesEntity {
     required this.comentarios,
     required this.refe,
     required this.fechaEntrega,
-    required this.tc,
+ 
     required this.incIVA,
     required this.folioPre,
     required this.descuento,

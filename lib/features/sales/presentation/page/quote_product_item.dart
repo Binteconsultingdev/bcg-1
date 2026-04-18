@@ -13,7 +13,7 @@ class QuoteProductItem extends StatelessWidget {
   final VoidCallback onRemove;
   final void Function(double) onQuantityChanged;
   final bool readOnly;
-  final double? maxQuantity; // null = sin límite
+  final double? maxQuantity;
 
   const QuoteProductItem({
     super.key,
@@ -31,8 +31,6 @@ class QuoteProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sinExistencia = availableQuantity <= 0;
-
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: ThemeColor.paddingMedium,
@@ -60,23 +58,59 @@ class QuoteProductItem extends StatelessWidget {
                     color: ThemeColor.textSecondaryColor,
                   ),
                 ),
-                if (sinExistencia) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.warning_amber_rounded,
-                          size: 13, color: Colors.amber),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Sin existencia',
-                        style: ThemeColor.caption.copyWith(
-                          color: Colors.amber.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
+                Obx(() {
+                  // ← leer quantity.value SIEMPRE al inicio, antes de cualquier if
+                  // así GetX registra la suscripción sin importar qué rama se ejecute
+                  final qty = quantity.value;
+                  final sinExistencia = availableQuantity <= 0;
+                  final exceedsStock = !sinExistencia && qty > availableQuantity;
+
+                  if (sinExistencia) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.warning_amber_rounded,
+                            size: 13,
+                            color: Colors.amber,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Sin existencia',
+                            style: ThemeColor.caption.copyWith(
+                              color: Colors.amber.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    );
+                  }
+                  if (exceedsStock) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            size: 13,
+                            color: Colors.orange.shade600,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Solo hay ${availableQuantity.toInt()} disponible(s)',
+                            style: ThemeColor.caption.copyWith(
+                              color: Colors.orange.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
                 const SizedBox(height: 8),
                 if (!readOnly)
                   _QuantityControls(
@@ -85,12 +119,14 @@ class QuoteProductItem extends StatelessWidget {
                     maxQuantity: maxQuantity,
                   )
                 else
-                  Obx(() => Text(
-                        'Cant: ${quantity.value % 1 == 0 ? quantity.value.toInt() : quantity.value}',
-                        style: ThemeColor.bodySmall.copyWith(
-                          color: ThemeColor.textSecondaryColor,
-                        ),
-                      )),
+                  Obx(
+                    () => Text(
+                      'Cant: ${quantity.value % 1 == 0 ? quantity.value.toInt() : quantity.value}',
+                      style: ThemeColor.bodySmall.copyWith(
+                        color: ThemeColor.textSecondaryColor,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -103,16 +139,20 @@ class QuoteProductItem extends StatelessWidget {
                   onTap: onRemove,
                   child: const Padding(
                     padding: EdgeInsets.all(4),
-                    child: Icon(Icons.delete_outline,
-                        color: ThemeColor.errorColor, size: 20),
+                    child: Icon(
+                      Icons.delete_outline,
+                      color: ThemeColor.errorColor,
+                      size: 20,
+                    ),
                   ),
                 ),
               SizedBox(height: readOnly ? 0 : 14),
               Obx(
                 () => Text(
                   '\$${total.value.toStringAsFixed(2)}',
-                  style: ThemeColor.subtitleMedium
-                      .copyWith(fontWeight: FontWeight.w700),
+                  style: ThemeColor.subtitleMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
@@ -212,7 +252,6 @@ class _QuantityControlsState extends State<_QuantityControls> {
                   if (max == null || parsed <= max) {
                     widget.onChanged(parsed);
                   } else {
-                    // Revierte al máximo permitido
                     final maxText = max % 1 == 0
                         ? max.toInt().toString()
                         : max.toString();
@@ -244,7 +283,7 @@ class _QuantityControlsState extends State<_QuantityControls> {
     Color iconColor = ThemeColor.textPrimaryColor,
   }) {
     return GestureDetector(
-      onTap: onTap, // null = no hace nada al tocar
+      onTap: onTap,
       child: Container(
         width: 28,
         height: 28,

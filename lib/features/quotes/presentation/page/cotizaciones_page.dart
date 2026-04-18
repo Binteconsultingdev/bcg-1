@@ -3,6 +3,7 @@ import 'package:bcg/common/settings/routes_names.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
+import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -205,8 +206,10 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
           return Padding(
             padding: const EdgeInsets.only(right: ThemeColor.paddingSmall),
             child: GestureDetector(
-              onTap: () => setState(() => _selectedTab = i),
-              child: AnimatedContainer(
+onTap: () {
+  setState(() => _selectedTab = i);
+  _ctrl.onTabChanged(i);
+},              child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(
                   horizontal: ThemeColor.paddingMedium,
@@ -270,7 +273,7 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
         );
       }
 
-      final items = _ctrl.filteredByTab(_selectedTab);
+      final items = _ctrl.quotes;
 
       if (items.isEmpty) {
         return Center(
@@ -346,18 +349,24 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
 
 class _CotizacionTile extends StatelessWidget {
   final GetQuoteEntity item;
-  const _CotizacionTile({required this.item});
+  
+  final QuotesController _ctrl = Get.find<QuotesController>();
+   _CotizacionTile({required this.item});
 
-  Color get _statusColor {
-    switch (item.status?.toLowerCase()) {
-      case 'Cancelada':
-        return ThemeColor.errorColor;
-      case 'vendida':
-        return ThemeColor.successColor;
-      default:
-        return ThemeColor.infoColor;
-    }
+ Color get _statusColor {
+  switch (item.status?.toLowerCase()) {
+    case 'cancelada':
+      return ThemeColor.errorColor;
+    case 'vendida':
+      return ThemeColor.successColor;
+    case 'vencida':
+      return ThemeColor.warningColor; // o el color que uses para advertencia
+    case 'generada':
+      return ThemeColor.infoColor;
+    default:
+      return ThemeColor.tertiaryColor;
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -406,23 +415,65 @@ class _CotizacionTile extends StatelessWidget {
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: ThemeColor.paddingSmall,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: _statusColor,
-                borderRadius: ThemeColor.smallBorderRadius,
-              ),
-              child: Text(
-                item.status ?? 'Generada',
-                style: ThemeColor.caption.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+            
+            Column(
+  crossAxisAlignment: CrossAxisAlignment.end,
+  children: [
+    // Badge de status
+    Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: ThemeColor.paddingSmall + 2,
+        vertical: 5,
+      ),
+      decoration: BoxDecoration(
+        color: _statusColor,
+        borderRadius: ThemeColor.circularBorderRadius,
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 100),
+        child: Text(
+          item.status?.toUpperCase() ?? '',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: ThemeColor.caption.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    ),
+    const SizedBox(height: 6),
+    // Botón PDF
+    Obx(() {
+      final isLoading = Get.find<PdfController>().isLoadingPdf.value;
+      return GestureDetector(
+        onTap: () => _ctrl.openSalePdf(context, item.id, item.folito ?? '${item.id}'),
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: ThemeColor.errorColor.withOpacity(0.1),
+            borderRadius: ThemeColor.smallBorderRadius,
+          ),
+          child: isLoading
+              ? const Padding(
+                  padding: EdgeInsets.all(6),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: ThemeColor.errorColor,
+                  ),
+                )
+              : const Icon(
+                  Icons.picture_as_pdf_outlined,
+                  color: ThemeColor.errorColor,
+                  size: 18,
                 ),
-              ),
-            ),
+        ),
+      );
+    }),
+  ],
+),
           ],
         ),
       ),

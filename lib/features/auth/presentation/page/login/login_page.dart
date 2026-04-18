@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage>
         backgroundColor: ThemeColor.backgroundColor,
         body: GestureDetector(
   onTap: () {
-    FocusScope.of(context).unfocus(); // 🔥 cierra teclado
+    FocusScope.of(context).unfocus();  
   },
   child:SafeArea(
           child: FadeTransition(

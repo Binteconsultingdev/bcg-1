@@ -24,6 +24,7 @@ class QuotesRepositoryImp implements QuotesRepository {
   Future<List<GetQuoteEntity>> fetchQuote(
     String client,
     String numParte,
+    String status,
     String dateFrom,
     String dateUntil,
     int page,
@@ -38,6 +39,7 @@ class QuotesRepositoryImp implements QuotesRepository {
       token,
       client,
       numParte,
+      status,
       dateFrom,
       dateUntil,
       page,

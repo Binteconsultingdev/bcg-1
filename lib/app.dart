@@ -59,15 +59,15 @@ class App extends StatelessWidget {
         Get.lazyPut(() => LicenseController(validateLicensesUsecase: Get.find()), fenix: true);
         Get.lazyPut(() => InventoryController(fetchInventarioUsecase: Get.find(), fetchSubfamiliasUsecase: Get.find(), fetchFamiliasUsecase: Get.find()),fenix: true);
         Get.lazyPut(() => SplashController(), fenix: true);
-        Get.lazyPut(() => QuotesController(fetchQuoteUsecase: Get.find(),),fenix: true);
+        Get.lazyPut(() => QuotesController(fetchQuoteUsecase: Get.find(), generatePdfSales: Get.find(),),fenix: true);
         Get.lazyPut(() => CreateQuoteController(createQuotesUsecase: Get.find(), fetchFolioUsecase: Get.find(), generatePdfUsecase: Get.find(),),fenix: true);
-        Get.lazyPut(() => SalesController(pointSalesUsecase:Get.find()),fenix: true);
+        Get.lazyPut(() => SalesController(pointSalesUsecase:Get.find(), generatePdfSales: Get.find()),fenix: true);
         Get.lazyPut(() => ClientController(fetchClientsUsecase:Get.find(), createClientUsecase: Get.find()),fenix: true);
         Get.lazyPut(() => CreateSalesController(generateSalesUsecase:  Get.find(), fetchQuotesByidUsecase: Get.find(), fetchQuoteUsecase: Get.find(), generatePdfSales: Get.find()),fenix: true);
         Get.lazyPut(() => PutQuotesController(putQuotesUsecase: Get.find(), fetchQuotesByidUsecase: Get.find(), generatePdfUsecase:  Get.find()),fenix: true);
         Get.lazyPut(() => ProductSearchController(), fenix: true);
         Get.lazyPut(() => ClientSearchController(), fenix: true);
-Get.lazyPut(() => PdfController());
+Get.lazyPut(() => PdfController(), fenix: true);
       }),
 
       getPages: AppPages.routes, 

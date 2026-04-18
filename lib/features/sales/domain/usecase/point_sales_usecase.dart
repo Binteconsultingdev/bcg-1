@@ -4,7 +4,7 @@ import 'package:bcg/features/sales/domain/repositories/sales_repository.dart';
 class PointSalesUsecase {
   final SalesRepository salesRepository;
   PointSalesUsecase({required this.salesRepository});
-  Future<List<PointSaleEntity>> call(  String startDate,
+  Future<List<PointSaleEntity>> call( String status, String startDate,
   String endDate,
   bool ignoreDates,
   String client,
@@ -15,7 +15,7 @@ class PointSalesUsecase {
   String? folio,
   String? id,
 }) async {
-    return await salesRepository.pointSales( startDate, endDate, ignoreDates, client, statusPayment, userToFilter, page, pageSize,
+    return await salesRepository.pointSales( status, startDate, endDate, ignoreDates, client, statusPayment, userToFilter, page, pageSize,
     folio: folio,
     id: id,);
   }

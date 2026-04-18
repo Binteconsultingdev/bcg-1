@@ -13,6 +13,7 @@ class SalesRepositoryImp extends SalesRepository {
   @override
 
 Future<List<PointSaleEntity>> pointSales(
+  String status,
   String startDate,
   String endDate,
   bool ignoreDates,
@@ -26,7 +27,7 @@ Future<List<PointSaleEntity>> pointSales(
 }) async {
   final token = await authService.getToken() ?? (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
   return await salesDataSourcesImp.fetchQuote(
-    token, startDate, endDate, ignoreDates, client, statusPayment, userToFilter, page, pageSize,
+    token,status, startDate, endDate, ignoreDates, client, statusPayment, userToFilter, page, pageSize,
     folio: folio,
     id: id,
   );
