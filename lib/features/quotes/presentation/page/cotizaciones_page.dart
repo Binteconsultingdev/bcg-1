@@ -391,7 +391,7 @@ class _CotizacionTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${item.folito ?? '-'} - ${item.client ?? '-'}',
+                    '${item.id ?? '-'} - ${item.client ?? '-'}',
                     style: ThemeColor.bodyMedium.copyWith(
                       color: ThemeColor.infoColor,
                       fontWeight: FontWeight.w600,
