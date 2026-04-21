@@ -948,7 +948,6 @@ class _CommentsSection extends StatelessWidget {
     );
   }
 }
-
 class _BottomButton extends StatelessWidget {
   final PutQuotesController ctrl;
   const _BottomButton({required this.ctrl});
@@ -964,52 +963,44 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge + bottomPadding,
       ),
-
       child: Obx(() {
-
-        return Row(
-          children: [
-            Expanded(
-              child: ThemeColor.widgetButton(
-                text: 'Ver PDF',
-                backgroundColor: ThemeColor.accentColor,
-                textColor: ThemeColor.textLightColor,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                borderRadius: ThemeColor.mediumRadius,
-                isLoading: ctrl.isLoadingPdf,
-                onPressed: () => ctrl.generateAndOpenPdf(context),
-              ),
+        // Si es editable: un solo botón que guarda y abre PDF
+        if (ctrl.isEditable) {
+          return SizedBox(
+            width: double.infinity,
+            child: ThemeColor.widgetButton(
+              text: 'Guardar y ver PDF',
+              backgroundColor: ThemeColor.primaryColor,
+              textColor: ThemeColor.textLightColor,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              borderRadius: ThemeColor.mediumRadius,
+              isLoading: ctrl.isSaving.value || ctrl.isLoadingPdf,
+              onPressed: () => ctrl.saveQuote(context),
             ),
-            if (ctrl.isEditable) ...[
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: AnimatedOpacity(
-                  opacity:  1.0,
-                  duration: const Duration(milliseconds: 250),
-                  child: ThemeColor.widgetButton(
-                    text: 'Guardar Cambios',
-                    backgroundColor: ThemeColor.primaryColor,
-                    textColor: ThemeColor.textLightColor,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    borderRadius: ThemeColor.mediumRadius,
-                    isLoading: ctrl.isSaving.value,
-                    onPressed:  ctrl.saveQuote,
-                  ),
-                ),
-              ),
-            ],
-          ],
+          );
+        }
+
+        // Si NO es editable: solo ver PDF
+        return SizedBox(
+          width: double.infinity,
+          child: ThemeColor.widgetButton(
+            text: 'Ver PDF',
+            backgroundColor: ThemeColor.accentColor,
+            textColor: ThemeColor.textLightColor,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            borderRadius: ThemeColor.mediumRadius,
+            isLoading: ctrl.isLoadingPdf,
+            onPressed: () => ctrl.generateAndOpenPdf(context),
+          ),
         );
       }),
     );
   }
 }
-
 class _ProductThumbnail extends StatelessWidget {
   final String? imageUrl;
   final double size;

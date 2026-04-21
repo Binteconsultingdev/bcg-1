@@ -266,71 +266,69 @@ bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
     if (picked != null) validUntil.value = picked;
   }
 
-  Future<void> saveQuote() async {
-    final id = quoteId.value;
-    if (id == null) return;
+  Future<void> saveQuote(BuildContext context) async {
+  final id = quoteId.value;
+  if (id == null) return;
 
-    if (!isEditable) {
-      showErrorSnackbar('Solo se pueden editar cotizaciones con estatus GENERADA');
-      return;
-    }
-    if (clienteName.value.trim().isEmpty) {
-      showErrorSnackbar('Selecciona un cliente para continuar');
-      return;
-    }
-    if (items.isEmpty) {
-      showErrorSnackbar('Agrega al menos un producto');
-      return;
-    }
-
-    try {
-      isSaving.value = true;
-      errorMessage.value = '';
-
-      final entity = QuoteEntity(
-        folio: folio.value,
-        cliente: clienteName.value.trim(),
-        total: totalToPay,
-        cataPrecio: selectedPriceType.value,
-        descuento: globalDiscount.value.toStringAsFixed(2),
-        iva: ivaAmount.toStringAsFixed(2),
-        diasEnt: validUntil.value.difference(DateTime.now()).inDays,
-        comentarios: commentsCtrl.text.trim(),
-        referencia: '',
-        productos: items.asMap().entries.map((entry) {
-          final i = entry.value;
-          return ProductoEntity(
-            codigo: i.codigo.value,
-            descripcion: i.descripcion.value,
-            disponible: i.disponible,
-            unidad: i.unidad,
-            precio: i.precio.value,
-            cantidad: i.quantity.value,
-            importe: i.total,
-            iva: (i.total * 0.16).toStringAsFixed(2),
-            claveSat: i.claveSat,
-            url: i.url,
-            descuento: i.discountAmount,
-            prioridad: entry.key + 1,
-          );
-        }).toList(),
-      );
-
-      await putQuotesUsecase.call(id, entity);
-      await _quotesCtrl.fetchQuotes();
-
-      final result = await generatePdfUsecase.call(id);
-      _pdfCtrl.folio = folio.value;
-      _pdfCtrl.setPdfUrl(result.urlpdf);
-
-      showSuccessSnackbar('Cotización actualizada correctamente');
-    } catch (e) {
-      errorMessage.value = 'Error al guardar: $e';
-      showErrorSnackbar('Error al guardar cotización ${cleanExceptionMessage(e)}');
-    } finally {
-      isSaving.value = false;
-    }
+  if (!isEditable) {
+    showErrorSnackbar('Solo se pueden editar cotizaciones con estatus GENERADA');
+    return;
   }
+  if (clienteName.value.trim().isEmpty) {
+    showErrorSnackbar('Selecciona un cliente para continuar');
+    return;
+  }
+  if (items.isEmpty) {
+    showErrorSnackbar('Agrega al menos un producto');
+    return;
+  }
+
+  try {
+    isSaving.value = true;
+    errorMessage.value = '';
+
+    final entity = QuoteEntity(
+      folio: folio.value,
+      cliente: clienteName.value.trim(),
+      total: totalToPay,
+      cataPrecio: selectedPriceType.value,
+      descuento: globalDiscount.value.toStringAsFixed(2),
+      iva: ivaAmount.toStringAsFixed(2),
+      diasEnt: validUntil.value.difference(DateTime.now()).inDays,
+      comentarios: commentsCtrl.text.trim(),
+      referencia: '',
+      productos: items.asMap().entries.map((entry) {
+        final i = entry.value;
+        return ProductoEntity(
+          codigo: i.codigo.value,
+          descripcion: i.descripcion.value,
+          disponible: i.disponible,
+          unidad: i.unidad,
+          precio: i.precio.value,
+          cantidad: i.quantity.value,
+          importe: i.total,
+          iva: (i.total * 0.16).toStringAsFixed(2),
+          claveSat: i.claveSat,
+          url: i.url,
+          descuento: i.discountAmount,
+          prioridad: entry.key + 1,
+        );
+      }).toList(),
+    );
+
+    await putQuotesUsecase.call(id, entity);
+    await _quotesCtrl.fetchQuotes();
+
+    // 👇 Abre el PDF automáticamente al guardar
+    await generateAndOpenPdf(context);
+
+  } catch (e) {
+    errorMessage.value = 'Error al guardar: $e';
+    showErrorSnackbar('Error al guardar cotización ${cleanExceptionMessage(e)}');
+  } finally {
+    isSaving.value = false;
+  }
+}
 
   Future<void> generateAndOpenPdf(BuildContext context) async {
     final id = quoteId.value;

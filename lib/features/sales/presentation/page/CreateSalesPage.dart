@@ -1138,7 +1138,7 @@ class _BottomButton extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   borderRadius: ThemeColor.mediumRadius,
                   isLoading: ctrl.isLoadingPdf,
-                  onPressed: () => ctrl.generateAndOpenPdf(context),
+                  onPressed: () => ctrl.generateAndOpenPdf( ),
                 ),
               ),
             ],

@@ -278,59 +278,63 @@ Future<void> loadInitialQuotes() async {
     if (picked != null) validUntil.value = picked;
   }
 
-  Future<void> createSale() async {
-    if (clienteName.value.trim().isEmpty) {
-      showErrorSnackbar('Selecciona un cliente para continuar');
-      return;
-    }
-    if (items.isEmpty) {
-      showErrorSnackbar('Agrega al menos un producto');
-      return;
-    }
-    try {
-      isCreating.value = true;
-      final vendedor = (await _authService.getUserData())?.nombre ?? '';
-
-      final response = await generateSalesUsecase.call(
-        CreateSalesEntity(
-          numCliente: selectedClientId.value ?? 0,
-          cliente: clienteName.value.trim(),
-          vendedor: vendedor,
-          user: vendedor,
-          metodoEmb: metodoEmbarque.value,
-          comentarios: commentsCtrl.text.trim(),
-          refe: referenciaCtrl.text.trim(),
-          fechaEntrega: validUntil.value,
-          incIVA: incIVA.value,
-          folioPre: selectedFolioQuote.value,
-          descuento: globalDiscount.value,
-          partidas: items
-              .map(
-                (i) => PartidaEntity(
-                  numParte: i.product.partNumber ?? '',
-                  descripcion: i.product.description ?? '',
-                  cantidad: i.quantity.value,
-                  precio: i.unitPrice,
-                  claveSat: '',
-                  um: 'PZA',
-                ),
-              )
-              .toList(),
-        ),
-      );
-
-      createdSaleId.value = response.saleId;
-      await _salesCtrl.fetchSales();
-      showSuccessSnackbar('Venta creada correctamente');
-    } catch (e) {
-      errorMessage.value = cleanExceptionMessage(e);
-      showErrorSnackbar(errorMessage.value);
-    } finally {
-      isCreating.value = false;
-    }
+  Future<void> createSale( ) async {
+  if (clienteName.value.trim().isEmpty) {
+    showErrorSnackbar('Selecciona un cliente para continuar');
+    return;
   }
+  if (items.isEmpty) {
+    showErrorSnackbar('Agrega al menos un producto');
+    return;
+  }
+  try {
+    isCreating.value = true;
+    final vendedor = (await _authService.getUserData())?.nombre ?? '';
 
-  Future<void> generateAndOpenPdf(BuildContext context) async {
+    final response = await generateSalesUsecase.call(
+      CreateSalesEntity(
+        numCliente: selectedClientId.value ?? 0,
+        cliente: clienteName.value.trim(),
+        vendedor: vendedor,
+        user: vendedor,
+        metodoEmb: metodoEmbarque.value,
+        comentarios: commentsCtrl.text.trim(),
+        refe: referenciaCtrl.text.trim(),
+        fechaEntrega: validUntil.value,
+        incIVA: incIVA.value,
+        folioPre: selectedFolioQuote.value,
+        descuento: globalDiscount.value,
+        partidas: items
+            .map(
+              (i) => PartidaEntity(
+                numParte: i.product.partNumber ?? '',
+                descripcion: i.product.description ?? '',
+                cantidad: i.quantity.value,
+                precio: i.unitPrice,
+                claveSat: '',
+                um: 'PZA',
+              ),
+            )
+            .toList(),
+      ),
+    );
+
+    createdSaleId.value = response.saleId;
+    await _salesCtrl.fetchSales();
+    showSuccessSnackbar('Venta creada correctamente');
+
+    // 👇 Abre el PDF automáticamente al crear
+    await generateAndOpenPdf( );
+
+  } catch (e) {
+    errorMessage.value = cleanExceptionMessage(e);
+    showErrorSnackbar(errorMessage.value);
+  } finally {
+    isCreating.value = false;
+  }
+}
+
+  Future<void> generateAndOpenPdf() async {
     final id = createdSaleId.value;
     if (id == null) return;
 
@@ -342,7 +346,7 @@ Future<void> loadInitialQuotes() async {
         _pdfCtrl.folio = 'venta_$id';
         _pdfCtrl.setPdfUrl(result.urlpdf);
         _pdfCtrl.isLoadingPdf.value = false;
-        _pdfCtrl.showOptionsSheet(context);
+        _pdfCtrl.showOptionsSheet(Get.context!);
       }
     } catch (e) {
       showErrorSnackbar('Error al generar PDF');

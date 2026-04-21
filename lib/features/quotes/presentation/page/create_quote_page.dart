@@ -16,7 +16,7 @@ class CreateQuotePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final CreateQuoteController ctrl = Get.find<CreateQuoteController>();
-  
+
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -130,7 +130,31 @@ class _TopSection extends StatelessWidget {
             label: 'Producto',
             child: ProductSearchField(onSelected: ctrl.addProduct),
           ),
-          ProductSearchResults(onSelected: ctrl.addProduct),
+          ProductSearchResults(onSelected: ctrl.addProduct), 
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: () => ctrl.showAddCustomProductDialog(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.add_circle_outline,
+                    size: 18,
+                    color: ThemeColor.accentColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Agregar producto personalizado',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      color: ThemeColor.accentColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -266,12 +290,12 @@ class _ProductList extends StatelessWidget {
             return Column(
               children: [
                 QuoteProductItem(
-                  imageUrl: item.product.imageUrl,
-                  description: item.product.description ?? '',
+                  imageUrl: item.imageUrl,
+                  description: item.description,
                   unitPrice: item.unitPrice,
                   total: item.totalRx,
                   quantity: item.quantity,
-                  availableQuantity: item.product.availableQuantity ?? 0,
+                  availableQuantity: item.availableQty,
                   onRemove: () => ctrl.removeItem(item),
                   onQuantityChanged: (v) => item.quantity.value = v,
                 ),
@@ -885,14 +909,14 @@ class _BottomButton extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   borderRadius: ThemeColor.mediumRadius,
                   isLoading: ctrl.isLoadingPdf,
-                  onPressed: () => ctrl.generateAndOpenPdf(context),
+                  onPressed: () => ctrl.generateAndOpenPdf(),
                 ),
               ),
             ],
           );
         }
 
-       // final blocked = ctrl.hasOutOfStockItems;
+        // final blocked = ctrl.hasOutOfStockItems;
 
         return AnimatedOpacity(
           opacity: 1.0,
@@ -908,7 +932,7 @@ class _BottomButton extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 16),
               borderRadius: ThemeColor.mediumRadius,
               isLoading: ctrl.isCreating.value,
-              onPressed: ctrl.createQuote, // 👈
+              onPressed: ctrl.createQuote,  
             ),
           ),
         );
