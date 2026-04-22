@@ -61,9 +61,9 @@ flutter_native_splash:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path_ios: "assets/logo/lcon.jpg"
-  image_path_android: "assets/logo/lcon.jpg"
-  adaptive_icon_foreground: "assets/logo/lcon.jpg"
+  image_path_ios: "assets/logo/logo.jpg"
+  image_path_android: "assets/logo/logo.jpg"
+  adaptive_icon_foreground: "assets/logo/logo.jpg"
   adaptive_icon_background: "#FFFFFF"
 
 
@@ -101,6 +101,7 @@ flutter:
    - assets/icons/home/cotizaciones.png
    - assets/icons/home/inventario.png
    - assets/icons/home/ventas.png
+   - assets/logo/logo.jpg
    -  test.env
    - .env
    - dev.env

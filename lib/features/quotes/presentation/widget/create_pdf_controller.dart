@@ -16,10 +16,19 @@ class PdfController extends GetxController {
   final pdfUrl = Rxn<String>();
   final lastDownloadedPath = Rxn<String>();
 
-  /// Folio usado para nombrar el archivo. Asignarlo desde el controller padre.
   String folio = '';
 
   void setPdfUrl(String url) => pdfUrl.value = url;
+
+  /// Extrae el nombre del archivo desde la URL.
+  String _fileNameFromUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final segment = uri.pathSegments.last;
+      if (segment.endsWith('.pdf') && segment.isNotEmpty) return segment;
+    } catch (_) {}
+    return ' ${folio}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+  }
 
   void showOptionsSheet(BuildContext context) {
     if (pdfUrl.value == null || pdfUrl.value!.isEmpty) return;
@@ -48,7 +57,7 @@ class PdfController extends GetxController {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final directory = await getTemporaryDirectory();
-        final fileName = 'cotizacion_${DateTime.now().millisecondsSinceEpoch}.pdf';
+        final fileName = _fileNameFromUrl(url); // ← usa nombre de la URL
         final file = File('${directory.path}/$fileName');
         await file.writeAsBytes(response.bodyBytes);
 
@@ -81,8 +90,7 @@ class PdfController extends GetxController {
         return;
       }
 
-      final fileName =
-          'cotizacion_${folio}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final fileName = _fileNameFromUrl(url); // ← usa nombre de la URL
 
       final String savePath;
       if (Platform.isAndroid) {
