@@ -1,3 +1,4 @@
+import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/auth/presentation/page/login/login_controller.dart';
 import 'package:flutter/material.dart';
@@ -158,69 +159,79 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  Widget _buildLogoCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        vertical: ThemeColor.paddingLarge,
-        horizontal: ThemeColor.paddingLarge,
-      ),
-      decoration: BoxDecoration(
-        color: ThemeColor.surfaceColor,
-        borderRadius: ThemeColor.extraLargeBorderRadius,
-        boxShadow: [ThemeColor.darkShadow],
-      ),
-      child: Image.asset(
-        'assets/logo/logo.png',
-        height: 100,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: ThemeColor.primaryColor,
-                borderRadius: ThemeColor.smallBorderRadius,
-              ),
-              child: const Center(
-                child: Text(
-                  'B',
-                  style: TextStyle(
-                    color: ThemeColor.accentColor,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
+ Widget _buildLogoCard() {
+  final license = Get.find<LicenseService>().getLicenseSync();
+  final urlLogo = license?.urllogo;
+
+  final logoWidget = (urlLogo != null && urlLogo.isNotEmpty)
+      ? Image.network(
+          urlLogo,
+          height: 100,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => Image.asset(
+            'assets/logo/logo.png',
+            height: 100,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => _buildLogoFallback(),
+          ),
+        )
+      : Image.asset(
+          'assets/logo/logo.png',
+          height: 100,
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => _buildLogoFallback(),
+        );
+
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(
+      vertical: ThemeColor.paddingLarge,
+      horizontal: ThemeColor.paddingLarge,
+    ),
+    decoration: BoxDecoration(
+      color: ThemeColor.surfaceColor,
+      borderRadius: ThemeColor.extraLargeBorderRadius,
+      boxShadow: [ThemeColor.darkShadow],
+    ),
+    child: logoWidget,
+  );
+}
+
+// El fallback con la "B" lo extraes a su propio método
+Widget _buildLogoFallback() {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: ThemeColor.primaryColor,
+          borderRadius: ThemeColor.smallBorderRadius,
+        ),
+        child: const Center(
+          child: Text(
+            'B',
+            style: TextStyle(
+              color: ThemeColor.accentColor,
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
             ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'BCG',
-                  style: ThemeColor.headingLarge.copyWith(
-                    letterSpacing: 3,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                Text(
-                  'Binte Consulting Group',
-                  style: ThemeColor.caption.copyWith(
-                    color: ThemeColor.textSecondaryColor,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
-    );
-  }
+      const SizedBox(width: 12),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('BCG', style: ThemeColor.headingLarge.copyWith(letterSpacing: 3, fontWeight: FontWeight.w900)),
+          Text('Binte Consulting Group', style: ThemeColor.caption.copyWith(color: ThemeColor.textSecondaryColor, letterSpacing: 0.5)),
+        ],
+      ),
+    ],
+  );
+}
 
   Widget _buildLoginButton() {
     return Obx(
