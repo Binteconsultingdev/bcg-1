@@ -1,8 +1,10 @@
 import 'package:bcg/features/Inventory/domain/entities/inventory_category_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
+import 'package:bcg/features/Inventory/domain/entities/sucursales_entity.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_familias_usecase.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_inventario_usecase.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_subfamilias_usecase.dart';
+import 'package:bcg/features/Inventory/domain/usecase/fetch_sucursales_usecase.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -10,11 +12,12 @@ class InventoryController extends GetxController {
   final FetchInventarioUsecase fetchInventarioUsecase;
   final FetchSubfamiliasUsecase fetchSubfamiliasUsecase;
   final FetchFamiliasUsecase fetchFamiliasUsecase;
-
+final FetchSucursalesUsecase fetchSucursalesUsecase;
   InventoryController({
     required this.fetchInventarioUsecase,
     required this.fetchSubfamiliasUsecase,
     required this.fetchFamiliasUsecase,
+    required this.fetchSucursalesUsecase,
   });
 
   final ScrollController scrollController = ScrollController();
@@ -52,6 +55,9 @@ class InventoryController extends GetxController {
     final trimmed = searchInput.value.trim();
     return trimmed.isEmpty ? null : trimmed;
   }
+  final Rx<SucursalesEntity?> sucursalesDetalle = Rx<SucursalesEntity?>(null);
+  final RxBool isLoadingSucursales = false.obs;
+  final RxString sucursalesError = ''.obs;
 
   @override
   void onInit() {
@@ -79,6 +85,19 @@ class InventoryController extends GetxController {
       _fetchCategorias(),
       fetchInventario(),
     ]);
+  }
+
+  Future<void> fetchSucursales(String numParte) async {
+    try {
+      isLoadingSucursales.value = true;
+      sucursalesError.value = '';
+      sucursalesDetalle.value = null;
+      sucursalesDetalle.value = await fetchSucursalesUsecase.call(numParte);
+    } catch (e) {
+      sucursalesError.value = 'Error al cargar sucursales: $e';
+    } finally {
+      isLoadingSucursales.value = false;
+    }
   }
 
 Future<void> _fetchCategorias() async {

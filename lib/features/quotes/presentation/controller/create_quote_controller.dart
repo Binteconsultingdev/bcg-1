@@ -478,6 +478,7 @@ Future<void> createQuote( ) async {
     if (id == null) return;
 
     try {
+        _pdfCtrl.reset(); 
       _pdfCtrl.isLoadingPdf.value = true;
       final result = await generatePdfUsecase.call(id);
 

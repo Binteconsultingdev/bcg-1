@@ -2,6 +2,7 @@ import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/features/Inventory/data/datasources/inventory_datasources_imp.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_category_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
+import 'package:bcg/features/Inventory/domain/entities/sucursales_entity.dart';
 import 'package:bcg/features/Inventory/domain/repositories/Inventory_repository.dart';
 
 class InventoryRepositoryImp implements InventoryRepository {
@@ -25,6 +26,13 @@ class InventoryRepositoryImp implements InventoryRepository {
   Future<List<InventoryCategoryEntity>> fetchSubfamilias(String familia) async {
      final token = await authService.getToken() ?? (throw Exception( 'No hay sesión activa. El usuario debe iniciar sesión.'));
     return await inventoryDatasourcesImp.fetchSubfamilias(token,familia);
+  }
+
+  @override
+  Future<SucursalesEntity> fetchSucursales(String numParte) async {
+     final token = await authService.getToken() ?? (throw Exception( 'No hay sesión activa. El usuario debe iniciar sesión.'));
+    return await inventoryDatasourcesImp.fetchSucursales(token,numParte);
+    
   }
 
   

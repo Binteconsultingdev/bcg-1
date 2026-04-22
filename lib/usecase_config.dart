@@ -6,6 +6,7 @@ import 'package:bcg/features/Inventory/data/repositories/inventory_repository_im
 import 'package:bcg/features/Inventory/domain/usecase/fetch_familias_usecase.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_inventario_usecase.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_subfamilias_usecase.dart';
+import 'package:bcg/features/Inventory/domain/usecase/fetch_sucursales_usecase.dart';
 import 'package:bcg/features/auth/data/datasource/auth_data_source_imp.dart';
 import 'package:bcg/features/auth/data/repositories/auth_repository_imp.dart';
 import 'package:bcg/features/auth/domain/usecase/create_user_usecase.dart';
@@ -51,6 +52,7 @@ class UsecaseConfig {
   FetchFamiliasUsecase? fetchFamiliasUsecase;
   FetchSubfamiliasUsecase? fetchSubfamiliasUsecase;
   FetchInventarioUsecase? fetchInventarioUsecase;
+ FetchSucursalesUsecase? fetchSucursalesUsecase;
 
   CreateQuotesUsecase?createQuotesUsecase;
   FetchQuoteUsecase? fetchQuoteUsecase;
@@ -85,6 +87,8 @@ FetchQuotesByidUsecase? fetchQuotesByidUsecase;
     fetchFamiliasUsecase = FetchFamiliasUsecase(inventoryRepository: inventoryRepositoryImp!);
     fetchSubfamiliasUsecase = FetchSubfamiliasUsecase(inventoryRepository: inventoryRepositoryImp!);
     fetchInventarioUsecase = FetchInventarioUsecase(inventoryRepository: inventoryRepositoryImp!);
+
+    fetchSucursalesUsecase = FetchSucursalesUsecase(inventoryRepository: inventoryRepositoryImp!);
     
     createQuotesUsecase = CreateQuotesUsecase(quotesRepository: quotesRepositoryImp!);
     fetchQuoteUsecase = FetchQuoteUsecase(quotesRepository: quotesRepositoryImp!); 

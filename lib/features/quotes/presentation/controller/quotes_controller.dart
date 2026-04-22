@@ -1,15 +1,15 @@
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
-import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
-import 'package:bcg/features/sales/domain/usecase/generate_pdf_sales.dart';
+import 'package:bcg/features/quotes/domain/usecase/generate_pdf_usecase.dart';
+import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart'; 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 class QuotesController extends GetxController {
   final FetchQuoteUsecase fetchQuoteUsecase;
-    final GeneratePdfSales generatePdfSales; // ← agrega
+    final GeneratePdfUsecase generatePdfUsecase; 
 
-  QuotesController({required this.fetchQuoteUsecase, required this.generatePdfSales}); // ← agrega
+  QuotesController({required this.fetchQuoteUsecase, required this.generatePdfUsecase});  
 
   final ScrollController scrollController = ScrollController();
 final RxString statusFilter = ''.obs;
@@ -198,25 +198,25 @@ void onTabChanged(int tab) {
       isLoadingMore.value = false;
     }
   }
-
-  Future<void> openSalePdf(BuildContext context, int saleId, String folio) async {
-    final pdfCtrl = Get.find<PdfController>();
-    try {
-      pdfCtrl.isLoadingPdf.value = true;
-      final result = await generatePdfSales.call(saleId);
-      if (result.generated && result.urlpdf.isNotEmpty) {
-        pdfCtrl.folio = 'venta_$folio';
-        pdfCtrl.setPdfUrl(result.urlpdf);
-        pdfCtrl.isLoadingPdf.value = false;
-        pdfCtrl.showOptionsSheet(context);
-      }
-    } catch (e) {
-      showErrorSnackbar('Error al generar PDF');
-    } finally {
+Future<void> openSalePdf(BuildContext context, int saleId, String folio) async {
+  final pdfCtrl = Get.find<PdfController>();
+  try {
+    pdfCtrl.reset(); 
+    pdfCtrl.isLoadingPdf.value = true;
+    
+    final result = await generatePdfUsecase.call(saleId);
+    if (result.generated && result.urlpdf.isNotEmpty) {
+      pdfCtrl.folio = 'venta_$folio';
+      pdfCtrl.setPdfUrl(result.urlpdf);
       pdfCtrl.isLoadingPdf.value = false;
+      pdfCtrl.showOptionsSheet(context);
     }
+  } catch (e) {
+    showErrorSnackbar('Error al generar PDF');
+  } finally {
+    pdfCtrl.isLoadingPdf.value = false;
   }
-
+}
   void applyFilters({
     required String dateFrom,
     required String dateUntil,

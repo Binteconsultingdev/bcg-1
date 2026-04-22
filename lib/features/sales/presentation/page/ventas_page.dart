@@ -395,7 +395,7 @@ class _VentaTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${item.id ?? '-'} - ${item.client ?? '-'}',
+                  item.client ?? '-',
                   style: ThemeColor.bodyMedium.copyWith(
                     color: ThemeColor.infoColor,
                     fontWeight: FontWeight.w600,

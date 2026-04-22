@@ -82,12 +82,7 @@ class SalesDataSourcesImp {
     Uri url = Uri.parse('$defaultApiServer/VentaSalida/generar');
 
     final payload = jsonEncode(CreateSalesModel.fromEntity(entity).toJson());
-
-    print('🚀 Iniciando generateSales');
-    print('🌐 URL: $url');
-    print('📦 Payload: $payload');
-    print('🔑 Token: $token');
-
+ 
     final response = await http.post(
       url,
       headers: {
@@ -96,10 +91,7 @@ class SalesDataSourcesImp {
       },
       body: payload,
     );
-
-    print('📥 Status Code: ${response.statusCode}');
-    print('📥 Response Body: ${response.body}');
-
+ 
  if (response.statusCode == 200 || response.statusCode == 201) {
   final dataUTF8 = utf8.decode(response.bodyBytes);
   final responseDecode = jsonDecode(dataUTF8);

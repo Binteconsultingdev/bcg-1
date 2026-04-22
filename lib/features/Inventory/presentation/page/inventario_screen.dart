@@ -292,77 +292,318 @@ class InventarioScreen extends StatelessWidget {
     );
   }
 }
-
 class _ProductTile extends StatelessWidget {
   final InventoryEntity product;
   const _ProductTile({required this.product});
 
+  // ✅ Método dentro de la clase — tiene acceso a `product`
+  void _openSucursalesSheet(BuildContext context, InventoryController controller) {
+    controller.fetchSucursales(product.partNumber ?? '');
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _SucursalesBottomSheet(
+        controller: controller,
+        product: product,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final hasImage = (product.imageUrl?.isNotEmpty ?? false);
+    final controller = Get.find<InventoryController>();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: ThemeColor.paddingSmall),
-      child: Row(
+    return GestureDetector(
+      onTap: () => _openSucursalesSheet(context, controller),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: ThemeColor.paddingSmall),
+        child: Row(
+          children: [
+            ProductThumbnail(imageUrl: product.imageUrl ?? '', size: 54),
+            const SizedBox(width: ThemeColor.paddingMedium),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.description ?? 'Sin descripción',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      color: ThemeColor.infoColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    product.partNumber ?? 'Sin número de parte',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      color: ThemeColor.textSecondaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '\$${product.price?.toStringAsFixed(2) ?? '0.00'}',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      color: ThemeColor.textPrimaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ThemeColor.paddingSmall,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: ThemeColor.successColor,
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                child: Text(
+                  '${product.availableQuantity} ${product.unit ?? ""}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: ThemeColor.caption.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+class _SucursalesBottomSheet extends StatelessWidget {
+  final InventoryController controller;
+  final InventoryEntity product;
+
+  const _SucursalesBottomSheet({
+    required this.controller,
+    required this.product,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: ThemeColor.backgroundColor,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(ThemeColor.largeRadius),
+        ),
+      ),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          ProductThumbnail(imageUrl: product.imageUrl!, size: 54),
-          const SizedBox(width: ThemeColor.paddingMedium),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: ThemeColor.dividerColor,
+              borderRadius: ThemeColor.circularBorderRadius,
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: ThemeColor.paddingMedium,
+              vertical: ThemeColor.paddingSmall,
+            ),
+            child: Row(
               children: [
-                Text(
-                  product.description ?? 'Sin descripción',
-                  style: ThemeColor.bodyMedium.copyWith(
-                    color: ThemeColor.infoColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  product.partNumber ?? 'Sin número de parte',
-                  style: ThemeColor.bodyMedium.copyWith(
-                    color: ThemeColor.textSecondaryColor,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '\$${product.price?.toStringAsFixed(2) ?? '0.00'}',
-                  style: ThemeColor.bodyMedium.copyWith(
-                    color: ThemeColor.textPrimaryColor,
+                const Spacer(),
+                Text('Existencias por sucursal', style: ThemeColor.headingSmall),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'X',
+                    style: ThemeColor.subtitleLarge.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 120),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: ThemeColor.paddingSmall,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: ThemeColor.successColor,
-                borderRadius: ThemeColor.smallBorderRadius,
-              ),
-              child: Text(
-                '${product.availableQuantity} ${product.unit ?? ""}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: ThemeColor.caption.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
+          Divider(height: 1, color: ThemeColor.dividerColor),
+
+          // Info del producto
+          Padding(
+            padding: const EdgeInsets.all(ThemeColor.paddingMedium),
+            child: Row(
+              children: [
+                ProductThumbnail(imageUrl: product.imageUrl ?? '', size: 48),
+                const SizedBox(width: ThemeColor.paddingMedium),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.description ?? 'Sin descripción',
+                        style: ThemeColor.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: ThemeColor.infoColor,
+                        ),
+                      ),
+                      Text(
+                        product.partNumber ?? '',
+                        style: ThemeColor.bodyMedium.copyWith(
+                          color: ThemeColor.textSecondaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
+          Divider(height: 1, color: ThemeColor.dividerColor),
+
+          // Contenido
+          Obx(() {
+            if (controller.isLoadingSucursales.value) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (controller.sucursalesError.isNotEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(ThemeColor.paddingLarge),
+                child: Center(
+                  child: Text(
+                    controller.sucursalesError.value,
+                    style: ThemeColor.bodyMedium.copyWith(
+                      color: ThemeColor.errorColor,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }
+
+            final data = controller.sucursalesDetalle.value;
+            if (data == null) return const SizedBox(height: 40);
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Total general
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ThemeColor.paddingMedium,
+                    vertical: ThemeColor.paddingSmall,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total disponible',
+                        style: ThemeColor.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: ThemeColor.paddingSmall,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: ThemeColor.successColor,
+                          borderRadius: ThemeColor.smallBorderRadius,
+                        ),
+                        child: Text(
+                          '${data.totalDisponible} ${data.unidad}',
+                          style: ThemeColor.caption.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(height: 1, color: ThemeColor.dividerColor),
+
+                // Lista de sucursales
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: data.productoResposeDtos.length,
+                  separatorBuilder: (_, __) =>
+                      Divider(height: 1, color: ThemeColor.dividerColor),
+                  itemBuilder: (_, i) {
+                    final sucursal = data.productoResposeDtos[i];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: ThemeColor.paddingMedium,
+                        vertical: ThemeColor.paddingSmall,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              sucursal.sucursal,
+                              style: ThemeColor.bodyMedium.copyWith(
+                                color: ThemeColor.textPrimaryColor,
+                              ),
+                            ),
+                          ),
+                          // Precio
+                          Text(
+                            '\$${sucursal.precio.toStringAsFixed(2)}',
+                            style: ThemeColor.bodyMedium.copyWith(
+                              color: ThemeColor.textSecondaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: ThemeColor.paddingSmall),
+                          // Disponible
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: ThemeColor.paddingSmall,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: sucursal.disponible > 0
+                                  ? ThemeColor.successColor
+                                  : ThemeColor.errorColor,
+                              borderRadius: ThemeColor.smallBorderRadius,
+                            ),
+                            child: Text(
+                              '${sucursal.disponible} ${data.unidad}',
+                              style: ThemeColor.caption.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: ThemeColor.paddingLarge),
+              ],
+            );
+          }),
         ],
       ),
     );
   }
 }
-
 class _FilterBottomSheet extends StatefulWidget {
   final InventoryController controller;
   const _FilterBottomSheet({required this.controller});

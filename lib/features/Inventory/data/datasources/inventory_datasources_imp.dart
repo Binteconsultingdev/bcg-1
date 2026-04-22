@@ -6,8 +6,10 @@ import 'package:bcg/common/constants/constants.dart';
 import 'package:bcg/common/errors/api_errors.dart';
 import 'package:bcg/features/Inventory/data/model/inventory_category_model.dart';
 import 'package:bcg/features/Inventory/data/model/inventory_model.dart';
+import 'package:bcg/features/Inventory/data/model/sucursales_model.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_category_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
+import 'package:bcg/features/Inventory/domain/entities/sucursales_entity.dart';
 import 'package:http/http.dart' as http;
 
 class InventoryDatasourcesImp {
@@ -37,7 +39,41 @@ class InventoryDatasourcesImp {
       throw Exception('$e');
     }
   }
+  Future<SucursalesEntity>fetchSucursales(String token,String numParte) async {
+     try {
+      final uri = Uri.parse(
+        '$defaultApiServer/Inventario/sucursales/buscar?numParte=$numParte',
+      );
 
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/pdf',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dataUTF8 = utf8.decode(response.bodyBytes);
+        final responseDecode = jsonDecode(dataUTF8);
+
+        return SucursalesModel.fromJson(responseDecode);
+      }
+      ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+      exception.validateMesage();
+      throw exception;
+    } catch (e) {
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is TimeoutException) {
+        print('🌐 Error de red detectado');
+        throw Exception(convertMessageException(error: e));
+      }
+
+      throw Exception('$e');
+    }
+  }
+  
   Future<List<InventoryEntity>> fetchInventario(String token,String description,String numparte,
     String familia,
     String subfamilia,int page,int pageSize) async {

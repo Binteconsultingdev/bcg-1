@@ -67,7 +67,9 @@ class SalesController extends GetxController {
   // — PDF —
   Future<void> openSalePdf(BuildContext context, int saleId, String folio) async {
     final pdfCtrl = Get.find<PdfController>();
+    
     try {
+      pdfCtrl.reset(); 
       pdfCtrl.isLoadingPdf.value = true;
       final result = await generatePdfSales.call(saleId);
       if (result.generated && result.urlpdf.isNotEmpty) {
