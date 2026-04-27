@@ -23,15 +23,32 @@ class ProductThumbnail extends StatelessWidget {
               child: Image.network(
                 imageUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(
-                  Icons.image_outlined,
-                  color: ThemeColor.textTertiaryColor,
-                  size: size * 0.48,
-                ),
+                errorBuilder: (_, __, ___) => _buildNoImage(size),
               ),
             )
-          : Icon(Icons.image_outlined,
-              color: ThemeColor.textTertiaryColor, size: size * 0.48),
+          : _buildNoImage(size),
+    );
+  }
+
+  Widget _buildNoImage(double size) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.hide_image_outlined,
+          color: ThemeColor.textTertiaryColor,
+          size: size * 0.38,
+        ),
+        SizedBox(height: 4),
+        Text(
+          'Sin imagen',
+          style: TextStyle(
+            color: ThemeColor.textTertiaryColor,
+            fontSize: size * 0.13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }
