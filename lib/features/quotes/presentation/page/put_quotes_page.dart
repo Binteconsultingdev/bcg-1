@@ -568,10 +568,27 @@ class _TotalsSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            _TotalRow(
-              label: 'I.V.A',
-              value: '\$${ctrl.ivaAmount.toStringAsFixed(2)}',
-            ),
+          Obx(() => Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text('I.V.A (16%)', style: ThemeColor.bodyMedium),
+    Row(
+      children: [
+        Text(
+          '\$${ctrl.ivaAmount.toStringAsFixed(2)}',
+          style: ThemeColor.bodyMedium,
+        ),
+        const SizedBox(width: 8),
+        Switch(
+          value: ctrl.includeIva.value,
+          onChanged: (v) => ctrl.includeIva.value = v,
+          activeColor: ThemeColor.primaryColor,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+      ],
+    ),
+  ],
+)),
             Divider(height: 20, color: ThemeColor.dividerColor),
             _TotalRow(
               label: 'Total a pagar',

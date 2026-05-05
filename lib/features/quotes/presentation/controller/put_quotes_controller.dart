@@ -133,9 +133,12 @@ bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
   ];
 
   double get subtotal => items.fold(0, (s, i) => s + i.total);
-  double get ivaAmount => (subtotal - globalDiscount.value) * 0.16;
-  double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
-
+ 
+final includeIva = true.obs;  
+ 
+double get ivaAmount => includeIva.value ? (subtotal - globalDiscount.value) * 0.16 : 0.0;
+double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
+ 
   @override
   void onInit() {
     super.onInit();
@@ -293,7 +296,7 @@ bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
       total: totalToPay,
       cataPrecio: selectedPriceType.value,
       descuento: globalDiscount.value.toStringAsFixed(2),
-      iva: ivaAmount.toStringAsFixed(2),
+      iva: includeIva.value ? 'SI' : 'NO',
       diasEnt: validUntil.value.difference(DateTime.now()).inDays,
       comentarios: commentsCtrl.text.trim(),
       referencia: '',
