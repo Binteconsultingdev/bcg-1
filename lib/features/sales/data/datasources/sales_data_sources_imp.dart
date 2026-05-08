@@ -95,8 +95,7 @@ class SalesDataSourcesImp {
  if (response.statusCode == 200 || response.statusCode == 201) {
   final dataUTF8 = utf8.decode(response.bodyBytes);
   final responseDecode = jsonDecode(dataUTF8);
-
-  // ← Verifica success antes de retornar
+ 
   if (responseDecode['success'] == false) {
     final message = responseDecode['message'] ?? 'Error desconocido';
     throw Exception(message);

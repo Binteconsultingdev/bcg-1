@@ -236,8 +236,9 @@ class _VentasPageState extends State<VentasPage> {
                       color: selected
                           ? ThemeColor.textLightColor
                           : ThemeColor.textSecondaryColor,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight: selected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -362,10 +363,7 @@ class _VentasPageState extends State<VentasPage> {
     );
   }
 }
-
-// ─────────────────────────────────────────────
-// Tile
-// ─────────────────────────────────────────────
+ 
 class _VentaTile extends StatelessWidget {
   final PointSaleEntity item;
   const _VentaTile({required this.item});
@@ -386,7 +384,9 @@ class _VentaTile extends StatelessWidget {
     final ctrl = Get.find<SalesController>();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: ThemeColor.paddingSmall + 2),
+      padding: const EdgeInsets.symmetric(
+        vertical: ThemeColor.paddingSmall + 2,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -417,74 +417,74 @@ class _VentaTile extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          // Badge de status
+          ), 
           Column(
-  crossAxisAlignment: CrossAxisAlignment.end,
-  children: [
-    // Badge de status
-    Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingSmall + 2,
-        vertical: 5,
-      ),
-      decoration: BoxDecoration(
-        color: _badgeColor,
-        borderRadius: ThemeColor.circularBorderRadius,
-      ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 100),
-        child: Text(
-          item.status?.toUpperCase() ?? '',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: ThemeColor.caption.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
-          ),
-        ),
-      ),
-    ),
-    const SizedBox(height: 6),
-    // Botón PDF
-    Obx(() {
-      final isLoading = Get.find<PdfController>().isLoadingPdf.value;
-      return GestureDetector(
-        onTap: () => ctrl.openSalePdf(context, item.id, item.folito ?? '${item.id}'),
-        child: Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: ThemeColor.errorColor.withOpacity(0.1),
-            borderRadius: ThemeColor.smallBorderRadius,
-          ),
-          child: isLoading
-              ? const Padding(
-                  padding: EdgeInsets.all(6),
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: ThemeColor.errorColor,
-                  ),
-                )
-              : const Icon(
-                  Icons.picture_as_pdf_outlined,
-                  color: ThemeColor.errorColor,
-                  size: 18,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [ 
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ThemeColor.paddingSmall + 2,
+                  vertical: 5,
                 ),
-        ),
-      );
-    }),
-  ],
-),
+                decoration: BoxDecoration(
+                  color: _badgeColor,
+                  borderRadius: ThemeColor.circularBorderRadius,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 100),
+                  child: Text(
+                    item.status?.toUpperCase() ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: ThemeColor.caption.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+           
+              Obx(() {
+                final isLoading = Get.find<PdfController>().isLoadingPdf.value;
+                return GestureDetector(
+                  onTap: () => ctrl.openSalePdf(
+                    context,
+                    item.id,
+                    item.folito ?? '${item.id}',
+                  ),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: ThemeColor.errorColor.withOpacity(0.1),
+                      borderRadius: ThemeColor.smallBorderRadius,
+                    ),
+                    child: isLoading
+                        ? const Padding(
+                            padding: EdgeInsets.all(6),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: ThemeColor.errorColor,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.picture_as_pdf_outlined,
+                            color: ThemeColor.errorColor,
+                            size: 18,
+                          ),
+                  ),
+                );
+              }),
+            ],
+          ),
         ],
       ),
     );
   }
 }
-// ─────────────────────────────────────────────
-// Filter Sheet
-// ─────────────────────────────────────────────
+ 
 class _VentaFilterSheet extends StatelessWidget {
   final SalesController controller;
   const _VentaFilterSheet({required this.controller});
@@ -501,14 +501,14 @@ class _VentaFilterSheet extends StatelessWidget {
         ),
       ),
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom +
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
             MediaQuery.of(context).padding.bottom,
       ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
+          children: [ 
             Container(
               margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
               width: 40,
@@ -517,8 +517,7 @@ class _VentaFilterSheet extends StatelessWidget {
                 color: ThemeColor.dividerColor,
                 borderRadius: ThemeColor.circularBorderRadius,
               ),
-            ),
-            // Header
+            ), 
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium,
@@ -536,7 +535,9 @@ class _VentaFilterSheet extends StatelessWidget {
                     },
                     child: Text(
                       'X',
-                      style: ThemeColor.subtitleLarge.copyWith(fontWeight: FontWeight.w700),
+                      style: ThemeColor.subtitleLarge.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
@@ -544,8 +545,7 @@ class _VentaFilterSheet extends StatelessWidget {
             ),
             Divider(height: 1, color: ThemeColor.dividerColor),
             const SizedBox(height: ThemeColor.paddingMedium),
-
-            // Fechas
+ 
             _FilterCard(
               child: Row(
                 children: [
@@ -553,12 +553,22 @@ class _VentaFilterSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('De', style: ThemeColor.bodySmall.copyWith(color: ThemeColor.textSecondaryColor)),
+                        Text(
+                          'De',
+                          style: ThemeColor.bodySmall.copyWith(
+                            color: ThemeColor.textSecondaryColor,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Obx(() => _DateField(
-                          value: controller.filterDateFrom.value,
-                          onTap: () => controller.pickFilterDate(context, controller.filterDateFrom),
-                        )),
+                        Obx(
+                          () => _DateField(
+                            value: controller.filterDateFrom.value,
+                            onTap: () => controller.pickFilterDate(
+                              context,
+                              controller.filterDateFrom,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -567,12 +577,22 @@ class _VentaFilterSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Hasta', style: ThemeColor.bodySmall.copyWith(color: ThemeColor.textSecondaryColor)),
+                        Text(
+                          'Hasta',
+                          style: ThemeColor.bodySmall.copyWith(
+                            color: ThemeColor.textSecondaryColor,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Obx(() => _DateField(
-                          value: controller.filterDateUntil.value,
-                          onTap: () => controller.pickFilterDate(context, controller.filterDateUntil),
-                        )),
+                        Obx(
+                          () => _DateField(
+                            value: controller.filterDateUntil.value,
+                            onTap: () => controller.pickFilterDate(
+                              context,
+                              controller.filterDateUntil,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -581,80 +601,104 @@ class _VentaFilterSheet extends StatelessWidget {
             ),
 
             const SizedBox(height: ThemeColor.paddingSmall),
-
-            // Cliente
+ 
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Cliente', style: ThemeColor.bodyMedium.copyWith(fontWeight: FontWeight.w500)),
+                  Text(
+                    'Cliente',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  ClientSearchField(onSelected: controller.onFilterClientSelected),
-                  ClientSearchResults(onSelected: controller.onFilterClientSelected),
+                  ClientSearchField(
+                    onSelected: controller.onFilterClientSelected,
+                  ),
+                  ClientSearchResults(
+                    onSelected: controller.onFilterClientSelected,
+                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: ThemeColor.paddingSmall),
-
-            // Estado de pago
+ 
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Estado de Pago', style: ThemeColor.bodyMedium.copyWith(fontWeight: FontWeight.w500)),
+                  Text(
+                    'Estado de Pago',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: ThemeColor.paddingSmall),
-                  Obx(() => _ToggleGroup(
-                    options: const ['Todas', 'Pagado', 'Por Cobrar'],
-                    selectedIndex: controller.filterPagoIndex.value == null ? 0 : controller.filterPagoIndex.value! + 1,
-                    onChanged: (i) => controller.filterPagoIndex.value = i == 0 ? null : i - 1,
-                  )),
+                  Obx(
+                    () => _ToggleGroup(
+                      options: const ['Todas', 'Pagado', 'Por Cobrar'],
+                      selectedIndex: controller.filterPagoIndex.value == null
+                          ? 0
+                          : controller.filterPagoIndex.value! + 1,
+                      onChanged: (i) => controller.filterPagoIndex.value =
+                          i == 0 ? null : i - 1,
+                    ),
+                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: ThemeColor.paddingMedium),
-
-            // Botones
+ 
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingMedium),
-              child: Obx(() => Row(
-                children: [
-                  Expanded(
-                    child: ThemeColor.widgetButton(
-                      text: 'Limpiar (${controller.activeFilters})',
-                      onPressed: controller.onFilterClear,
-                      backgroundColor: ThemeColor.surfaceColor,
-                      textColor: ThemeColor.textPrimaryColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      padding: const EdgeInsets.symmetric(vertical: ThemeColor.paddingMedium),
-                      borderRadius: ThemeColor.smallRadius,
-                      borderColor: ThemeColor.dividerColor,
-                      borderWidth: 1.5,
-                      showShadow: false,
+              padding: const EdgeInsets.symmetric(
+                horizontal: ThemeColor.paddingMedium,
+              ),
+              child: Obx(
+                () => Row(
+                  children: [
+                    Expanded(
+                      child: ThemeColor.widgetButton(
+                        text: 'Limpiar (${controller.activeFilters})',
+                        onPressed: controller.onFilterClear,
+                        backgroundColor: ThemeColor.surfaceColor,
+                        textColor: ThemeColor.textPrimaryColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: ThemeColor.paddingMedium,
+                        ),
+                        borderRadius: ThemeColor.smallRadius,
+                        borderColor: ThemeColor.dividerColor,
+                        borderWidth: 1.5,
+                        showShadow: false,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: ThemeColor.paddingSmall),
-                  Expanded(
-                    flex: 2,
-                    child: ThemeColor.widgetButton(
-                      text: 'Ver resultados',
-                      onPressed: () {
-                        controller.applyFilterSheet();
-                        Navigator.of(context).pop();
-                      },
-                      backgroundColor: ThemeColor.primaryColor,
-                      textColor: ThemeColor.textLightColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      padding: const EdgeInsets.symmetric(vertical: ThemeColor.paddingMedium),
-                      borderRadius: ThemeColor.smallRadius,
-                      customShadow: ThemeColor.darkShadow,
+                    const SizedBox(width: ThemeColor.paddingSmall),
+                    Expanded(
+                      flex: 2,
+                      child: ThemeColor.widgetButton(
+                        text: 'Ver resultados',
+                        onPressed: () {
+                          controller.applyFilterSheet();
+                          Navigator.of(context).pop();
+                        },
+                        backgroundColor: ThemeColor.primaryColor,
+                        textColor: ThemeColor.textLightColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: ThemeColor.paddingMedium,
+                        ),
+                        borderRadius: ThemeColor.smallRadius,
+                        customShadow: ThemeColor.darkShadow,
+                      ),
                     ),
-                  ),
-                ],
-              )),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: ThemeColor.paddingLarge),
           ],
@@ -663,10 +707,7 @@ class _VentaFilterSheet extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────
-// Widgets auxiliares
-// ─────────────────────────────────────────────
+ 
 
 class _FilterCard extends StatelessWidget {
   final Widget child;
@@ -762,8 +803,7 @@ class _ToggleGroup extends StatelessWidget {
                 vertical: 8,
               ),
               decoration: BoxDecoration(
-                color:
-                    selected ? ThemeColor.accentColor : Colors.transparent,
+                color: selected ? ThemeColor.accentColor : Colors.transparent,
                 borderRadius: ThemeColor.circularBorderRadius,
                 border: Border.all(
                   color: selected
@@ -777,8 +817,7 @@ class _ToggleGroup extends StatelessWidget {
                   color: selected
                       ? ThemeColor.textDarkColor
                       : ThemeColor.textSecondaryColor,
-                  fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
             ),
@@ -805,16 +844,24 @@ class _DateField extends StatelessWidget {
           borderRadius: ThemeColor.smallBorderRadius,
           border: Border.all(color: ThemeColor.dividerColor),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingSmall),
+        padding: const EdgeInsets.symmetric(
+          horizontal: ThemeColor.paddingSmall,
+        ),
         child: Row(
           children: [
             Expanded(
               child: Text(
                 value,
-                style: ThemeColor.bodySmall.copyWith(color: ThemeColor.textPrimaryColor),
+                style: ThemeColor.bodySmall.copyWith(
+                  color: ThemeColor.textPrimaryColor,
+                ),
               ),
             ),
-            const Icon(Icons.calendar_today_outlined, size: 14, color: ThemeColor.textSecondaryColor),
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 14,
+              color: ThemeColor.textSecondaryColor,
+            ),
           ],
         ),
       ),

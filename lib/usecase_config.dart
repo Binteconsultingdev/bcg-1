@@ -16,6 +16,7 @@ import 'package:bcg/features/client/data/datasources/client_data_sources_imp.dar
 import 'package:bcg/features/client/data/repositories/client_repository_imp.dart';
 import 'package:bcg/features/client/domain/usecase/create_client_usecase.dart';
 import 'package:bcg/features/client/domain/usecase/fetch_clients_usecase.dart';
+import 'package:bcg/features/client/domain/usecase/generate_account_statement_usecase.dart';
 import 'package:bcg/features/quotes/data/datasources/quotes_data_sources_imp.dart';
 import 'package:bcg/features/quotes/data/repositories/quotes_repository_imp.dart';
 import 'package:bcg/features/quotes/domain/usecase/create_quotes_usecase.dart';
@@ -63,6 +64,7 @@ FetchQuotesByidUsecase? fetchQuotesByidUsecase;
 
  CreateClientUsecase? createClientUsecase;
  FetchClientsUsecase? fetchClientsUsecase;
+ GenerateAccountStatementUsecase? generateAccountStatementUsecase;
 
  PointSalesUsecase?pointSalesUsecase;
  GenerateSalesUsecase?generateSalesUsecase;
@@ -103,6 +105,6 @@ FetchQuotesByidUsecase? fetchQuotesByidUsecase;
 
     fetchClientsUsecase = FetchClientsUsecase(clientRepository: clientRepositoryImp!);
     createClientUsecase = CreateClientUsecase(clientRepository: clientRepositoryImp!);
-
+    generateAccountStatementUsecase = GenerateAccountStatementUsecase(clientRepository: clientRepositoryImp!);
   }
 }
