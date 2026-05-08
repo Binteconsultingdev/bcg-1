@@ -559,58 +559,59 @@ class _ClienteTile extends StatelessWidget {
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (tieneAdeudo)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: ThemeColor.paddingSmall + 2,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: ThemeColor.errorColor.withOpacity(0.85),
-                    borderRadius: ThemeColor.circularBorderRadius,
-                  ),
-                  child: Text(
-                    '\$${cliente.owes!.toStringAsFixed(2)} adeudo',
-                    style: ThemeColor.caption.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              if (tieneAdeudo) const SizedBox(height: 6),
-              Obx(() {
-                final isLoading =
-                    ctrl.loadingPdfClientId.value == cliente.id;
-                return GestureDetector(
-                  onTap: () => _showDateRangeSheet(context, ctrl),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: ThemeColor.errorColor.withOpacity(0.1),
-                      borderRadius: ThemeColor.smallBorderRadius,
-                    ),
-                    child: isLoading
-                        ? const Padding(
-                            padding: EdgeInsets.all(6),
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: ThemeColor.errorColor,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.picture_as_pdf_outlined,
-                            color: ThemeColor.errorColor,
-                            size: 18,
-                          ),
-                  ),
-                );
-              }),
-            ],
+Column(
+  crossAxisAlignment: CrossAxisAlignment.end,
+  children: [
+    if (tieneAdeudo) ...[
+      Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: ThemeColor.paddingSmall + 2,
+          vertical: 5,
+        ),
+        decoration: BoxDecoration(
+          color: ThemeColor.errorColor.withOpacity(0.85),
+          borderRadius: ThemeColor.circularBorderRadius,
+        ),
+        child: Text(
+          '\$${cliente.owes!.toStringAsFixed(2)} adeudo',
+          style: ThemeColor.caption.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
           ),
+        ),
+      ),
+      const SizedBox(height: 6),
+      // Botón PDF solo cuando hay adeudo
+      Obx(() {
+        final isLoading = ctrl.loadingPdfClientId.value == cliente.id;
+        return GestureDetector(
+          onTap: () => _showDateRangeSheet(context, ctrl),
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: ThemeColor.errorColor.withOpacity(0.1),
+              borderRadius: ThemeColor.smallBorderRadius,
+            ),
+            child: isLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: ThemeColor.errorColor,
+                    ),
+                  )
+                : const Icon(
+                    Icons.picture_as_pdf_outlined,
+                    color: ThemeColor.errorColor,
+                    size: 18,
+                  ),
+          ),
+        );
+      }),
+    ],
+  ],
+),
         ],
       ),
     );

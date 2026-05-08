@@ -19,6 +19,7 @@ import 'package:bcg/features/sales/presentation/controller/sales_controller.dart
 import 'package:bcg/usecase_config.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 UsecaseConfig usecaseConfig = UsecaseConfig();
 
@@ -28,7 +29,13 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-   
+     locale: const Locale('es', 'ES'),
+      supportedLocales: [const Locale('es', 'ES')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
    
       debugShowCheckedModeBanner: false,
       theme: ThemeColor.themeData, 
