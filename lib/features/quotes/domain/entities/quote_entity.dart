@@ -36,20 +36,22 @@ class QuoteEntity {
   });
 }
 class ProductoEntity {
+  final int? id;
   final String codigo;
   final String descripcion;
   final num disponible;
   final String unidad;
   final double precio;
-  final double cantidad; // es double en el JSON (1.00)
+  final double cantidad;  
   final double importe;
   final String claveSat;
   final String url;
-  final double descuento; // es int (0) en el JSON pero puede ser double
+  final double descuento;  
   final int prioridad;
 
   final String? iva;
   ProductoEntity({
+      this.id,
     required this.codigo,
     this.iva,
     required this.descripcion,

@@ -134,41 +134,59 @@ class InventoryDatasourcesImp {
     }
   }
 
+Future<ResponseValidateCartEntity> validateCart(
+  String token,
+  PostValidateCartEntity entity,
+) async {
+  try {
+    final uri = Uri.parse('$defaultApiServer/Inventario/validar-carrito');
 
-  Future<ResponseValidateCartEntity> validateCart(
-    String token,
-    PostValidateCartEntity entity,
-  ) async {
-    try {
-      final uri = Uri.parse('$defaultApiServer/Inventario/validar-carrito');
+    final bodyRequest =
+        PostValidateCartModel.fromEntity(entity).toJson();
 
-      final response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(PostValidateCartModel.fromEntity(entity).toJson()),
-      );
+    print('📤 URL: $uri');
+    print('📤 BODY: ${jsonEncode(bodyRequest)}');
 
-      if (response.statusCode == 200) {
-        final dataUTF8 = utf8.decode(response.bodyBytes);
-        final responseDecode = jsonDecode(dataUTF8);
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(bodyRequest),
+    );
 
-        return ResponseValidateCartModel.fromJson(responseDecode);
-      }
-      ApiExceptionCustom exception = ApiExceptionCustom(response: response);
-      exception.validateMesage();
-      throw exception;
-    } catch (e) {
-      if (e is SocketException ||
-          e is http.ClientException ||
-          e is TimeoutException) {
-        print('🌐 Error de red detectado');
-        throw Exception(convertMessageException(error: e));
-      }
+    print('📥 STATUS CODE: ${response.statusCode}');
+    print('📥 RESPONSE: ${utf8.decode(response.bodyBytes)}');
 
-      throw Exception('$e');
+    if (response.statusCode == 200) {
+      final dataUTF8 = utf8.decode(response.bodyBytes);
+
+      print('✅ RESPONSE UTF8: $dataUTF8');
+
+      final responseDecode = jsonDecode(dataUTF8);
+
+      print('✅ RESPONSE DECODE: $responseDecode');
+
+      return ResponseValidateCartModel.fromJson(responseDecode);
     }
+
+    print('❌ ERROR RESPONSE: ${response.body}');
+
+    ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+    exception.validateMesage();
+    throw exception;
+  } catch (e) {
+    print('🚨 EXCEPTION: $e');
+
+    if (e is SocketException ||
+        e is http.ClientException ||
+        e is TimeoutException) {
+      print('🌐 Error de red detectado');
+      throw Exception(convertMessageException(error: e));
+    }
+
+    throw Exception('$e');
   }
+}
 }

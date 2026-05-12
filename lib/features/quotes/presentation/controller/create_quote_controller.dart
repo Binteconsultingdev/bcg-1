@@ -575,7 +575,146 @@ class CreateQuoteController extends GetxController {
       _pdfCtrl.isLoadingPdf.value = false;
     }
   }
+void editCustomProduct({
+  required QuoteItem item,
+  required String descripcion,
+  required double costo,
+  required double cantidad,
+}) {
+  if (descripcion.trim().isEmpty) {
+    showErrorSnackbar('Ingresa una descripción');
+    return;
+  }
+  if (costo <= 0) {
+    showErrorSnackbar('El costo debe ser mayor a 0');
+    return;
+  }
+  if (cantidad <= 0) {
+    showErrorSnackbar('La cantidad debe ser mayor a 0');
+    return;
+  }
+  // Muta directamente los Rx del customProduct
+  item.customProduct!.cantidad.value = cantidad;
+  item.quantity.value = cantidad;
+  // descripcion y costo son final, recrea el item en su posición
+  final index = items.indexOf(item);
+  if (index == -1) return;
+  final updated = QuoteItem.custom(
+    custom: CustomQuoteItem(
+      descripcion: descripcion.trim(),
+      costo: costo,
+      initialQty: cantidad,
+    ),
+  );
+  items[index] = updated;
+  items.refresh();
+}
 
+void showEditCustomProductDialog(BuildContext context, QuoteItem item) {
+  final descCtrl =
+      TextEditingController(text: item.customProduct!.descripcion);
+  final costoCtrl = TextEditingController(
+      text: item.customProduct!.costo.toStringAsFixed(2));
+  final cantCtrl = TextEditingController(
+      text: item.quantity.value % 1 == 0
+          ? item.quantity.value.toInt().toString()
+          : item.quantity.value.toString());
+
+  Get.dialog(
+    AlertDialog(
+      backgroundColor: ThemeColor.surfaceColor,
+      title: Text('Editar producto', style: ThemeColor.headingSmall),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: descCtrl,
+            textCapitalization: TextCapitalization.sentences,
+            style: ThemeColor.bodyMedium,
+            decoration: InputDecoration(
+              labelText: 'Descripción',
+              border: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+                borderSide: const BorderSide(
+                  color: ThemeColor.accentColor,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: costoCtrl,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            style: ThemeColor.bodyMedium,
+            decoration: InputDecoration(
+              labelText: 'Costo unitario',
+              prefixText: '\$ ',
+              border: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+                borderSide: const BorderSide(
+                  color: ThemeColor.accentColor,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: cantCtrl,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            style: ThemeColor.bodyMedium,
+            decoration: InputDecoration(
+              labelText: 'Cantidad',
+              border: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+                borderSide: const BorderSide(
+                  color: ThemeColor.accentColor,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text(
+            'Cancelar',
+            style: TextStyle(color: ThemeColor.textSecondaryColor),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ThemeColor.primaryColor,
+          ),
+          onPressed: () {
+            editCustomProduct(
+              item: item,
+              descripcion: descCtrl.text,
+              costo: double.tryParse(costoCtrl.text) ?? 0,
+              cantidad: double.tryParse(cantCtrl.text) ?? 1,
+            );
+            Get.back();
+          },
+          child: const Text('Guardar'),
+        ),
+      ],
+    ),
+  );
+}
   // ─── Reset ────────────────────────────────────────────────────────────────
 
   void resetState() {

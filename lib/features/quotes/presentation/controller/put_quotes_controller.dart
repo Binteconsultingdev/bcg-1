@@ -3,6 +3,7 @@ import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/common/controller/product_search_controller.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
+import 'package:bcg/features/Inventory/domain/entities/post_validate_cart_entity.dart';
 import 'package:bcg/features/Inventory/domain/usecase/validate_cart_usecase.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
@@ -16,8 +17,8 @@ import 'package:bcg/features/quotes/presentation/controller/quotes_controller.da
 import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 class EditQuoteItem {
+  final int? productId; // 👈 nuevo
   final RxString codigo;
   final RxString descripcion;
   final RxDouble precio;
@@ -30,6 +31,7 @@ class EditQuoteItem {
   int prioridad;
 
   EditQuoteItem({
+    this.productId, // 👈 nuevo
     required String codigo,
     required String descripcion,
     required double precio,
@@ -53,6 +55,7 @@ class EditQuoteItem {
 
   factory EditQuoteItem.fromInventory(InventoryEntity product, int index) {
     return EditQuoteItem(
+      productId: product.id, // 👈
       codigo: product.partNumber ?? '',
       descripcion: product.description ?? '',
       precio: (product.price ?? 0).toDouble(),
@@ -68,6 +71,7 @@ class EditQuoteItem {
 
   factory EditQuoteItem.fromProductoEntity(ProductoEntity p) {
     return EditQuoteItem(
+      productId: (p.id != null && p.id != 0) ? p.id : null, // 👈 filtra id=0
       codigo: p.codigo,
       descripcion: p.descripcion,
       precio: p.precio,
@@ -99,8 +103,7 @@ class PutQuotesController extends GetxController {
   late final ClientController _clientCtrl = Get.find<ClientController>();
   late final PdfController _pdfCtrl = Get.find<PdfController>();
 
-  // Getter para el widget
-bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
+  bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
 
   final Rxn<int> quoteId = Rxn<int>();
 
@@ -116,6 +119,10 @@ bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
+
+final isValidatingCart = false.obs;
+final validatedPriceWithoutVAT = Rxn<double>();
+final validatedPriceWithVAT = Rxn<double>();
 
   final items = <EditQuoteItem>[].obs;
 
@@ -136,25 +143,76 @@ bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
   ];
 
   double get subtotal => items.fold(0, (s, i) => s + i.total);
- 
-final includeIva = true.obs;  
- 
-double get ivaAmount => includeIva.value ? (subtotal - globalDiscount.value) * 0.16 : 0.0;
-double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
- 
-  @override
-  void onInit() {
-    super.onInit();
-    final args = Get.arguments;
-    if (args != null && args['idQuote'] != null) {
-      loadQuote(args['idQuote'] as int);
-    }
 
-    Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
-    Get.find<ClientSearchController>().showResults.value = false;
-    Get.find<ClientSearchController>().manuallyClosed = true;
+  final includeIva = true.obs;
+
+  double get ivaAmount =>
+      includeIva.value ? (subtotal - globalDiscount.value) * 0.16 : 0.0;
+  double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
+
+@override
+void onInit() {
+  super.onInit();
+  final args = Get.arguments;
+  if (args != null && args['idQuote'] != null) {
+    loadQuote(args['idQuote'] as int);
   }
 
+  Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
+  Get.find<ClientSearchController>().showResults.value = false;
+  Get.find<ClientSearchController>().manuallyClosed = true;
+
+  // Re-valida al cambiar tipo de precio
+  ever(selectedPriceType, (_) => validateCart());
+}
+
+Future<void> validateCart() async {
+  // Solo items con productId válido (no null, no 0)
+  final validItems = items
+      .where((i) => i.productId != null && i.productId! > 0)
+      .toList();
+
+  if (validItems.isEmpty) {
+    validatedPriceWithoutVAT.value = null;
+    validatedPriceWithVAT.value = null;
+    return;
+  }
+
+  try {
+    isValidatingCart.value = true;
+
+    final response = await validateCartUsecase.call(
+      PostValidateCartEntity(
+        pricetype: selectedPriceType.value,
+        items: validItems
+            .map(
+              (i) => PostItemValidateCartEntity(
+                productid: i.productId!,
+                quantity: i.quantity.value.toInt(),
+              ),
+            )
+            .toList(),
+      ),
+    );
+
+    // Actualiza precio en cada item que tenga respuesta
+    for (final r in response.items) {
+      final match = items.firstWhereOrNull(
+        (i) => i.productId == r.productid,
+      );
+      if (match != null) {
+        match.precio.value = r.newPrice;
+      }
+    }
+
+    validatedPriceWithoutVAT.value = response.priceWithoutVAT;
+    validatedPriceWithVAT.value = response.priceWithVAT;
+  } catch (e) {
+    debugPrint('validateCart error: $e');
+  } finally {
+    isValidatingCart.value = false;
+  }
+}
   void onFreeTextClient(String value) {
     clienteName.value = value;
   }
@@ -166,21 +224,22 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
     Get.find<ClientSearchController>().searchCtrl.text = name;
   }
 
-  Future<void> loadQuote(int id) async {
-    try {
-      quoteId.value = id;
-      isLoadingQuote.value = true;
-      errorMessage.value = '';
-
-      final quote = await fetchQuotesByidUsecase.call(id);
-      _populateFromEntity(quote);
-    } catch (e) {
-      errorMessage.value = 'Error al cargar cotización: $e';
-      showErrorSnackbar('Error al cargar cotización');
-    } finally {
-      isLoadingQuote.value = false;
-    }
+Future<void> loadQuote(int id) async {
+  try {
+    quoteId.value = id;
+    isLoadingQuote.value = true;
+    errorMessage.value = '';
+    final quote = await fetchQuotesByidUsecase.call(id);
+    _populateFromEntity(quote);
+    await validateCart(); // 👈
+  } catch (e) {
+    errorMessage.value = 'Error al cargar cotización: $e';
+    showErrorSnackbar('Error al cargar cotización');
+  } finally {
+    isLoadingQuote.value = false;
   }
+}
+
 
   void _populateFromEntity(QuoteEntity quote) {
     folio.value = quote.folio;
@@ -222,23 +281,26 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
     );
   }
 
-  void addProduct(InventoryEntity product) {
-    if ((product.price ?? 0) <= 0) {
-      showErrorSnackbar('Este producto no tiene precio asignado');
-      return;
-    }
-    final existing = items.firstWhereOrNull(
-        (i) => i.codigo.value == (product.partNumber ?? ''));
-    if (existing != null) {
-      existing.quantity.value++;
-    } else {
-      items.add(EditQuoteItem.fromInventory(product, items.length + 1));
-    }
-    Get.find<ProductSearchController>().clearSearch();
+void addProduct(InventoryEntity product) {
+  if ((product.price ?? 0) <= 0) {
+    showErrorSnackbar('Este producto no tiene precio asignado');
+    return;
   }
-
-  void removeItem(EditQuoteItem item) => items.remove(item);
-
+  final existing = items.firstWhereOrNull(
+    (i) => i.codigo.value == (product.partNumber ?? ''),
+  );
+  if (existing != null) {
+    existing.quantity.value++;
+  } else {
+    items.add(EditQuoteItem.fromInventory(product, items.length + 1));
+  }
+  Get.find<ProductSearchController>().clearSearch();
+  validateCart(); // 👈
+}
+void removeItem(EditQuoteItem item) {
+  items.remove(item);
+  validateCart(); // 👈
+}
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
       globalDiscountType.value = 'porcentaje';
@@ -249,8 +311,9 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
       globalDiscountPercent.value = 0;
       globalDiscount.value = value;
     }
-    globalDiscountCtrl.text =
-        globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
+    globalDiscountCtrl.text = globalDiscount.value > 0
+        ? globalDiscount.value.toStringAsFixed(2)
+        : '';
   }
 
   Future<void> pickDate(BuildContext context) async {
@@ -273,75 +336,78 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
   }
 
   Future<void> saveQuote(BuildContext context) async {
-  final id = quoteId.value;
-  if (id == null) return;
+    final id = quoteId.value;
+    if (id == null) return;
 
-  if (!isEditable) {
-    showErrorSnackbar('Solo se pueden editar cotizaciones con estatus GENERADA');
-    return;
+    if (!isEditable) {
+      showErrorSnackbar(
+        'Solo se pueden editar cotizaciones con estatus GENERADA',
+      );
+      return;
+    }
+    if (clienteName.value.trim().isEmpty) {
+      showErrorSnackbar('Selecciona un cliente para continuar');
+      return;
+    }
+    if (items.isEmpty) {
+      showErrorSnackbar('Agrega al menos un producto');
+      return;
+    }
+
+    try {
+      isSaving.value = true;
+      errorMessage.value = '';
+
+      final entity = QuoteEntity(
+        folio: folio.value,
+        cliente: clienteName.value.trim(),
+        total: totalToPay,
+        cataPrecio: selectedPriceType.value,
+        descuento: globalDiscount.value.toStringAsFixed(2),
+        iva: includeIva.value ? 'SI' : 'NO',
+        diasEnt: validUntil.value.difference(DateTime.now()).inDays,
+        comentarios: commentsCtrl.text.trim(),
+        referencia: '',
+        productos: items.asMap().entries.map((entry) {
+          final i = entry.value;
+          return ProductoEntity(
+            codigo: i.codigo.value,
+            descripcion: i.descripcion.value,
+            disponible: i.disponible,
+            unidad: i.unidad,
+            precio: i.precio.value,
+            cantidad: i.quantity.value,
+            importe: i.total,
+            iva: (i.total * 0.16).toStringAsFixed(2),
+            claveSat: i.claveSat,
+            url: i.url,
+            descuento: i.discountAmount,
+            prioridad: entry.key + 1,
+          );
+        }).toList(),
+      );
+await validateCart();
+      await putQuotesUsecase.call(id, entity);
+      await _quotesCtrl.fetchQuotes();
+
+      // 👇 Abre el PDF automáticamente al guardar
+      await generateAndOpenPdf(context);
+    } catch (e) {
+      errorMessage.value = 'Error al guardar: $e';
+      showErrorSnackbar(
+        'Error al guardar cotización ${cleanExceptionMessage(e)}',
+      );
+    } finally {
+      isSaving.value = false;
+    }
   }
-  if (clienteName.value.trim().isEmpty) {
-    showErrorSnackbar('Selecciona un cliente para continuar');
-    return;
-  }
-  if (items.isEmpty) {
-    showErrorSnackbar('Agrega al menos un producto');
-    return;
-  }
-
-  try {
-    isSaving.value = true;
-    errorMessage.value = '';
-
-    final entity = QuoteEntity(
-      folio: folio.value,
-      cliente: clienteName.value.trim(),
-      total: totalToPay,
-      cataPrecio: selectedPriceType.value,
-      descuento: globalDiscount.value.toStringAsFixed(2),
-      iva: includeIva.value ? 'SI' : 'NO',
-      diasEnt: validUntil.value.difference(DateTime.now()).inDays,
-      comentarios: commentsCtrl.text.trim(),
-      referencia: '',
-      productos: items.asMap().entries.map((entry) {
-        final i = entry.value;
-        return ProductoEntity(
-          codigo: i.codigo.value,
-          descripcion: i.descripcion.value,
-          disponible: i.disponible,
-          unidad: i.unidad,
-          precio: i.precio.value,
-          cantidad: i.quantity.value,
-          importe: i.total,
-          iva: (i.total * 0.16).toStringAsFixed(2),
-          claveSat: i.claveSat,
-          url: i.url,
-          descuento: i.discountAmount,
-          prioridad: entry.key + 1,
-        );
-      }).toList(),
-    );
-
-    await putQuotesUsecase.call(id, entity);
-    await _quotesCtrl.fetchQuotes();
-
-    // 👇 Abre el PDF automáticamente al guardar
-    await generateAndOpenPdf(context);
-
-  } catch (e) {
-    errorMessage.value = 'Error al guardar: $e';
-    showErrorSnackbar('Error al guardar cotización ${cleanExceptionMessage(e)}');
-  } finally {
-    isSaving.value = false;
-  }
-}
 
   Future<void> generateAndOpenPdf(BuildContext context) async {
     final id = quoteId.value;
     if (id == null) return;
 
     try {
-       _pdfCtrl.reset(); 
+      _pdfCtrl.reset();
       _pdfCtrl.isLoadingPdf.value = true;
       final result = await generatePdfUsecase.call(id);
 

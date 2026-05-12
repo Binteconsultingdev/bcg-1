@@ -4,7 +4,6 @@ import 'package:bcg/common/widgets/product_search_field.dart';
 import 'package:bcg/common/widgets/product_search_results.dart';
 import 'package:bcg/features/client/presentation/page/client_search_field.dart';
 import 'package:bcg/features/quotes/presentation/controller/put_quotes_controller.dart';
-import 'package:bcg/features/quotes/presentation/page/create_quote_page.dart';
 import 'package:bcg/features/sales/presentation/page/quote_product_item.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,9 +16,7 @@ class EditQuotePage extends StatelessWidget {
     final PutQuotesController ctrl = Get.find<PutQuotesController>();
 
     return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: ThemeColor.backgroundColor,
         appBar: _AppBar(ctrl: ctrl),
@@ -89,6 +86,8 @@ class EditQuotePage extends StatelessWidget {
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
 
+// ─── AppBar ───────────────────────────────────────────────────────────────────
+
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final PutQuotesController ctrl;
   const _AppBar({required this.ctrl});
@@ -133,6 +132,8 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
+
+// ─── Top Section ──────────────────────────────────────────────────────────────
 
 class _TopSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -282,6 +283,8 @@ class _PriceBottomSheet extends StatelessWidget {
   }
 }
 
+// ─── Product List ─────────────────────────────────────────────────────────────
+
 class _ProductList extends StatelessWidget {
   final PutQuotesController ctrl;
   const _ProductList({required this.ctrl});
@@ -325,200 +328,7 @@ class _ProductList extends StatelessWidget {
   }
 }
 
-class _ProductItem extends StatelessWidget {
-  final PutQuotesController ctrl;
-  final EditQuoteItem item;
-  const _ProductItem({required this.ctrl, required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingMedium,
-        vertical: ThemeColor.paddingMedium,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _ProductThumbnail(imageUrl: item.url, size: 54),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Obx(
-                  () => Text(
-                    item.descripcion.value,
-                    style: ThemeColor.subtitleMedium,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Obx(
-                  () => Text(
-                    '\$${item.precio.value.toStringAsFixed(2)}',
-                    style: ThemeColor.bodyMedium.copyWith(
-                      color: ThemeColor.textSecondaryColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _QuantityControls(item: item),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              GestureDetector(
-                onTap: () => ctrl.removeItem(item),
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
-                  child: Icon(
-                    Icons.delete_outline,
-                    color: ThemeColor.errorColor,
-                    size: 20,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Obx(
-                () => Text(
-                  '\$${item.total.toStringAsFixed(2)}',
-                  style: ThemeColor.subtitleMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuantityControls extends StatefulWidget {
-  final EditQuoteItem item;
-  const _QuantityControls({required this.item});
-
-  @override
-  State<_QuantityControls> createState() => _QuantityControlsState();
-}
-
-class _QuantityControlsState extends State<_QuantityControls> {
-  late final TextEditingController _textCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _textCtrl = TextEditingController(
-      text: widget.item.quantity.value.toString(),
-    );
-    ever(widget.item.quantity, (val) {
-      final newText = val.toString();
-      if (_textCtrl.text != newText) {
-        _textCtrl.text = newText;
-        _textCtrl.selection = TextSelection.fromPosition(
-          TextPosition(offset: newText.length),
-        );
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _textCtrl.dispose();
-    super.dispose();
-  }
-
-  void _update(double newVal) {
-    if (newVal < 1) return;
-    widget.item.quantity.value = newVal;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      final qty = widget.item.quantity.value;
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: () => _update(qty - 1),
-            child: Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: ThemeColor.backgroundColor,
-                borderRadius: ThemeColor.smallBorderRadius,
-                border: Border.all(color: ThemeColor.dividerColor),
-              ),
-              child: const Icon(
-                Icons.remove,
-                size: 14,
-                color: ThemeColor.textPrimaryColor,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 44,
-            height: 28,
-            child: TextField(
-              controller: _textCtrl,
-              textAlign: TextAlign.center,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: ThemeColor.bodyMedium,
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                filled: true,
-                fillColor: ThemeColor.backgroundColor,
-                border: OutlineInputBorder(
-                  borderRadius: ThemeColor.smallBorderRadius,
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: ThemeColor.smallBorderRadius,
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: ThemeColor.smallBorderRadius,
-                  borderSide: const BorderSide(
-                    color: ThemeColor.accentColor,
-                    width: 1.5,
-                  ),
-                ),
-              ),
-              onChanged: (v) {
-                final parsed = double.tryParse(v);
-                if (parsed != null && parsed > 0) {
-                  widget.item.quantity.value = parsed;
-                }
-              },
-            ),
-          ),
-          GestureDetector(
-            onTap: () => _update(qty + 1),
-            child: Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: ThemeColor.primaryColor,
-                borderRadius: ThemeColor.smallBorderRadius,
-              ),
-              child: const Icon(Icons.add, size: 14, color: Colors.white),
-            ),
-          ),
-        ],
-      );
-    });
-  }
-}
+// ─── Totals Section ───────────────────────────────────────────────────────────
 
 class _TotalsSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -540,6 +350,8 @@ class _TotalsSection extends StatelessWidget {
               value: '\$${ctrl.subtotal.toStringAsFixed(2)}',
             ),
             const SizedBox(height: 6),
+
+            // ── Descuento global ────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -548,8 +360,8 @@ class _TotalsSection extends StatelessWidget {
                   child: Text(
                     ctrl.globalDiscount.value > 0
                         ? ctrl.globalDiscountType.value == 'porcentaje'
-                              ? 'Descuento ${ctrl.globalDiscountPercent.value.toInt()}% aplicado'
-                              : 'Descuento aplicado'
+                            ? 'Descuento ${ctrl.globalDiscountPercent.value.toInt()}% aplicado'
+                            : 'Descuento aplicado'
                         : 'Agregar un Descuento',
                     style: ThemeColor.bodyMedium.copyWith(
                       color: ThemeColor.errorColor,
@@ -568,28 +380,72 @@ class _TotalsSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-          Obx(() => Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Text('I.V.A (16%)', style: ThemeColor.bodyMedium),
-    Row(
-      children: [
-        Text(
-          '\$${ctrl.ivaAmount.toStringAsFixed(2)}',
-          style: ThemeColor.bodyMedium,
-        ),
-        const SizedBox(width: 8),
-        Switch(
-          value: ctrl.includeIva.value,
-          onChanged: (v) => ctrl.includeIva.value = v,
-          activeColor: ThemeColor.primaryColor,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      ],
-    ),
-  ],
-)),
+
+            // ── IVA con switch ──────────────────────────────────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('I.V.A (16%)', style: ThemeColor.bodyMedium),
+                Row(
+                  children: [
+                    Text(
+                      '\$${ctrl.ivaAmount.toStringAsFixed(2)}',
+                      style: ThemeColor.bodyMedium,
+                    ),
+                    const SizedBox(width: 8),
+                    Switch(
+                      value: ctrl.includeIva.value,
+                      onChanged: (v) => ctrl.includeIva.value = v,
+                      activeColor: ThemeColor.primaryColor,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
             Divider(height: 20, color: ThemeColor.dividerColor),
+
+            // ── Precios validados por backend ───────────────────────────
+            if (ctrl.isValidatingCart.value)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: ThemeColor.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Validando precios...',
+                      style: ThemeColor.bodySmall.copyWith(
+                        color: ThemeColor.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (ctrl.validatedPriceWithoutVAT.value != null) ...[
+              _TotalRow(
+                label: 'Precio sin IVA',
+                value:
+                    '\$${ctrl.validatedPriceWithoutVAT.value!.toStringAsFixed(2)}',
+              ),
+              const SizedBox(height: 4),
+              _TotalRow(
+                label: 'Precio con IVA',
+                value:
+                    '\$${ctrl.validatedPriceWithVAT.value!.toStringAsFixed(2)}',
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            // ── Total final ─────────────────────────────────────────────
             _TotalRow(
               label: 'Total a pagar',
               value: '\$${ctrl.totalToPay.toStringAsFixed(2)}',
@@ -720,8 +576,9 @@ class _TotalsSection extends StatelessWidget {
                               ctrl.globalDiscountPercent.value ==
                               pct.toDouble();
                           return GestureDetector(
-                            onTap: () => ctrl.globalDiscountPercent.value = pct
-                                .toDouble(),
+                            onTap: () =>
+                                ctrl.globalDiscountPercent.value =
+                                pct.toDouble(),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(
@@ -764,7 +621,8 @@ class _TotalsSection extends StatelessWidget {
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: ThemeColor.errorColor.withOpacity(0.08),
+                                color:
+                                    ThemeColor.errorColor.withOpacity(0.08),
                                 borderRadius: ThemeColor.smallBorderRadius,
                               ),
                               child: Row(
@@ -830,6 +688,8 @@ class _TotalsSection extends StatelessWidget {
   }
 }
 
+// ─── Total Row ────────────────────────────────────────────────────────────────
+
 class _TotalRow extends StatelessWidget {
   final String label;
   final String value;
@@ -854,6 +714,8 @@ class _TotalRow extends StatelessWidget {
     );
   }
 }
+
+// ─── Valid Until Section ──────────────────────────────────────────────────────
 
 class _ValidUntilSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -912,6 +774,8 @@ class _ValidUntilSection extends StatelessWidget {
       '${d.year}';
 }
 
+// ─── Comments Section ─────────────────────────────────────────────────────────
+
 class _CommentsSection extends StatelessWidget {
   final PutQuotesController ctrl;
   const _CommentsSection({required this.ctrl});
@@ -965,6 +829,9 @@ class _CommentsSection extends StatelessWidget {
     );
   }
 }
+
+// ─── Bottom Button ────────────────────────────────────────────────────────────
+
 class _BottomButton extends StatelessWidget {
   final PutQuotesController ctrl;
   const _BottomButton({required this.ctrl});
@@ -981,7 +848,6 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingLarge + bottomPadding,
       ),
       child: Obx(() {
-        // Si es editable: un solo botón que guarda y abre PDF
         if (ctrl.isEditable) {
           return SizedBox(
             width: double.infinity,
@@ -999,7 +865,6 @@ class _BottomButton extends StatelessWidget {
           );
         }
 
-        // Si NO es editable: solo ver PDF
         return SizedBox(
           width: double.infinity,
           child: ThemeColor.widgetButton(
@@ -1015,42 +880,6 @@ class _BottomButton extends StatelessWidget {
           ),
         );
       }),
-    );
-  }
-}
-class _ProductThumbnail extends StatelessWidget {
-  final String? imageUrl;
-  final double size;
-  const _ProductThumbnail({this.imageUrl, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: ThemeColor.backgroundColor,
-        borderRadius: ThemeColor.smallBorderRadius,
-        border: Border.all(color: ThemeColor.dividerColor),
-      ),
-      child: imageUrl != null && imageUrl!.isNotEmpty
-          ? ClipRRect(
-              borderRadius: ThemeColor.smallBorderRadius,
-              child: Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(
-                  Icons.image_outlined,
-                  color: ThemeColor.textTertiaryColor,
-                  size: size * 0.48,
-                ),
-              ),
-            )
-          : Icon(
-              Icons.image_outlined,
-              color: ThemeColor.textTertiaryColor,
-              size: size * 0.48,
-            ),
     );
   }
 }

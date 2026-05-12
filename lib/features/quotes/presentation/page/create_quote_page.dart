@@ -487,11 +487,7 @@ class _TotalsSection extends StatelessWidget {
                 Text('I.V.A (16%)', style: ThemeColor.bodyMedium),
                 Row(
                   children: [
-                    Text(
-                      '\$${ctrl.ivaAmount.toStringAsFixed(2)}',
-                      style: ThemeColor.bodyMedium,
-                    ),
-                    const SizedBox(width: 8),
+                     
                     Switch(
                       value: ctrl.includeIva.value,
                       onChanged: (v) => ctrl.includeIva.value = v,

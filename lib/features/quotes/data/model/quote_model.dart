@@ -90,6 +90,7 @@ class QuoteModel extends QuoteEntity {
 
 class ProductoModel extends ProductoEntity {
   ProductoModel({
+      super.id,
     required super.codigo,
     required super.descripcion,
     required super.disponible,
@@ -106,6 +107,7 @@ class ProductoModel extends ProductoEntity {
 
   factory ProductoModel.fromJson(Map<String, dynamic> json) {
     return ProductoModel(
+      id: json['id'],
       codigo: (json['codigo'] ?? '').toString().trim(),
       descripcion: (json['descripcion'] ?? '').toString().trim(),
       disponible: (json['disponible'] ?? 0).toDouble(),
@@ -122,7 +124,7 @@ class ProductoModel extends ProductoEntity {
   }
 
   factory ProductoModel.fromEntity(ProductoEntity entity) {
-    return ProductoModel(
+    return ProductoModel( 
       codigo: entity.codigo,
       descripcion: entity.descripcion,
       disponible: entity.disponible,
@@ -139,7 +141,7 @@ class ProductoModel extends ProductoEntity {
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    return { 
       'codigo': codigo,
       'descripcion': descripcion,
       'disponible': disponible,
