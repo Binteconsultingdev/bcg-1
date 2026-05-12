@@ -92,8 +92,9 @@ class CreateSalesController extends GetxController {
   Worker? _quoteSearchDebounce;
 
   double get subtotal => items.fold(0, (s, i) => s + i.total);
-  double get ivaAmount =>
-      incIVA.value ? (subtotal - globalDiscount.value) * 0.16 : 0;
+  double get ivaAmount =>incIVA.value ? (subtotal - globalDiscount.value) * 0.16 : 0;
+
+  
   double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
   bool get hasOutOfStockItems => items.any((i) {
     final stock = (i.product.availableQuantity ?? 0);

@@ -3,6 +3,7 @@ import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/common/controller/product_search_controller.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
+import 'package:bcg/features/Inventory/domain/usecase/validate_cart_usecase.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
 import 'package:bcg/features/client/presentation/controller/client_search_controller.dart';
@@ -85,11 +86,13 @@ class PutQuotesController extends GetxController {
   final PutQuotesUsecase putQuotesUsecase;
   final FetchQuotesByidUsecase fetchQuotesByidUsecase;
   final GeneratePdfUsecase generatePdfUsecase;
+  final ValidateCartUsecase validateCartUsecase;
 
   PutQuotesController({
     required this.putQuotesUsecase,
     required this.fetchQuotesByidUsecase,
     required this.generatePdfUsecase,
+    required this.validateCartUsecase,
   });
 
   late final QuotesController _quotesCtrl = Get.find<QuotesController>();

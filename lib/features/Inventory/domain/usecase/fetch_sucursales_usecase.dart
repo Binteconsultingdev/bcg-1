@@ -1,5 +1,5 @@
 import 'package:bcg/features/Inventory/domain/entities/sucursales_entity.dart';
-import 'package:bcg/features/Inventory/domain/repositories/Inventory_repository.dart';
+import 'package:bcg/features/Inventory/domain/repositories/inventory_repository.dart';
 
 class FetchSucursalesUsecase {
   final InventoryRepository inventoryRepository;

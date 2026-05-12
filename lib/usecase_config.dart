@@ -2,7 +2,7 @@
 
 
 import 'package:bcg/features/Inventory/data/datasources/inventory_datasources_imp.dart';
-import 'package:bcg/features/Inventory/data/repositories/inventory_repository_imp.dart';
+import 'package:bcg/features/Inventory/data/repositories/inventory_repository_imp.dart'; 
 import 'package:bcg/features/Inventory/domain/usecase/fetch_familias_usecase.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_inventario_usecase.dart';
 import 'package:bcg/features/Inventory/domain/usecase/fetch_subfamilias_usecase.dart';
@@ -25,6 +25,7 @@ import 'package:bcg/features/quotes/domain/usecase/fetch_quote_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_quotes_byid_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/generate_pdf_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/put_quotes_usecase.dart';
+import 'package:bcg/features/Inventory/domain/usecase/validate_cart_usecase.dart';
 import 'package:bcg/features/sales/data/datasources/sales_data_sources_imp.dart';
 import 'package:bcg/features/sales/data/repositories/sales_repository_imp.dart';
 import 'package:bcg/features/sales/domain/usecase/generate_pdf_sales.dart';
@@ -54,6 +55,8 @@ class UsecaseConfig {
   FetchSubfamiliasUsecase? fetchSubfamiliasUsecase;
   FetchInventarioUsecase? fetchInventarioUsecase;
  FetchSucursalesUsecase? fetchSucursalesUsecase;
+ValidateCartUsecase? validateCartUsecase;
+
 
   CreateQuotesUsecase?createQuotesUsecase;
   FetchQuoteUsecase? fetchQuoteUsecase;
@@ -61,7 +64,6 @@ class UsecaseConfig {
  GeneratePdfUsecase? generatePdfUsecase;
  PutQuotesUsecase? putQuotesUsecase;
 FetchQuotesByidUsecase? fetchQuotesByidUsecase;
-
  CreateClientUsecase? createClientUsecase;
  FetchClientsUsecase? fetchClientsUsecase;
  GenerateAccountStatementUsecase? generateAccountStatementUsecase;
@@ -90,6 +92,7 @@ FetchQuotesByidUsecase? fetchQuotesByidUsecase;
     fetchSubfamiliasUsecase = FetchSubfamiliasUsecase(inventoryRepository: inventoryRepositoryImp!);
     fetchInventarioUsecase = FetchInventarioUsecase(inventoryRepository: inventoryRepositoryImp!);
 
+      validateCartUsecase = ValidateCartUsecase(inventoryRepository: inventoryRepositoryImp!);
     fetchSucursalesUsecase = FetchSucursalesUsecase(inventoryRepository: inventoryRepositoryImp!);
     
     createQuotesUsecase = CreateQuotesUsecase(quotesRepository: quotesRepositoryImp!);
@@ -98,7 +101,6 @@ FetchQuotesByidUsecase? fetchQuotesByidUsecase;
     generatePdfUsecase = GeneratePdfUsecase(quotesRepository: quotesRepositoryImp!);
       putQuotesUsecase = PutQuotesUsecase(quotesRepository: quotesRepositoryImp!);
       fetchQuotesByidUsecase = FetchQuotesByidUsecase(quotesRepository: quotesRepositoryImp!);
-    
     pointSalesUsecase = PointSalesUsecase(salesRepository: salesRepositoryImp!);
     generateSalesUsecase = GenerateSalesUsecase(salesRepository: salesRepositoryImp!);
     generatePdfSales = GeneratePdfSales(salesRepository: salesRepositoryImp!);

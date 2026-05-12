@@ -1,6 +1,8 @@
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
+import 'package:bcg/features/Inventory/domain/entities/post_validate_cart_entity.dart';
+import 'package:bcg/features/Inventory/domain/usecase/validate_cart_usecase.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
 import 'package:bcg/features/client/presentation/controller/client_search_controller.dart';
@@ -13,7 +15,7 @@ import 'package:bcg/features/quotes/presentation/controller/quotes_controller.da
 import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
- 
+
 class CustomQuoteItem {
   final String descripcion;
   final double costo;
@@ -32,19 +34,19 @@ class CustomQuoteItem {
   double get discountAmount => subtotal * (discount.value / 100);
   double get total => subtotal - discountAmount;
 }
- 
+
 class QuoteItem {
   final InventoryEntity? product;
   final CustomQuoteItem? customProduct;
   final RxDouble quantity;
   final RxDouble discount;
- 
+
   QuoteItem({required InventoryEntity inventoryProduct, double initialQty = 1.0})
       : product = inventoryProduct,
         customProduct = null,
         quantity = initialQty.obs,
         discount = 0.0.obs;
- 
+
   QuoteItem.custom({required CustomQuoteItem custom, double initialQty = 1.0})
       : product = null,
         customProduct = custom,
@@ -58,27 +60,34 @@ class QuoteItem {
 
   String? get imageUrl => isCustom ? null : product!.imageUrl;
 
-  double get unitPrice =>
-      isCustom ? customProduct!.costo : (product!.price ?? 0).toDouble();
+  // 👇 precio validado por backend (solo para productos de inventario)
+  final RxnDouble validatedPrice = RxnDouble();
+
+  double get unitPrice {
+    if (isCustom) return customProduct!.costo;
+    return validatedPrice.value ?? (product!.price ?? 0).toDouble();
+  }
 
   int get availableQty =>
-    isCustom ? 999 : (product!.availableQuantity ?? 0).toInt();
+      isCustom ? 999 : (product!.availableQuantity ?? 0).toInt();
 
   double get subtotal => unitPrice * quantity.value;
   double get discountAmount => subtotal * (discount.value / 100);
   double get total => subtotal - discountAmount;
   RxDouble get totalRx => total.obs;
 }
- 
+
 class CreateQuoteController extends GetxController {
   final CreateQuotesUsecase createQuotesUsecase;
   final FetchFolioUsecase fetchFolioUsecase;
   final GeneratePdfUsecase generatePdfUsecase;
+  final ValidateCartUsecase validateCartUsecase;
 
   CreateQuoteController({
     required this.createQuotesUsecase,
     required this.fetchFolioUsecase,
     required this.generatePdfUsecase,
+    required this.validateCartUsecase,
   });
 
   late final QuotesController _quotesCtrl = Get.find<QuotesController>();
@@ -120,7 +129,12 @@ class CreateQuoteController extends GetxController {
   final referencia = ''.obs;
 
   final isCreating = false.obs;
+  final isValidatingCart = false.obs; // 👈 nuevo
   final errorMessage = ''.obs;
+
+  // Totales globales validados por backend 👇
+  final validatedPriceWithoutVAT = Rxn<double>();
+  final validatedPriceWithVAT = Rxn<double>();
 
   final commentsCtrl = TextEditingController();
   final productSearchCtrl = TextEditingController();
@@ -129,17 +143,20 @@ class CreateQuoteController extends GetxController {
   final createdQuoteId = Rxn<int>();
 
   double get subtotal => items.fold(0, (s, i) => s + i.total);
- 
-final includeIva = true.obs;  
- 
-double get ivaAmount => includeIva.value ? (subtotal - globalDiscount.value) * 0.16 : 0.0;
-double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
- 
+
+  final includeIva = true.obs;
+
+  double get ivaAmount =>
+      includeIva.value ? (subtotal - globalDiscount.value) * 0.16 : 0.0;
+  double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
 
   @override
   void onInit() {
     super.onInit();
     _loadFolio();
+
+    // Re-valida al cambiar tipo de precio
+    ever(selectedPriceType, (_) => validateCart());
   }
 
   @override
@@ -153,7 +170,58 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
       clientSearch.manuallyClosed = true;
     });
   }
- 
+
+  // ─── Validación de carrito ────────────────────────────────────────────────
+
+  Future<void> validateCart() async {
+    // Solo items de inventario con id válido
+    final inventoryItems = items
+        .where((i) => !i.isCustom && i.product?.id != null)
+        .toList();
+
+    if (inventoryItems.isEmpty) {
+      validatedPriceWithoutVAT.value = null;
+      validatedPriceWithVAT.value = null;
+      return;
+    }
+
+    try {
+      isValidatingCart.value = true;
+
+      final response = await validateCartUsecase.call(
+        PostValidateCartEntity(
+          pricetype: selectedPriceType.value, // cataPrecio → pricetype
+          items: inventoryItems
+              .map(
+                (i) => PostItemValidateCartEntity(
+                  productid: i.product!.id!,
+                  quantity: i.quantity.value.toInt(),
+                ),
+              )
+              .toList(),
+        ),
+      );
+
+      // Actualiza el precio validado en cada item
+      for (final responseItem in response.items) {
+        final match = items.firstWhereOrNull(
+          (i) => !i.isCustom && i.product?.id == responseItem.productid,
+        );
+        if (match != null) {
+          match.validatedPrice.value = responseItem.newPrice;
+        }
+      }
+
+      validatedPriceWithoutVAT.value = response.priceWithoutVAT;
+      validatedPriceWithVAT.value = response.priceWithVAT;
+    } catch (e) {
+      debugPrint('validateCart error: $e');
+    } finally {
+      isValidatingCart.value = false;
+    }
+  }
+
+  // ─── Clientes ─────────────────────────────────────────────────────────────
 
   void onClientSelected(ClientEntity client) {
     final name = client.displayName ?? '';
@@ -193,7 +261,8 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
     selectedClientId.value = id;
     selectedClientName.value = name;
   }
- 
+
+  // ─── Folio ────────────────────────────────────────────────────────────────
 
   Future<void> _loadFolio() async {
     try {
@@ -207,14 +276,13 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
     }
   }
 
- 
+  // ─── Productos ────────────────────────────────────────────────────────────
+
   void onProductSearchChanged(String value) {
     productSearchQuery.value = value;
     isSearching.value = value.isNotEmpty;
     if (value.trim().isEmpty) searchResults.clear();
   }
-
- 
 
   void addProduct(InventoryEntity product) {
     if ((product.price ?? 0) <= 0) {
@@ -233,8 +301,9 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
     productSearchQuery.value = '';
     isSearching.value = false;
     searchResults.clear();
+    validateCart(); // 👈 valida al agregar
   }
- 
+
   void addCustomProduct({
     required String descripcion,
     required double costo,
@@ -258,6 +327,9 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
       initialQty: cantidad,
     );
     items.add(QuoteItem.custom(custom: custom));
+    // 👇 custom no se valida, pero actualizamos totales globales si hay
+    // items de inventario en el carrito
+    validateCart();
   }
 
   void showAddCustomProductDialog(BuildContext context) {
@@ -294,8 +366,7 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
             const SizedBox(height: 12),
             TextField(
               controller: costoCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 labelText: 'Costo unitario',
@@ -316,8 +387,7 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
             const SizedBox(height: 12),
             TextField(
               controller: cantCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 labelText: 'Cantidad',
@@ -362,9 +432,11 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
       ),
     );
   }
- 
 
-  void removeItem(QuoteItem item) => items.remove(item);
+  void removeItem(QuoteItem item) {
+    items.remove(item);
+    validateCart(); // 👈 valida al quitar
+  }
 
   void duplicateItem(QuoteItem item) {
     if (item.isCustom) {
@@ -380,8 +452,10 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
         initialQty: item.quantity.value,
       ));
     }
+    validateCart(); // 👈 valida al duplicar
   }
- 
+
+  // ─── Descuento global ─────────────────────────────────────────────────────
 
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
@@ -393,11 +467,11 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
       globalDiscountPercent.value = 0;
       globalDiscount.value = value;
     }
-    globalDiscountCtrl.text = globalDiscount.value > 0
-        ? globalDiscount.value.toStringAsFixed(2)
-        : '';
+    globalDiscountCtrl.text =
+        globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
   }
- 
+
+  // ─── Fecha ────────────────────────────────────────────────────────────────
 
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -417,72 +491,75 @@ double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
     );
     if (picked != null) validUntil.value = picked;
   }
- 
-Future<void> createQuote( ) async {
-  if (clienteName.value.trim().isEmpty) {
-    showErrorSnackbar('Selecciona un cliente para continuar');
-    return;
+
+  // ─── Crear cotización ─────────────────────────────────────────────────────
+
+  Future<void> createQuote() async {
+    if (clienteName.value.trim().isEmpty) {
+      showErrorSnackbar('Selecciona un cliente para continuar');
+      return;
+    }
+    if (items.isEmpty) {
+      showErrorSnackbar('Agrega al menos un producto');
+      return;
+    }
+
+    try {
+      isCreating.value = true;
+      errorMessage.value = '';
+
+      // Valida una vez más antes de crear para tener precios frescos
+      await validateCart();
+
+      final entity = QuoteEntity(
+        folio: folio.value,
+        cliente: clienteName.value.trim(),
+        total: totalToPay,
+        cataPrecio: selectedPriceType.value,
+        descuento: globalDiscount.value.toStringAsFixed(2),
+        iva: includeIva.value ? 'SI' : 'NO',
+        diasEnt: validUntil.value.difference(DateTime.now()).inDays,
+        comentarios: commentsCtrl.text.trim(),
+        referencia: referencia.value,
+        productos: items.asMap().entries.map((entry) {
+          final i = entry.value;
+          return ProductoEntity(
+            codigo: i.isCustom ? 'CUSTOM' : (i.product!.partNumber ?? ''),
+            descripcion: i.description,
+            disponible: i.availableQty,
+            unidad: 'PZA',
+            precio: i.unitPrice, // ya es el precio validado si es inventario
+            cantidad: i.quantity.value,
+            importe: i.total,
+            iva: (i.total * 0.16).toStringAsFixed(2),
+            claveSat: '',
+            url: i.imageUrl ?? '',
+            descuento: i.discountAmount,
+            prioridad: entry.key + 1,
+          );
+        }).toList(),
+      );
+
+      final response = await createQuotesUsecase.call(entity);
+      createdQuoteId.value = response.id;
+      await _quotesCtrl.fetchQuotes();
+      await generateAndOpenPdf();
+    } catch (e) {
+      errorMessage.value = 'Error al crear cotización: $e';
+      showErrorSnackbar('Error al crear cotización');
+    } finally {
+      isCreating.value = false;
+    }
   }
-  if (items.isEmpty) {
-    showErrorSnackbar('Agrega al menos un producto');
-    return;
-  }
 
-  try {
-    isCreating.value = true;
-    errorMessage.value = '';
+  // ─── PDF ──────────────────────────────────────────────────────────────────
 
-    final entity = QuoteEntity(
-      folio: folio.value,
-      cliente: clienteName.value.trim(),
-      total: totalToPay,
-      cataPrecio: selectedPriceType.value,
-      descuento: globalDiscount.value.toStringAsFixed(2),
-      iva: includeIva.value ? 'SI' : 'NO',
-
-      diasEnt: validUntil.value.difference(DateTime.now()).inDays,
-      comentarios: commentsCtrl.text.trim(),
-      referencia: referencia.value,
-      productos: items.asMap().entries.map((entry) {
-        final i = entry.value;
-        return ProductoEntity(
-          codigo: i.isCustom ? 'CUSTOM' : (i.product!.partNumber ?? ''),
-          descripcion: i.description,
-          disponible: i.availableQty,
-          unidad: 'PZA',
-          precio: i.unitPrice,
-          cantidad: i.quantity.value,
-          importe: i.total,
-          iva: (i.total * 0.16).toStringAsFixed(2),
-          claveSat: '',
-          url: i.imageUrl ?? '',
-          descuento: i.discountAmount,
-          prioridad: entry.key + 1,
-        );
-      }).toList(),
-    );
-
-    final response = await createQuotesUsecase.call(entity);
-    createdQuoteId.value = response.id;
-    await _quotesCtrl.fetchQuotes();
- 
-    await generateAndOpenPdf( );
-
-  } catch (e) {
-    errorMessage.value = 'Error al crear cotización: $e';
-    showErrorSnackbar('Error al crear cotización');
-  } finally {
-    isCreating.value = false;
-  }
-}
- 
-
-  Future<void> generateAndOpenPdf( ) async {
+  Future<void> generateAndOpenPdf() async {
     final id = createdQuoteId.value;
     if (id == null) return;
 
     try {
-        _pdfCtrl.reset(); 
+      _pdfCtrl.reset();
       _pdfCtrl.isLoadingPdf.value = true;
       final result = await generatePdfUsecase.call(id);
 
@@ -498,7 +575,8 @@ Future<void> createQuote( ) async {
       _pdfCtrl.isLoadingPdf.value = false;
     }
   }
- 
+
+  // ─── Reset ────────────────────────────────────────────────────────────────
 
   void resetState() {
     items.clear();
@@ -519,13 +597,14 @@ Future<void> createQuote( ) async {
     productSearchQuery.value = '';
     isSearching.value = false;
     searchResults.clear();
+    validatedPriceWithoutVAT.value = null;
+    validatedPriceWithVAT.value = null;
+    includeIva.value = true;
 
     final clientSearch = Get.find<ClientSearchController>();
     clientSearch.clearSearch();
-includeIva.value = true;
     _pdfCtrl.reset();
   }
- 
 
   @override
   void onClose() {

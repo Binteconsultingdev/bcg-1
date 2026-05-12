@@ -1,8 +1,10 @@
 import 'package:bcg/features/quotes/domain/entities/folito_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
+import 'package:bcg/features/Inventory/domain/entities/post_validate_cart_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_pdf_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/response_create_entity.dart';
+import 'package:bcg/features/Inventory/domain/entities/response_validate_cart_entity.dart';
 
 abstract class QuotesRepository {
   Future<List<GetQuoteEntity>> fetchQuote(String client,String numParte,String status,String dateFrom,String dateUntil,int page,int pageSize, {

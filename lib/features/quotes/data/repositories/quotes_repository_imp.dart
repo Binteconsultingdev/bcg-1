@@ -2,9 +2,11 @@ import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/features/quotes/data/datasources/quotes_data_sources_imp.dart';
 import 'package:bcg/features/quotes/domain/entities/folito_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
+import 'package:bcg/features/Inventory/domain/entities/post_validate_cart_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_pdf_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/response_create_entity.dart';
+import 'package:bcg/features/Inventory/domain/entities/response_validate_cart_entity.dart';
 import 'package:bcg/features/quotes/domain/repositories/quotes_repository.dart';
 
 class QuotesRepositoryImp implements QuotesRepository {
@@ -80,4 +82,5 @@ class QuotesRepositoryImp implements QuotesRepository {
         (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
     return await quotesDataSourcesImp.updateQuote(token, entity, id);
   }
+
 }

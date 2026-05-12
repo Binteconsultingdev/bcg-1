@@ -10,6 +10,10 @@ import 'package:bcg/features/Inventory/data/model/sucursales_model.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_category_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/sucursales_entity.dart';
+import 'package:bcg/features/Inventory/data/model/post_validate_cart_model.dart';
+import 'package:bcg/features/Inventory/data/model/response_validate_cart_model.dart';
+import 'package:bcg/features/Inventory/domain/entities/post_validate_cart_entity.dart';
+import 'package:bcg/features/Inventory/domain/entities/response_validate_cart_entity.dart';
 import 'package:http/http.dart' as http;
 
 class InventoryDatasourcesImp {
@@ -126,6 +130,44 @@ class InventoryDatasourcesImp {
           e is TimeoutException) {
         throw Exception(convertMessageException(error: e));
       }
+      throw Exception('$e');
+    }
+  }
+
+
+  Future<ResponseValidateCartEntity> validateCart(
+    String token,
+    PostValidateCartEntity entity,
+  ) async {
+    try {
+      final uri = Uri.parse('$defaultApiServer/Inventario/validar-carrito');
+
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(PostValidateCartModel.fromEntity(entity).toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        final dataUTF8 = utf8.decode(response.bodyBytes);
+        final responseDecode = jsonDecode(dataUTF8);
+
+        return ResponseValidateCartModel.fromJson(responseDecode);
+      }
+      ApiExceptionCustom exception = ApiExceptionCustom(response: response);
+      exception.validateMesage();
+      throw exception;
+    } catch (e) {
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is TimeoutException) {
+        print('🌐 Error de red detectado');
+        throw Exception(convertMessageException(error: e));
+      }
+
       throw Exception('$e');
     }
   }

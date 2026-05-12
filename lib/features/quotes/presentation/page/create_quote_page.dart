@@ -433,7 +433,6 @@ class _QuantityControlsState extends State<_QuantityControls> {
     });
   }
 }
-
 class _TotalsSection extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _TotalsSection({required this.ctrl});
@@ -462,8 +461,8 @@ class _TotalsSection extends StatelessWidget {
                   child: Text(
                     ctrl.globalDiscount.value > 0
                         ? ctrl.globalDiscountType.value == 'porcentaje'
-                              ? 'Descuento ${ctrl.globalDiscountPercent.value.toInt()}% aplicado'
-                              : 'Descuento aplicado'
+                            ? 'Descuento ${ctrl.globalDiscountPercent.value.toInt()}% aplicado'
+                            : 'Descuento aplicado'
                         : 'Agregar un Descuento',
                     style: ThemeColor.bodyMedium.copyWith(
                       color: ThemeColor.errorColor,
@@ -482,28 +481,66 @@ class _TotalsSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-          Obx(() => Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Text('I.V.A (16%)', style: ThemeColor.bodyMedium),
-    Row(
-      children: [
-        Text(
-          '\$${ctrl.ivaAmount.toStringAsFixed(2)}',
-          style: ThemeColor.bodyMedium,
-        ),
-        const SizedBox(width: 8),
-        Switch(
-          value: ctrl.includeIva.value,
-          onChanged: (v) => ctrl.includeIva.value = v,
-          activeColor: ThemeColor.primaryColor,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      ],
-    ),
-  ],
-)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('I.V.A (16%)', style: ThemeColor.bodyMedium),
+                Row(
+                  children: [
+                    Text(
+                      '\$${ctrl.ivaAmount.toStringAsFixed(2)}',
+                      style: ThemeColor.bodyMedium,
+                    ),
+                    const SizedBox(width: 8),
+                    Switch(
+                      value: ctrl.includeIva.value,
+                      onChanged: (v) => ctrl.includeIva.value = v,
+                      activeColor: ThemeColor.primaryColor,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ],
+                ),
+              ],
+            ),
             Divider(height: 20, color: ThemeColor.dividerColor),
+            // ── Precios validados por backend ─────────────────────────────
+            if (ctrl.isValidatingCart.value)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: ThemeColor.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Validando precios...',
+                      style: ThemeColor.bodySmall.copyWith(
+                        color: ThemeColor.textSecondaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (ctrl.validatedPriceWithoutVAT.value != null) ...[
+              _TotalRow(
+                label: 'Precio sin IVA',
+                value:
+                    '\$${ctrl.validatedPriceWithoutVAT.value!.toStringAsFixed(2)}',
+              ),
+              const SizedBox(height: 4),
+              _TotalRow(
+                label: 'Precio con IVA',
+                value:
+                    '\$${ctrl.validatedPriceWithVAT.value!.toStringAsFixed(2)}',
+              ),
+              const SizedBox(height: 8),
+            ],
             _TotalRow(
               label: 'Total a pagar',
               value: '\$${ctrl.totalToPay.toStringAsFixed(2)}',
@@ -591,7 +628,6 @@ class _TotalsSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: ThemeColor.paddingMedium),
-
               if (mode.value == 'monto')
                 TextField(
                   controller: ctrl.globalDiscountCtrl,
@@ -615,7 +651,6 @@ class _TotalsSection extends StatelessWidget {
                     ),
                   ),
                 ),
-
               if (mode.value == 'porcentaje')
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -633,11 +668,10 @@ class _TotalsSection extends StatelessWidget {
                         runSpacing: 8,
                         children: [5, 10, 15, 20, 25, 30].map((pct) {
                           final selected =
-                              ctrl.globalDiscountPercent.value ==
-                              pct.toDouble();
+                              ctrl.globalDiscountPercent.value == pct.toDouble();
                           return GestureDetector(
-                            onTap: () => ctrl.globalDiscountPercent.value = pct
-                                .toDouble(),
+                            onTap: () =>
+                                ctrl.globalDiscountPercent.value = pct.toDouble(),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(
