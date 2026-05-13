@@ -522,21 +522,7 @@ class _TotalsSection extends StatelessWidget {
                     ),
                   ],
                 ),
-              )
-            else if (ctrl.validatedPriceWithoutVAT.value != null) ...[
-              _TotalRow(
-                label: 'Precio sin IVA',
-                value:
-                    '\$${ctrl.validatedPriceWithoutVAT.value!.toStringAsFixed(2)}',
               ),
-              const SizedBox(height: 4),
-              _TotalRow(
-                label: 'Precio con IVA',
-                value:
-                    '\$${ctrl.validatedPriceWithVAT.value!.toStringAsFixed(2)}',
-              ),
-              const SizedBox(height: 8),
-            ],
             _TotalRow(
               label: 'Total a pagar',
               value: '\$${ctrl.totalToPay.toStringAsFixed(2)}',
