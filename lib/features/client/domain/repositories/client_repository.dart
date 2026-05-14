@@ -8,5 +8,5 @@ abstract class ClientRepository {
   Future<List<ClientEntity>> fetchClients(String client,String company,String rfc,String email,int page,int pageSize, {
   bool? porCobrar,  
 });
-Future<GeneratepdfCountStatementEntity> generateAccountStatement(  AccountStatementEntity entity);
+Future<GeneratepdfCountStatementEntity> generateAccountStatement(AccountStatementEntity entity);
 } 

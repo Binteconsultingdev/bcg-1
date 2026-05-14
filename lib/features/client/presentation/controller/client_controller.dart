@@ -121,52 +121,34 @@ class ClientController extends GetxController {
     }
   }
 
-  Future<void> openAccountStatementPdf(
-    BuildContext context,
-    int clientId,
-    String clientName,
-    String dateFrom,
-    String dateUntil,
-  ) async {
-    final pdfCtrl = Get.find<PdfController>();
+Future<void> openAccountStatementPdf(
+  BuildContext context,
+  int clientId,
+  String clientName,
+) async {
+  final pdfCtrl = Get.find<PdfController>();
+  try {
+    pdfCtrl.reset();
+    loadingPdfClientId.value = clientId;
+    pdfCtrl.isLoadingPdf.value = true;
 
-    String toIso(String ddMMyyyy, {bool endOfDay = false}) {
-      final parts = ddMMyyyy.split('/');
-      final day = int.parse(parts[0]);
-      final month = int.parse(parts[1]);
-      final year = int.parse(parts[2]);
-      final date = endOfDay
-          ? DateTime.utc(year, month, day, 23, 59, 59, 999)
-          : DateTime.utc(year, month, day, 0, 0, 0, 0);
-      return date.toIso8601String();
-    }
+    final result = await generateAccountStatementUsecase.call(
+      AccountStatementEntity(clienteId: clientId),
+    );
 
-    try {
-      pdfCtrl.reset();
-      loadingPdfClientId.value = clientId;
-      pdfCtrl.isLoadingPdf.value = true;
-
-      final result = await generateAccountStatementUsecase.call(
-        AccountStatementEntity(
-          clienteId: clientId,
-          startdate: toIso(dateFrom),
-          enddate: toIso(dateUntil, endOfDay: true),
-        ),
-      );
-
-      if (result.generated && result.urlpdf.isNotEmpty) {
-        pdfCtrl.folio = 'estado_cuenta_$clientName';
-        pdfCtrl.setPdfUrl(result.urlpdf);
-        pdfCtrl.isLoadingPdf.value = false;
-        pdfCtrl.showOptionsSheet(context);
-      }
-    } catch (e) {
-      showErrorSnackbar('Error al generar estado de cuenta');
-    } finally {
-      loadingPdfClientId.value = null;
+    if (result.generated && result.urlpdf.isNotEmpty) {
+      pdfCtrl.folio = 'estado_cuenta_$clientName';
+      pdfCtrl.setPdfUrl(result.urlpdf);
       pdfCtrl.isLoadingPdf.value = false;
+      pdfCtrl.showOptionsSheet(context);
     }
+  } catch (e) {
+    showErrorSnackbar('Error al generar estado de cuenta');
+  } finally {
+    loadingPdfClientId.value = null;
+    pdfCtrl.isLoadingPdf.value = false;
   }
+}
 
   void _onScroll() {
     final pos = scrollController.position;
