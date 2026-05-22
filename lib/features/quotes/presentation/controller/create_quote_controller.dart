@@ -29,8 +29,8 @@ class CustomQuoteItem {
     required this.descripcion,
     required this.costo,
     double initialQty = 1.0,
-  })  : cantidad = initialQty.obs,
-        discount = 0.0.obs;
+  }) : cantidad = initialQty.obs,
+       discount = 0.0.obs;
 
   double get unitPrice => costo;
   double get subtotal => unitPrice * cantidad.value;
@@ -43,26 +43,29 @@ class QuoteItem {
   final CustomQuoteItem? customProduct;
   final RxDouble quantity;
   final RxDouble discount;
-  final RxnString localImagePath = RxnString(); 
+  final RxnString localImagePath = RxnString();
 
-  QuoteItem({required InventoryEntity inventoryProduct, double initialQty = 1.0})
-      : product = inventoryProduct,
-        customProduct = null,
-        quantity = initialQty.obs,
-        discount = 0.0.obs;
+  QuoteItem({
+    required InventoryEntity inventoryProduct,
+    double initialQty = 1.0,
+  }) : product = inventoryProduct,
+       customProduct = null,
+       quantity = initialQty.obs,
+       discount = 0.0.obs;
 
   QuoteItem.custom({required CustomQuoteItem custom, double initialQty = 1.0})
-      : product = null,
-        customProduct = custom,
-        quantity = initialQty.obs,
-        discount = 0.0.obs;
+    : product = null,
+      customProduct = custom,
+      quantity = initialQty.obs,
+      discount = 0.0.obs;
 
   bool get isCustom => customProduct != null;
 
   String get description =>
       isCustom ? customProduct!.descripcion : product!.description ?? '';
 
-  String? get imageUrl => localImagePath.value ?? (isCustom ? null : product!.imageUrl);
+  String? get imageUrl =>
+      localImagePath.value ?? (isCustom ? null : product!.imageUrl);
 
   final RxnDouble validatedPrice = RxnDouble();
 
@@ -108,8 +111,8 @@ class CreateQuoteController extends GetxController {
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<String>();
   final selectedClientName = Rxn<String>();
-final selectedShippingOptions = <String>{}.obs;
-final selectedPackagePercent = Rxn<double>(); 
+  final selectedShippingOptions = <String>{}.obs;
+  final selectedPackagePercent = Rxn<double>();
   final selectedPriceType = 'REGULAR'.obs;
   final List<String> priceOptions = [
     'REGULAR',
@@ -120,13 +123,13 @@ final selectedPackagePercent = Rxn<double>();
   ];
 
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
-final envio = Rxn<double>();
-double get embalajeAmount {
-  if (!selectedShippingOptions.contains('paquete')) return 0.0;
-  final pct = selectedPackagePercent.value;
-  if (pct == null) return 0.0;
-  return subtotal * (pct / 100);
-}
+  final envio = Rxn<double>();
+  double get embalajeAmount {
+    if (!selectedShippingOptions.contains('paquete')) return 0.0;
+    final pct = selectedPackagePercent.value;
+    if (pct == null) return 0.0;
+    return subtotal * (pct / 100);
+  }
 
   final items = <QuoteItem>[].obs;
   final productSearchQuery = ''.obs;
@@ -140,9 +143,9 @@ double get embalajeAmount {
   final referencia = ''.obs;
 
   final isCreating = false.obs;
-  final isValidatingCart = false.obs; 
+  final isValidatingCart = false.obs;
   final errorMessage = ''.obs;
- 
+
   final validatedPriceWithoutVAT = Rxn<double>();
   final validatedPriceWithVAT = Rxn<double>();
 
@@ -156,15 +159,19 @@ double get embalajeAmount {
 
   final includeIva = true.obs;
 
-double get ivaAmount =>
-    includeIva.value ? (subtotal - globalDiscount.value) * 0.16 : 0.0;
-double get totalToPay =>
-    subtotal - globalDiscount.value + ivaAmount + (envio.value ?? 0.0) + embalajeAmount;
+  double get ivaAmount =>
+      includeIva.value ? (subtotal - globalDiscount.value) * 0.16 : 0.0;
+  double get totalToPay =>
+      subtotal -
+      globalDiscount.value +
+      ivaAmount +
+      (envio.value ?? 0.0) +
+      embalajeAmount;
   @override
   void onInit() {
     super.onInit();
     _loadFolio();
- 
+
     ever(selectedPriceType, (_) => validateCart());
   }
 
@@ -178,18 +185,20 @@ double get totalToPay =>
       clientSearch.showResults.value = false;
       clientSearch.manuallyClosed = true;
     });
-  } 
-void toggleShippingOption(String option) {
-  if (selectedShippingOptions.contains(option)) {
-    selectedShippingOptions.remove(option);
-    if (option == 'paquete') selectedPackagePercent.value = null;
-    if (option == 'envio') envio.value = null;  
-  } else {
-    selectedShippingOptions.add(option);
-    if (option == 'envio') envio.value = 0.0;  
   }
-}
-  Future<void> validateCart() async { 
+
+  void toggleShippingOption(String option) {
+    if (selectedShippingOptions.contains(option)) {
+      selectedShippingOptions.remove(option);
+      if (option == 'paquete') selectedPackagePercent.value = null;
+      if (option == 'envio') envio.value = null;
+    } else {
+      selectedShippingOptions.add(option);
+      if (option == 'envio') envio.value = 0.0;
+    }
+  }
+
+  Future<void> validateCart() async {
     final inventoryItems = items
         .where((i) => !i.isCustom && i.product?.id != null)
         .toList();
@@ -205,7 +214,7 @@ void toggleShippingOption(String option) {
 
       final response = await validateCartUsecase.call(
         PostValidateCartEntity(
-          pricetype: selectedPriceType.value, 
+          pricetype: selectedPriceType.value,
           items: inventoryItems
               .map(
                 (i) => PostItemValidateCartEntity(
@@ -216,7 +225,7 @@ void toggleShippingOption(String option) {
               .toList(),
         ),
       );
- 
+
       for (final responseItem in response.items) {
         final match = items.firstWhereOrNull(
           (i) => !i.isCustom && i.product?.id == responseItem.productid,
@@ -234,7 +243,6 @@ void toggleShippingOption(String option) {
       isValidatingCart.value = false;
     }
   }
- 
 
   void onClientSelected(ClientEntity client) {
     final name = client.displayName ?? '';
@@ -274,7 +282,6 @@ void toggleShippingOption(String option) {
     selectedClientId.value = id;
     selectedClientName.value = name;
   }
- 
 
   Future<void> _loadFolio() async {
     try {
@@ -287,7 +294,6 @@ void toggleShippingOption(String option) {
       isLoadingFolio.value = false;
     }
   }
- 
 
   void onProductSearchChanged(String value) {
     productSearchQuery.value = value;
@@ -312,7 +318,7 @@ void toggleShippingOption(String option) {
     productSearchQuery.value = '';
     isSearching.value = false;
     searchResults.clear();
-    validateCart();  
+    validateCart();
   }
 
   void addCustomProduct({
@@ -337,7 +343,7 @@ void toggleShippingOption(String option) {
       costo: costo,
       initialQty: cantidad,
     );
-    items.add(QuoteItem.custom(custom: custom)); 
+    items.add(QuoteItem.custom(custom: custom));
     validateCart();
   }
 
@@ -375,7 +381,9 @@ void toggleShippingOption(String option) {
             const SizedBox(height: 12),
             TextField(
               controller: costoCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 labelText: 'Precio unitario',
@@ -396,7 +404,9 @@ void toggleShippingOption(String option) {
             const SizedBox(height: 12),
             TextField(
               controller: cantCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 labelText: 'Cantidad',
@@ -444,7 +454,7 @@ void toggleShippingOption(String option) {
 
   void removeItem(QuoteItem item) {
     items.remove(item);
-    validateCart();  
+    validateCart();
   }
 
   void duplicateItem(QuoteItem item) {
@@ -456,15 +466,16 @@ void toggleShippingOption(String option) {
       );
       items.add(QuoteItem.custom(custom: copy));
     } else {
-      items.add(QuoteItem(
-        inventoryProduct: item.product!,
-        initialQty: item.quantity.value,
-      ));
+      items.add(
+        QuoteItem(
+          inventoryProduct: item.product!,
+          initialQty: item.quantity.value,
+        ),
+      );
     }
-    validateCart(); 
+    validateCart();
   }
 
- 
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
       globalDiscountType.value = 'porcentaje';
@@ -475,11 +486,11 @@ void toggleShippingOption(String option) {
       globalDiscountPercent.value = 0;
       globalDiscount.value = value;
     }
-    globalDiscountCtrl.text =
-        globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
+    globalDiscountCtrl.text = globalDiscount.value > 0
+        ? globalDiscount.value.toStringAsFixed(2)
+        : '';
   }
 
- 
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
@@ -499,7 +510,6 @@ void toggleShippingOption(String option) {
     if (picked != null) validUntil.value = picked;
   }
 
- 
   Future<void> createQuote() async {
     if (clienteName.value.trim().isEmpty) {
       showErrorSnackbar('Selecciona un cliente para continuar');
@@ -513,7 +523,7 @@ void toggleShippingOption(String option) {
     try {
       isCreating.value = true;
       errorMessage.value = '';
- 
+
       await validateCart();
 
       final entity = QuoteEntity(
@@ -526,20 +536,20 @@ void toggleShippingOption(String option) {
         diasEnt: validUntil.value.difference(DateTime.now()).inDays,
         comentarios: commentsCtrl.text.trim(),
         referencia: referencia.value,
-         envio: envio.value,
-           embalaje: embalajeAmount > 0 ? embalajeAmount : null, 
+        envio: envio.value,
+        embalaje: embalajeAmount > 0 ? embalajeAmount : null,
         productos: items.asMap().entries.map((entry) {
           final i = entry.value;
           return ProductoEntity(
             codigo: i.isCustom ? 'CUSTOM' : (i.product!.partNumber ?? ''),
             descripcion: i.description,
             disponible: i.availableQty,
-            unidad: 'PZA',
-            precio: i.unitPrice, 
+            unidad: i.isCustom ? 'PZA' : (i.product!.unit ?? 'PZA'),
+            precio: i.unitPrice,
             cantidad: i.quantity.value,
             importe: i.total,
             iva: (i.total * 0.16).toStringAsFixed(2),
-            claveSat: '',
+            claveSat: i.isCustom ? '' : (i.product!.claveSat ?? ''),
             url: i.imageUrl ?? '',
             descuento: i.discountAmount,
             prioridad: entry.key + 1,
@@ -558,7 +568,6 @@ void toggleShippingOption(String option) {
       isCreating.value = false;
     }
   }
- 
 
   Future<void> generateAndOpenPdf() async {
     final id = createdQuoteId.value;
@@ -581,422 +590,436 @@ void toggleShippingOption(String option) {
       _pdfCtrl.isLoadingPdf.value = false;
     }
   }
+
   void showItemDiscountDialog(BuildContext context, QuoteItem item) {
-  final RxDouble tempDiscount = item.discount.value.obs;
+    final RxDouble tempDiscount = item.discount.value.obs;
 
-  Get.dialog(
-    Obx(() => AlertDialog(
-      backgroundColor: ThemeColor.surfaceColor,
-      title: Text('Descuento del producto', style: ThemeColor.headingSmall),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [ 
-          Text(
-            item.description,
-            style: ThemeColor.bodySmall.copyWith(
-              color: ThemeColor.textSecondaryColor,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 16),
- 
-          Text(
-            'Selecciona un porcentaje',
-            style: ThemeColor.bodySmall.copyWith(
-              color: ThemeColor.textSecondaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
-              final isSelected = tempDiscount.value == pct.toDouble();
-              return GestureDetector(
-                onTap: () => tempDiscount.value = pct.toDouble(),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? ThemeColor.primaryColor
-                        : ThemeColor.backgroundColor,
-                    borderRadius: ThemeColor.circularBorderRadius,
-                    border: Border.all(
-                      color: isSelected
-                          ? ThemeColor.primaryColor
-                          : ThemeColor.dividerColor,
-                    ),
-                  ),
-                  child: Text(
-                    pct == 0 ? 'Sin desc.' : '$pct%',
-                    style: ThemeColor.bodySmall.copyWith(
-                      color: isSelected
-                          ? Colors.white
-                          : ThemeColor.textPrimaryColor,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                    ),
-                  ),
+    Get.dialog(
+      Obx(
+        () => AlertDialog(
+          backgroundColor: ThemeColor.surfaceColor,
+          title: Text('Descuento del producto', style: ThemeColor.headingSmall),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item.description,
+                style: ThemeColor.bodySmall.copyWith(
+                  color: ThemeColor.textSecondaryColor,
                 ),
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 16),
- 
-          if (tempDiscount.value > 0)
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: ThemeColor.errorColor.withOpacity(0.07),
-                borderRadius: ThemeColor.smallBorderRadius,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Descuento ${tempDiscount.value.toInt()}%',
-                    style: ThemeColor.bodySmall.copyWith(
-                      color: ThemeColor.errorColor,
-                    ),
-                  ),
-                  Text(
-                    '-\$${(item.subtotal * (tempDiscount.value / 100)).toStringAsFixed(2)}',
-                    style: ThemeColor.bodySmall.copyWith(
-                      color: ThemeColor.errorColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: const Text(
-            'Cancelar',
-            style: TextStyle(color: ThemeColor.textSecondaryColor),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: ThemeColor.primaryColor,
-          ),
-          onPressed: () {
-            item.discount.value = tempDiscount.value;
-            items.refresh(); 
-            Get.back();
-          },
-          child: const Text('Aplicar'),
-        ),
-      ],
-    )),
-  );
-}
-void editCustomProduct({
-  required QuoteItem item,
-  required String descripcion,
-  required double costo,
-  required double cantidad,
-}) {
-  if (descripcion.trim().isEmpty) {
-    showErrorSnackbar('Ingresa una descripción');
-    return;
-  }
-  if (costo <= 0) {
-    showErrorSnackbar('El costo debe ser mayor a 0');
-    return;
-  }
-  if (cantidad <= 0) {
-    showErrorSnackbar('La cantidad debe ser mayor a 0');
-    return;
-  } 
-  item.customProduct!.cantidad.value = cantidad;
-  item.quantity.value = cantidad; 
-  final index = items.indexOf(item);
-  if (index == -1) return;
-  final updated = QuoteItem.custom(
-    custom: CustomQuoteItem(
-      descripcion: descripcion.trim(),
-      costo: costo,
-      initialQty: cantidad,
-    ),
-  );
-  items[index] = updated;
-  items.refresh();
-}
+              const SizedBox(height: 16),
 
-void showEditCustomProductDialog(BuildContext context, QuoteItem item) {
-  final descCtrl =
-      TextEditingController(text: item.customProduct!.descripcion);
-  final costoCtrl = TextEditingController(
-      text: item.customProduct!.costo.toStringAsFixed(2));
-  final cantCtrl = TextEditingController(
-      text: item.quantity.value % 1 == 0
-          ? item.quantity.value.toInt().toString()
-          : item.quantity.value.toString());
-
-  Get.dialog(
-    AlertDialog(
-      backgroundColor: ThemeColor.surfaceColor,
-      title: Text('Editar producto', style: ThemeColor.headingSmall),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: descCtrl,
-            textCapitalization: TextCapitalization.sentences,
-            style: ThemeColor.bodyMedium,
-            decoration: InputDecoration(
-              labelText: 'Descripción',
-              border: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-                borderSide: const BorderSide(
-                  color: ThemeColor.accentColor,
-                  width: 1.5,
+              Text(
+                'Selecciona un porcentaje',
+                style: ThemeColor.bodySmall.copyWith(
+                  color: ThemeColor.textSecondaryColor,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: costoCtrl,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            style: ThemeColor.bodyMedium,
-            decoration: InputDecoration(
-              labelText: 'Precio unitario',
-              prefixText: '\$ ',
-              border: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-                borderSide: const BorderSide(
-                  color: ThemeColor.accentColor,
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: cantCtrl,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            style: ThemeColor.bodyMedium,
-            decoration: InputDecoration(
-              labelText: 'Cantidad',
-              border: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-                borderSide: const BorderSide(
-                  color: ThemeColor.accentColor,
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: const Text(
-            'Cancelar',
-            style: TextStyle(color: ThemeColor.textSecondaryColor),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: ThemeColor.primaryColor,
-          ),
-          onPressed: () {
-            editCustomProduct(
-              item: item,
-              descripcion: descCtrl.text,
-              costo: double.tryParse(costoCtrl.text) ?? 0,
-              cantidad: double.tryParse(cantCtrl.text) ?? 1,
-            );
-            Get.back();
-          },
-          child: const Text('Guardar'),
-        ),
-      ],
-    ),
-  );
-}
- 
-@override
-final Rx<MobileScannerController?> qrScannerController =
-    Rx<MobileScannerController?>(null);
-
-@override
-final RxBool isTorchOn = false.obs;
-
-@override
-void iniciarEscaneoQR() {
-  qrScannerController.value = MobileScannerController();
-}
-
-@override
-void detenerEscaneoQR() {
-  qrScannerController.value?.dispose();
-  qrScannerController.value = null;
-  if (Get.isBottomSheetOpen ?? false) Get.back();
-}
-
-@override
-void toggleTorch() {
-  isTorchOn.value = !isTorchOn.value;
-  qrScannerController.value?.toggleTorch();
-}
-
-@override
-void switchCamera() {
-  qrScannerController.value?.switchCamera();
-}
-
-@override
-void onQRCodeDetected(String qrData) {
-  detenerEscaneoQR();
-  _buscarPorNumParte(qrData.trim());
-}
- 
-
-final RxBool isSearchingByQR = false.obs;
-Future<void> _buscarPorNumParte(String qrData) async {
-  final idProducto = int.tryParse(qrData.trim());
-  if (idProducto == null) {
-    showErrorSnackbar('Código QR no válido');
-    return;
-  }
-
-  try {
-    isSearchingByQR.value = true;
-
-    final inventoryCtrl = Get.find<InventoryController>();
-    final results = await inventoryCtrl.fetchInventarioUsecase.call(
-      '',    
-      '',    
-      '',    
-      '',  
-      1,
-      20,
-      idProducto: idProducto,
-    );
-
-    if (results.isEmpty) {
-      showErrorSnackbar('No se encontró producto con ID: $idProducto');
-      return;
-    }
-
-    results.length == 1
-        ? addProduct(results.first)
-        : _showQRResultsSheet(results);
-  } catch (e) {
-    showErrorSnackbar('Error al buscar producto por QR');
-    debugPrint('_buscarPorNumParte error: $e');
-  } finally {
-    isSearchingByQR.value = false;
-  }
-}
-void _showQRResultsSheet(List<InventoryEntity> results) {
-  Get.bottomSheet(
-    DraggableScrollableSheet(
-      initialChildSize: 0.5,
-      minChildSize: 0.3,
-      maxChildSize: 0.85,
-      expand: false,
-      builder: (_, scrollController) => Container(
-        padding: const EdgeInsets.all(ThemeColor.paddingMedium),
-        decoration: const BoxDecoration(
-          color: ThemeColor.surfaceColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [ 
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: ThemeColor.textSecondaryColor.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Text(
-              'Selecciona producto (${results.length})',
-              style: ThemeColor.headingSmall,
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: ListView.separated(
-                controller: scrollController,
-                itemCount: results.length,
-                separatorBuilder: (_, __) =>
-                    Divider(height: 1, color: ThemeColor.dividerColor),
-                itemBuilder: (_, i) {
-                  final p = results[i];
-                  return ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(p.description ?? '', style: ThemeColor.bodyMedium),
-                    subtitle: Text(
-                      'Parte: ${p.partNumber ?? ''} · \$${(p.price ?? 0).toStringAsFixed(2)}',
-                      style: ThemeColor.bodySmall
-                          .copyWith(color: ThemeColor.textSecondaryColor),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
+                  final isSelected = tempDiscount.value == pct.toDouble();
+                  return GestureDetector(
+                    onTap: () => tempDiscount.value = pct.toDouble(),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? ThemeColor.primaryColor
+                            : ThemeColor.backgroundColor,
+                        borderRadius: ThemeColor.circularBorderRadius,
+                        border: Border.all(
+                          color: isSelected
+                              ? ThemeColor.primaryColor
+                              : ThemeColor.dividerColor,
+                        ),
+                      ),
+                      child: Text(
+                        pct == 0 ? 'Sin desc.' : '$pct%',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: isSelected
+                              ? Colors.white
+                              : ThemeColor.textPrimaryColor,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                        ),
+                      ),
                     ),
-                    trailing: const Icon(
-                      Icons.add_circle_outline,
-                      color: ThemeColor.accentColor,
-                    ),
-                    onTap: () {
-                      Get.back();
-                      addProduct(p);
-                    },
                   );
-                },
+                }).toList(),
+              ),
+
+              const SizedBox(height: 16),
+
+              if (tempDiscount.value > 0)
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: ThemeColor.errorColor.withOpacity(0.07),
+                    borderRadius: ThemeColor.smallBorderRadius,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Descuento ${tempDiscount.value.toInt()}%',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: ThemeColor.errorColor,
+                        ),
+                      ),
+                      Text(
+                        '-\$${(item.subtotal * (tempDiscount.value / 100)).toStringAsFixed(2)}',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: ThemeColor.errorColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: ThemeColor.textSecondaryColor),
               ),
             ),
-            const SizedBox(height: 8),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeColor.primaryColor,
+              ),
+              onPressed: () {
+                item.discount.value = tempDiscount.value;
+                items.refresh();
+                Get.back();
+              },
+              child: const Text('Aplicar'),
+            ),
           ],
         ),
       ),
-    ),
-    isScrollControlled: true,
-  );
-}
+    );
+  }
 
-void abrirScannerQR(BuildContext context) {
-  iniciarEscaneoQR();
-  Get.bottomSheet(
-    QRScannerWidget(
-      controller: this,
-      title: 'ESCANEAR PRODUCTO',
-      description: 'Apunta al código QR o de barras del producto',
-    ),
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-  );
-}
+  void editCustomProduct({
+    required QuoteItem item,
+    required String descripcion,
+    required double costo,
+    required double cantidad,
+  }) {
+    if (descripcion.trim().isEmpty) {
+      showErrorSnackbar('Ingresa una descripción');
+      return;
+    }
+    if (costo <= 0) {
+      showErrorSnackbar('El costo debe ser mayor a 0');
+      return;
+    }
+    if (cantidad <= 0) {
+      showErrorSnackbar('La cantidad debe ser mayor a 0');
+      return;
+    }
+    item.customProduct!.cantidad.value = cantidad;
+    item.quantity.value = cantidad;
+    final index = items.indexOf(item);
+    if (index == -1) return;
+    final updated = QuoteItem.custom(
+      custom: CustomQuoteItem(
+        descripcion: descripcion.trim(),
+        costo: costo,
+        initialQty: cantidad,
+      ),
+    );
+    items[index] = updated;
+    items.refresh();
+  }
+
+  void showEditCustomProductDialog(BuildContext context, QuoteItem item) {
+    final descCtrl = TextEditingController(
+      text: item.customProduct!.descripcion,
+    );
+    final costoCtrl = TextEditingController(
+      text: item.customProduct!.costo.toStringAsFixed(2),
+    );
+    final cantCtrl = TextEditingController(
+      text: item.quantity.value % 1 == 0
+          ? item.quantity.value.toInt().toString()
+          : item.quantity.value.toString(),
+    );
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: ThemeColor.surfaceColor,
+        title: Text('Editar producto', style: ThemeColor.headingSmall),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: descCtrl,
+              textCapitalization: TextCapitalization.sentences,
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Descripción',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: costoCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Precio unitario',
+                prefixText: '\$ ',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: cantCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Cantidad',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: ThemeColor.textSecondaryColor),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeColor.primaryColor,
+            ),
+            onPressed: () {
+              editCustomProduct(
+                item: item,
+                descripcion: descCtrl.text,
+                costo: double.tryParse(costoCtrl.text) ?? 0,
+                cantidad: double.tryParse(cantCtrl.text) ?? 1,
+              );
+              Get.back();
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  final Rx<MobileScannerController?> qrScannerController =
+      Rx<MobileScannerController?>(null);
+
+  @override
+  final RxBool isTorchOn = false.obs;
+
+  @override
+  void iniciarEscaneoQR() {
+    qrScannerController.value = MobileScannerController();
+  }
+
+  @override
+  void detenerEscaneoQR() {
+    qrScannerController.value?.dispose();
+    qrScannerController.value = null;
+    if (Get.isBottomSheetOpen ?? false) Get.back();
+  }
+
+  @override
+  void toggleTorch() {
+    isTorchOn.value = !isTorchOn.value;
+    qrScannerController.value?.toggleTorch();
+  }
+
+  @override
+  void switchCamera() {
+    qrScannerController.value?.switchCamera();
+  }
+
+  @override
+  void onQRCodeDetected(String qrData) {
+    detenerEscaneoQR();
+    _buscarPorNumParte(qrData.trim());
+  }
+
+  final RxBool isSearchingByQR = false.obs;
+  Future<void> _buscarPorNumParte(String qrData) async {
+    final idProducto = int.tryParse(qrData.trim());
+    if (idProducto == null) {
+      showErrorSnackbar('Código QR no válido');
+      return;
+    }
+
+    try {
+      isSearchingByQR.value = true;
+
+      final inventoryCtrl = Get.find<InventoryController>();
+      final results = await inventoryCtrl.fetchInventarioUsecase.call(
+        '',
+        '',
+        '',
+        '',
+        1,
+        20,
+        idProducto: idProducto,
+      );
+
+      if (results.isEmpty) {
+        showErrorSnackbar('No se encontró producto con ID: $idProducto');
+        return;
+      }
+
+      results.length == 1
+          ? addProduct(results.first)
+          : _showQRResultsSheet(results);
+    } catch (e) {
+      showErrorSnackbar('Error al buscar producto por QR');
+      debugPrint('_buscarPorNumParte error: $e');
+    } finally {
+      isSearchingByQR.value = false;
+    }
+  }
+
+  void _showQRResultsSheet(List<InventoryEntity> results) {
+    Get.bottomSheet(
+      DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.85,
+        expand: false,
+        builder: (_, scrollController) => Container(
+          padding: const EdgeInsets.all(ThemeColor.paddingMedium),
+          decoration: const BoxDecoration(
+            color: ThemeColor.surfaceColor,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: ThemeColor.textSecondaryColor.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text(
+                'Selecciona producto (${results.length})',
+                style: ThemeColor.headingSmall,
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.separated(
+                  controller: scrollController,
+                  itemCount: results.length,
+                  separatorBuilder: (_, __) =>
+                      Divider(height: 1, color: ThemeColor.dividerColor),
+                  itemBuilder: (_, i) {
+                    final p = results[i];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        p.description ?? '',
+                        style: ThemeColor.bodyMedium,
+                      ),
+                      subtitle: Text(
+                        'Parte: ${p.partNumber ?? ''} · \$${(p.price ?? 0).toStringAsFixed(2)}',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: ThemeColor.textSecondaryColor,
+                        ),
+                      ),
+                      trailing: const Icon(
+                        Icons.add_circle_outline,
+                        color: ThemeColor.accentColor,
+                      ),
+                      onTap: () {
+                        Get.back();
+                        addProduct(p);
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  void abrirScannerQR(BuildContext context) {
+    iniciarEscaneoQR();
+    Get.bottomSheet(
+      QRScannerWidget(
+        controller: this,
+        title: 'ESCANEAR PRODUCTO',
+        description: 'Apunta al código QR o de barras del producto',
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
   void resetState() {
     items.clear();
     clienteName.value = '';

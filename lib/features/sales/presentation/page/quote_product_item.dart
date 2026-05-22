@@ -18,9 +18,9 @@ class QuoteProductItem extends StatelessWidget {
   final double? maxQuantity;
   final RxDouble? discount;
   final VoidCallback? onDiscountTap;
-  final bool allowImageEdit;                         // 👈 nuevo
-  final void Function(String path)? onImageChanged;  // 👈 nuevo
-
+  final bool allowImageEdit;
+  final void Function(String path)? onImageChanged;
+  final VoidCallback? onEdit;
   const QuoteProductItem({
     super.key,
     this.imageUrl,
@@ -37,6 +37,7 @@ class QuoteProductItem extends StatelessWidget {
     this.onDiscountTap,
     this.allowImageEdit = false,
     this.onImageChanged,
+    this.onEdit,
   });
 
   @override
@@ -49,15 +50,12 @@ class QuoteProductItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Thumbnail (con cámara si allowImageEdit) ──────────────────
           _EditableThumbnail(
             imageUrl: imageUrl,
             allowEdit: allowImageEdit,
             onImageChanged: onImageChanged,
           ),
           const SizedBox(width: 12),
-
-          // ── Info del producto ─────────────────────────────────────────
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,57 +74,59 @@ class QuoteProductItem extends StatelessWidget {
                   ),
                 ),
 
-                // ── Badge descuento ─────────────────────────────────────
                 if (!readOnly && discount != null) ...[
                   const SizedBox(height: 6),
-                  Obx(() => GestureDetector(
-                    onTap: onDiscountTap,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: discount!.value > 0
-                            ? ThemeColor.errorColor.withOpacity(0.08)
-                            : ThemeColor.backgroundColor,
-                        borderRadius: ThemeColor.circularBorderRadius,
-                        border: Border.all(
-                          color: discount!.value > 0
-                              ? ThemeColor.errorColor.withOpacity(0.35)
-                              : ThemeColor.dividerColor,
+                  Obx(
+                    () => GestureDetector(
+                      onTap: onDiscountTap,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.local_offer_outlined,
-                            size: 12,
+                        decoration: BoxDecoration(
+                          color: discount!.value > 0
+                              ? ThemeColor.errorColor.withOpacity(0.08)
+                              : ThemeColor.backgroundColor,
+                          borderRadius: ThemeColor.circularBorderRadius,
+                          border: Border.all(
                             color: discount!.value > 0
-                                ? ThemeColor.errorColor
-                                : ThemeColor.textSecondaryColor,
+                                ? ThemeColor.errorColor.withOpacity(0.35)
+                                : ThemeColor.dividerColor,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            discount!.value > 0
-                                ? '${discount!.value.toStringAsFixed(0)}% desc.'
-                                : 'Agregar descuento',
-                            style: ThemeColor.caption.copyWith(
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.local_offer_outlined,
+                              size: 12,
                               color: discount!.value > 0
                                   ? ThemeColor.errorColor
                                   : ThemeColor.textSecondaryColor,
-                              fontWeight: discount!.value > 0
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 4),
+                            Text(
+                              discount!.value > 0
+                                  ? '${discount!.value.toStringAsFixed(0)}% desc.'
+                                  : 'Agregar descuento',
+                              style: ThemeColor.caption.copyWith(
+                                color: discount!.value > 0
+                                    ? ThemeColor.errorColor
+                                    : ThemeColor.textSecondaryColor,
+                                fontWeight: discount!.value > 0
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  )),
+                  ),
                 ],
-
-                // ── Warnings stock ──────────────────────────────────────
+ 
                 Obx(() {
                   final qty = quantity.value;
                   final sinExistencia = availableQuantity <= 0;
@@ -138,8 +138,11 @@ class QuoteProductItem extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 4),
                       child: Row(
                         children: [
-                          const Icon(Icons.warning_amber_rounded,
-                              size: 13, color: Colors.amber),
+                          const Icon(
+                            Icons.warning_amber_rounded,
+                            size: 13,
+                            color: Colors.amber,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Sin existencia',
@@ -157,8 +160,11 @@ class QuoteProductItem extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 4),
                       child: Row(
                         children: [
-                          Icon(Icons.warning_amber_rounded,
-                              size: 13, color: Colors.orange.shade600),
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            size: 13,
+                            color: Colors.orange.shade600,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Solo hay ${availableQuantity.toInt()} disponible(s)',
@@ -195,18 +201,37 @@ class QuoteProductItem extends StatelessWidget {
           ),
           const SizedBox(width: 8),
 
-          // ── Columna derecha: eliminar + total ─────────────────────────
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!readOnly)
-                GestureDetector(
-                  onTap: onRemove,
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Icon(Icons.delete_outline,
-                        color: ThemeColor.errorColor, size: 20),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onEdit != null)
+                      GestureDetector(
+                        onTap: onEdit,
+                        child: const Padding(
+                          padding: EdgeInsets.all(4),
+                          child: Icon(
+                            Icons.edit_outlined,
+                            color: ThemeColor.primaryColor,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    GestureDetector(
+                      onTap: onRemove,
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.delete_outline,
+                          color: ThemeColor.errorColor,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               SizedBox(height: readOnly ? 0 : 14),
               Obx(
@@ -218,15 +243,17 @@ class QuoteProductItem extends StatelessWidget {
                 ),
               ),
               if (discount != null)
-                Obx(() => discount!.value > 0
-                    ? Text(
-                        '-\$${(unitPrice * quantity.value * discount!.value / 100).toStringAsFixed(2)}',
-                        style: ThemeColor.caption.copyWith(
-                          color: ThemeColor.errorColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      )
-                    : const SizedBox.shrink()),
+                Obx(
+                  () => discount!.value > 0
+                      ? Text(
+                          '-\$${(unitPrice * quantity.value * discount!.value / 100).toStringAsFixed(2)}',
+                          style: ThemeColor.caption.copyWith(
+                            color: ThemeColor.errorColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
             ],
           ),
         ],
@@ -234,8 +261,6 @@ class QuoteProductItem extends StatelessWidget {
     );
   }
 }
-
-// ── Thumbnail editable con cámara ─────────────────────────────────────────
 
 class _EditableThumbnail extends StatefulWidget {
   final String? imageUrl;
@@ -264,6 +289,7 @@ class _EditableThumbnailState extends State<_EditableThumbnail> {
     if (picked == null) return;
     setState(() => _localPath = picked.path);
     widget.onImageChanged?.call(picked.path);
+    debugPrint('Imagen seleccionada: ${picked.path}');
   }
 
   @override
@@ -276,7 +302,7 @@ class _EditableThumbnailState extends State<_EditableThumbnail> {
           ProductThumbnail(
             imageUrl: widget.imageUrl,
             size: 54,
-            localPath: _localPath, // 👈 local tiene prioridad
+            localPath: _localPath,
           ),
           if (widget.allowEdit)
             Positioned(
@@ -305,8 +331,6 @@ class _EditableThumbnailState extends State<_EditableThumbnail> {
     );
   }
 }
-
-// ── Controles de cantidad ─────────────────────────────────────────────────
 
 class _QuantityControls extends StatefulWidget {
   final RxDouble quantity;

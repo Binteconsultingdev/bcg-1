@@ -1,7 +1,7 @@
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 
 class InventoryModel extends InventoryEntity {
-  InventoryModel({required super.id,super.unit, required super.partNumber, required super.description,  super.family,  super.subfamily,  super.availableQuantity,  super.price,  super.imageUrl});
+  InventoryModel({required super.id, super.claveSat,super.unit, required super.partNumber, required super.description,  super.family,  super.subfamily,  super.availableQuantity,  super.price,  super.imageUrl});
   
   factory InventoryModel.fromJson(Map<String, dynamic> json) {
     return InventoryModel(
@@ -13,7 +13,8 @@ class InventoryModel extends InventoryEntity {
       subfamily: json['subfamilia'],
       availableQuantity: json['disponible'],
       price: json['precio'],
-      imageUrl: json['imagenUrl'],
+      imageUrl: json['imagenUrl'],  
+      claveSat: json['clave_Sat'] ?? '',
     );
   }
 }

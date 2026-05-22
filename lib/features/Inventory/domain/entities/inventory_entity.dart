@@ -8,6 +8,7 @@ class InventoryEntity {
   final num? price;
   final String? imageUrl;
   final String? unit;
+  final String? claveSat;
 
   InventoryEntity({
      this.id,
@@ -19,5 +20,6 @@ class InventoryEntity {
      this.price,
      this.imageUrl,
      this.unit,
+       this.claveSat,
   });
 }

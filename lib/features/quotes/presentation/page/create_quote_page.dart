@@ -506,6 +506,8 @@ class _ProductList extends StatelessWidget {
                     item.quantity.value = v;
                     ctrl.validateCart();
                   },
+                  onEdit: item.isCustom  ? () => ctrl.showEditCustomProductDialog(context, item)
+                      : null,
                   allowImageEdit: true,
                   onImageChanged: (path) => item.localImagePath.value = path,
                 ),
