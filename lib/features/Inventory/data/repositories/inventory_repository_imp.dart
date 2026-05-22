@@ -19,9 +19,9 @@ class InventoryRepositoryImp implements InventoryRepository {
 
   @override
   Future<List<InventoryEntity>> fetchInventario( String description,String numparte,String familia,
-    String subfamilia,int page,int pageSize) async {
+    String subfamilia,int page,int pageSize, {int? idProducto}) async {
     final token = await authService.getToken() ?? (throw Exception( 'No hay sesión activa. El usuario debe iniciar sesión.'));
-    return await inventoryDatasourcesImp.fetchInventario(token,description,numparte,familia, subfamilia,page,pageSize);
+    return await inventoryDatasourcesImp.fetchInventario(token,description,numparte,familia, subfamilia,page,pageSize, idProducto: idProducto);
   }
 
   @override

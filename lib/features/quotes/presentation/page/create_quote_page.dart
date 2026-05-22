@@ -126,39 +126,39 @@ class _TopSection extends StatelessWidget {
             child: _PriceSelector(ctrl: ctrl),
           ),
           Divider(height: 1, color: ThemeColor.dividerColor),
-        Divider(height: 1, color: ThemeColor.dividerColor),
-_RowField(
-  label: 'Producto',
-  child: Row(
-    children: [
-      Expanded(
-        child: ProductSearchField(onSelected: ctrl.addProduct),
-      ),
-      Obx(() => GestureDetector(
-        onTap: () => ctrl.abrirScannerQR(context),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 8),
-          child: ctrl.isSearchingByQR.value
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: ThemeColor.primaryColor,
-                  ),
-                )
-              : const Icon(
-                  Icons.qr_code_scanner,
-                  size: 22,
-                  color: ThemeColor.primaryColor,
+          _RowField(
+            label: 'Producto',
+            child: Row(
+              children: [
+                Expanded(
+                  child: ProductSearchField(onSelected: ctrl.addProduct),
                 ),
-        ),
-      )),
-    ],
-  ),
-),
-ProductSearchResults(onSelected: ctrl.addProduct),
-          ProductSearchResults(onSelected: ctrl.addProduct), 
+                Obx(
+                  () => GestureDetector(
+                    onTap: () => ctrl.abrirScannerQR(context),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: ctrl.isSearchingByQR.value
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: ThemeColor.primaryColor,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.qr_code_scanner,
+                              size: 22,
+                              color: ThemeColor.primaryColor,
+                            ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ProductSearchResults(onSelected: ctrl.addProduct),
           const SizedBox(height: 4),
           GestureDetector(
             onTap: () => ctrl.showAddCustomProductDialog(context),
@@ -183,7 +183,181 @@ ProductSearchResults(onSelected: ctrl.addProduct),
               ),
             ),
           ),
+          Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Obx(
+                      () => _ShippingOptionCard(
+                        icon: Icons.inventory_2_outlined,
+                        label: 'Paquete y Embalaje',
+                        isSelected: ctrl.selectedShippingOptions.contains(
+                          'paquete',
+                        ),
+                        onTap: () => ctrl.toggleShippingOption('paquete'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Obx(
+                      () => _ShippingOptionCard(
+                        icon: Icons.local_shipping_outlined,
+                        label: 'Envío de Productos',
+                        isSelected: ctrl.selectedShippingOptions.contains(
+                          'envio',
+                        ),
+                        onTap: () => ctrl.toggleShippingOption('envio'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              Obx(() {
+                if (!ctrl.selectedShippingOptions.contains('paquete')) {
+                  return const SizedBox.shrink();
+                }
+                return AnimatedSize(
+                  duration: const Duration(milliseconds: 200),
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ThemeColor.primaryColor.withOpacity(0.06),
+                      borderRadius: ThemeColor.smallBorderRadius,
+                      border: Border.all(
+                        color: ThemeColor.primaryColor.withOpacity(0.2),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Porcentaje de embalaje',
+                          style: ThemeColor.bodySmall.copyWith(
+                            color: ThemeColor.textSecondaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Obx(
+                          () => Row(
+                            children: [1.5, 2.0, 3.0].map((pct) {
+                              final isSelected =
+                                  ctrl.selectedPackagePercent.value == pct;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: GestureDetector(
+                                  onTap: () =>
+                                      ctrl.selectedPackagePercent.value = pct,
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? ThemeColor.primaryColor
+                                          : ThemeColor.surfaceColor,
+                                      borderRadius:
+                                          ThemeColor.circularBorderRadius,
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? ThemeColor.primaryColor
+                                            : ThemeColor.dividerColor,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      '$pct%',
+                                      style: ThemeColor.bodyMedium.copyWith(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : ThemeColor.textPrimaryColor,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _ShippingOptionCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ShippingOptionCard({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? ThemeColor.primaryColor.withOpacity(0.08)
+              : ThemeColor.surfaceColor,
+          borderRadius: ThemeColor.smallBorderRadius,
+          border: Border.all(
+            color: isSelected
+                ? ThemeColor.primaryColor
+                : ThemeColor.dividerColor,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 28,
+              color: isSelected
+                  ? ThemeColor.primaryColor
+                  : ThemeColor.textSecondaryColor,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: ThemeColor.bodySmall.copyWith(
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? ThemeColor.primaryColor
+                    : ThemeColor.textPrimaryColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -324,8 +498,16 @@ class _ProductList extends StatelessWidget {
                   total: item.totalRx,
                   quantity: item.quantity,
                   availableQuantity: item.availableQty,
+                  discount: item.discount,
+                  onDiscountTap: () =>
+                      ctrl.showItemDiscountDialog(context, item),
                   onRemove: () => ctrl.removeItem(item),
-                  onQuantityChanged: (v) => item.quantity.value = v,
+                  onQuantityChanged: (v) {
+                    item.quantity.value = v;
+                    ctrl.validateCart();
+                  },
+                  allowImageEdit: true,
+                  onImageChanged: (path) => item.localImagePath.value = path,
                 ),
                 if (!isLast)
                   Divider(
@@ -461,6 +643,7 @@ class _QuantityControlsState extends State<_QuantityControls> {
     });
   }
 }
+
 class _TotalsSection extends StatelessWidget {
   final CreateQuoteController ctrl;
   const _TotalsSection({required this.ctrl});
@@ -489,8 +672,8 @@ class _TotalsSection extends StatelessWidget {
                   child: Text(
                     ctrl.globalDiscount.value > 0
                         ? ctrl.globalDiscountType.value == 'porcentaje'
-                            ? 'Descuento ${ctrl.globalDiscountPercent.value.toInt()}% aplicado'
-                            : 'Descuento aplicado'
+                              ? 'Descuento ${ctrl.globalDiscountPercent.value.toInt()}% aplicado'
+                              : 'Descuento aplicado'
                         : 'Agregar un Descuento',
                     style: ThemeColor.bodyMedium.copyWith(
                       color: ThemeColor.errorColor,
@@ -515,7 +698,6 @@ class _TotalsSection extends StatelessWidget {
                 Text('I.V.A (16%)', style: ThemeColor.bodyMedium),
                 Row(
                   children: [
-                     
                     Switch(
                       value: ctrl.includeIva.value,
                       onChanged: (v) => ctrl.includeIva.value = v,
@@ -527,7 +709,6 @@ class _TotalsSection extends StatelessWidget {
               ],
             ),
             Divider(height: 20, color: ThemeColor.dividerColor),
-            // ── Precios validados por backend ─────────────────────────────
             if (ctrl.isValidatingCart.value)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -678,10 +859,11 @@ class _TotalsSection extends StatelessWidget {
                         runSpacing: 8,
                         children: [5, 10, 15, 20, 25, 30].map((pct) {
                           final selected =
-                              ctrl.globalDiscountPercent.value == pct.toDouble();
+                              ctrl.globalDiscountPercent.value ==
+                              pct.toDouble();
                           return GestureDetector(
-                            onTap: () =>
-                                ctrl.globalDiscountPercent.value = pct.toDouble(),
+                            onTap: () => ctrl.globalDiscountPercent.value = pct
+                                .toDouble(),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(
@@ -977,8 +1159,6 @@ class _BottomButton extends StatelessWidget {
           );
         }
 
-        // final blocked = ctrl.hasOutOfStockItems;
-
         return AnimatedOpacity(
           opacity: 1.0,
           duration: const Duration(milliseconds: 250),
@@ -993,7 +1173,7 @@ class _BottomButton extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 16),
               borderRadius: ThemeColor.mediumRadius,
               isLoading: ctrl.isCreating.value,
-              onPressed: ctrl.createQuote,  
+              onPressed: ctrl.createQuote,
             ),
           ),
         );

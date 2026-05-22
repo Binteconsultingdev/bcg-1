@@ -43,6 +43,7 @@ class QuoteItem {
   final CustomQuoteItem? customProduct;
   final RxDouble quantity;
   final RxDouble discount;
+  final RxnString localImagePath = RxnString(); // 👈 nuevo
 
   QuoteItem({required InventoryEntity inventoryProduct, double initialQty = 1.0})
       : product = inventoryProduct,
@@ -61,8 +62,8 @@ class QuoteItem {
   String get description =>
       isCustom ? customProduct!.descripcion : product!.description ?? '';
 
-  String? get imageUrl => isCustom ? null : product!.imageUrl;
- 
+  String? get imageUrl => localImagePath.value ?? (isCustom ? null : product!.imageUrl);
+
   final RxnDouble validatedPrice = RxnDouble();
 
   double get unitPrice {
@@ -107,7 +108,8 @@ class CreateQuoteController extends GetxController {
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<String>();
   final selectedClientName = Rxn<String>();
-
+final selectedShippingOptions = <String>{}.obs;
+final selectedPackagePercent = Rxn<double>(); 
   final selectedPriceType = 'REGULAR'.obs;
   final List<String> priceOptions = [
     'REGULAR',
@@ -170,7 +172,14 @@ class CreateQuoteController extends GetxController {
       clientSearch.manuallyClosed = true;
     });
   } 
-
+void toggleShippingOption(String option) {
+  if (selectedShippingOptions.contains(option)) {
+    selectedShippingOptions.remove(option);
+    if (option == 'paquete') selectedPackagePercent.value = null;
+  } else {
+    selectedShippingOptions.add(option);
+  }
+}
   Future<void> validateCart() async { 
     final inventoryItems = items
         .where((i) => !i.isCustom && i.product?.id != null)
@@ -360,7 +369,7 @@ class CreateQuoteController extends GetxController {
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
-                labelText: 'Costo unitario',
+                labelText: 'Precio unitario',
                 prefixText: '\$ ',
                 hintText: '0.00',
                 border: OutlineInputBorder(
@@ -516,7 +525,7 @@ class CreateQuoteController extends GetxController {
             descripcion: i.description,
             disponible: i.availableQty,
             unidad: 'PZA',
-            precio: i.unitPrice, // ya es el precio validado si es inventario
+            precio: i.unitPrice, 
             cantidad: i.quantity.value,
             importe: i.total,
             iva: (i.total * 0.16).toStringAsFixed(2),
@@ -562,6 +571,131 @@ class CreateQuoteController extends GetxController {
       _pdfCtrl.isLoadingPdf.value = false;
     }
   }
+  void showItemDiscountDialog(BuildContext context, QuoteItem item) {
+  final RxDouble tempDiscount = item.discount.value.obs;
+
+  Get.dialog(
+    Obx(() => AlertDialog(
+      backgroundColor: ThemeColor.surfaceColor,
+      title: Text('Descuento del producto', style: ThemeColor.headingSmall),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Descripción del producto
+          Text(
+            item.description,
+            style: ThemeColor.bodySmall.copyWith(
+              color: ThemeColor.textSecondaryColor,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 16),
+
+          // Chips de porcentaje rápido
+          Text(
+            'Selecciona un porcentaje',
+            style: ThemeColor.bodySmall.copyWith(
+              color: ThemeColor.textSecondaryColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
+              final isSelected = tempDiscount.value == pct.toDouble();
+              return GestureDetector(
+                onTap: () => tempDiscount.value = pct.toDouble(),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? ThemeColor.primaryColor
+                        : ThemeColor.backgroundColor,
+                    borderRadius: ThemeColor.circularBorderRadius,
+                    border: Border.all(
+                      color: isSelected
+                          ? ThemeColor.primaryColor
+                          : ThemeColor.dividerColor,
+                    ),
+                  ),
+                  child: Text(
+                    pct == 0 ? 'Sin desc.' : '$pct%',
+                    style: ThemeColor.bodySmall.copyWith(
+                      color: isSelected
+                          ? Colors.white
+                          : ThemeColor.textPrimaryColor,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Preview del descuento
+          if (tempDiscount.value > 0)
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: ThemeColor.errorColor.withOpacity(0.07),
+                borderRadius: ThemeColor.smallBorderRadius,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Descuento ${tempDiscount.value.toInt()}%',
+                    style: ThemeColor.bodySmall.copyWith(
+                      color: ThemeColor.errorColor,
+                    ),
+                  ),
+                  Text(
+                    '-\$${(item.subtotal * (tempDiscount.value / 100)).toStringAsFixed(2)}',
+                    style: ThemeColor.bodySmall.copyWith(
+                      color: ThemeColor.errorColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text(
+            'Cancelar',
+            style: TextStyle(color: ThemeColor.textSecondaryColor),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ThemeColor.primaryColor,
+          ),
+          onPressed: () {
+            item.discount.value = tempDiscount.value;
+            items.refresh(); // refresca la lista para recalcular totales
+            Get.back();
+          },
+          child: const Text('Aplicar'),
+        ),
+      ],
+    )),
+  );
+}
 void editCustomProduct({
   required QuoteItem item,
   required String descripcion,
@@ -637,7 +771,7 @@ void showEditCustomProductDialog(BuildContext context, QuoteItem item) {
                 const TextInputType.numberWithOptions(decimal: true),
             style: ThemeColor.bodyMedium,
             decoration: InputDecoration(
-              labelText: 'Costo unitario',
+              labelText: 'Precio unitario',
               prefixText: '\$ ',
               border: OutlineInputBorder(
                 borderRadius: ThemeColor.smallBorderRadius,
@@ -736,37 +870,38 @@ void onQRCodeDetected(String qrData) {
   detenerEscaneoQR();
   _buscarPorNumParte(qrData.trim());
 }
-
-// ─── Búsqueda por núm. parte (QR) ─────────────────────────────────────────
+ 
 
 final RxBool isSearchingByQR = false.obs;
+Future<void> _buscarPorNumParte(String qrData) async {
+  final idProducto = int.tryParse(qrData.trim());
+  if (idProducto == null) {
+    showErrorSnackbar('Código QR no válido');
+    return;
+  }
 
-Future<void> _buscarPorNumParte(String numParte) async {
-  if (numParte.isEmpty) return;
   try {
     isSearchingByQR.value = true;
 
-    // Usa solo numparte (segunda llamada del Future.wait en searchProducts)
     final inventoryCtrl = Get.find<InventoryController>();
     final results = await inventoryCtrl.fetchInventarioUsecase.call(
-      '',         // descripcion vacía
-      numParte,   // numparte exacto
-      '',         // familia
-      '',         // subfamilia
+      '',    
+      '',    
+      '',    
+      '',  
       1,
       20,
+      idProducto: idProducto,
     );
 
     if (results.isEmpty) {
-      showErrorSnackbar('No se encontró producto: $numParte');
+      showErrorSnackbar('No se encontró producto con ID: $idProducto');
       return;
     }
 
-    if (results.length == 1) {
-      addProduct(results.first);
-    } else {
-      _showQRResultsSheet(results);
-    }
+    results.length == 1
+        ? addProduct(results.first)
+        : _showQRResultsSheet(results);
   } catch (e) {
     showErrorSnackbar('Error al buscar producto por QR');
     debugPrint('_buscarPorNumParte error: $e');
@@ -789,8 +924,7 @@ void _showQRResultsSheet(List<InventoryEntity> results) {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Handle
+          children: [ 
             Center(
               child: Container(
                 width: 40,

@@ -51,8 +51,7 @@ class QuotesDataSourcesImp {
 
       Uri url = Uri.parse(
         '$defaultApiServer/Cotizaciones',
-      ).replace(queryParameters: queryParams);
-      print('🔍 URL de búsqueda: $url');
+      ).replace(queryParameters: queryParams); 
       final response = await http.get(
         url,
         headers: {
@@ -121,10 +120,7 @@ Future<void> updateQuote(
 
     final bodyRequest = QuoteModel.fromEntity(entity).toJson();
     final payload = jsonEncode(bodyRequest);
-
-    print('📤 URL: $url');
-    print('📤 ID: $id');
-    print('📤 BODY: $payload');
+ 
 
     final response = await http.put(
       url,
@@ -134,22 +130,16 @@ Future<void> updateQuote(
       },
       body: payload,
     );
-
-    print('📥 STATUS CODE: ${response.statusCode}');
-    print('📥 RESPONSE BODY: ${response.body}');
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print('✅ Cotización actualizada correctamente');
+ 
+    if (response.statusCode == 200 || response.statusCode == 201) { 
       return;
     }
-
-    print('❌ ERROR RESPONSE: ${response.body}');
+ 
 
     ApiExceptionCustom exception = ApiExceptionCustom(response: response);
     exception.validateMesage();
     throw exception;
-  } catch (e) {
-    print('🚨 EXCEPTION: $e');
+  } catch (e) { 
 
     if (e is SocketException ||
         e is http.ClientException ||
@@ -170,9 +160,7 @@ Future<void> updateQuote(
     Uri url = Uri.parse('$defaultApiServer/Cotizaciones');
 
     final bodyRequest = QuoteModel.fromEntity(entity).toJson();
-
-    print('📤 URL: $url');
-    print('📤 BODY: ${jsonEncode(bodyRequest)}');
+ 
 
     final response = await http.post(
       url,
@@ -182,29 +170,23 @@ Future<void> updateQuote(
       },
       body: jsonEncode(bodyRequest),
     );
-
-    print('📥 STATUS CODE: ${response.statusCode}');
-    print('📥 RESPONSE: ${utf8.decode(response.bodyBytes)}');
+ 
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final dataUTF8 = utf8.decode(response.bodyBytes);
-
-      print('✅ RESPONSE UTF8: $dataUTF8');
+ 
 
       final responseDecode = jsonDecode(dataUTF8);
-
-      print('✅ RESPONSE DECODE: $responseDecode');
+ 
 
       return ResponseCreateModel.fromJson(responseDecode);
     }
-
-    print('❌ ERROR RESPONSE: ${response.body}');
+ 
 
     ApiExceptionCustom exception = ApiExceptionCustom(response: response);
     exception.validateMesage();
     throw exception;
-  } catch (e) {
-    print('🚨 EXCEPTION: $e');
+  } catch (e) { 
 
     if (e is SocketException ||
         e is http.ClientException ||

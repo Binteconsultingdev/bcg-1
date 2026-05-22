@@ -1,11 +1,18 @@
-
+import 'dart:io';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:flutter/material.dart';
 
 class ProductThumbnail extends StatelessWidget {
   final String? imageUrl;
   final double size;
-  const ProductThumbnail({this.imageUrl, required this.size});
+  final String? localPath; // 👈 nuevo
+
+  const ProductThumbnail({
+    super.key,
+    this.imageUrl,
+    required this.size,
+    this.localPath,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,20 +24,37 @@ class ProductThumbnail extends StatelessWidget {
         borderRadius: ThemeColor.smallBorderRadius,
         border: Border.all(color: ThemeColor.dividerColor),
       ),
-      child: imageUrl != null && imageUrl!.isNotEmpty
-          ? ClipRRect(
-              borderRadius: ThemeColor.smallBorderRadius,
-              child: Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _buildNoImage(size),
-              ),
-            )
-          : _buildNoImage(size),
+      child: ClipRRect(
+        borderRadius: ThemeColor.smallBorderRadius,
+        child: _buildImage(),
+      ),
     );
   }
 
-  Widget _buildNoImage(double size) {
+  Widget _buildImage() {
+    // Primero local, luego red, luego placeholder
+    if (localPath != null && localPath!.isNotEmpty) {
+      return Image.file(
+        File(localPath!),
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildNoImage(),
+      );
+    }
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return Image.network(
+        imageUrl!,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildNoImage(),
+      );
+    }
+    return _buildNoImage();
+  }
+
+  Widget _buildNoImage() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -39,7 +63,7 @@ class ProductThumbnail extends StatelessWidget {
           color: ThemeColor.textTertiaryColor,
           size: size * 0.38,
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           'Sin imagen',
           style: TextStyle(

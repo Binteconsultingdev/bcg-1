@@ -8,6 +8,8 @@ abstract class InventoryRepository {
   Future<List<InventoryCategoryEntity>> fetchSubfamilias(String familia);
   Future<List<InventoryCategoryEntity>> fetchFamilias();
   Future<SucursalesEntity> fetchSucursales(String numParte);
-  Future<List<InventoryEntity>> fetchInventario(String description,String numparte,String familia, String subfamilia,int page,int pageSize);
+  Future<List<InventoryEntity>> fetchInventario(String description,String numparte,String familia, String subfamilia,int page,int pageSize, {
+  int? idProducto,
+});
   Future<ResponseValidateCartEntity>validateCart(PostValidateCartEntity entity);
 }
