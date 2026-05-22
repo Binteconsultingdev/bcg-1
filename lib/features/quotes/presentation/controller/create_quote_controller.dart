@@ -43,7 +43,7 @@ class QuoteItem {
   final CustomQuoteItem? customProduct;
   final RxDouble quantity;
   final RxDouble discount;
-  final RxnString localImagePath = RxnString(); // 👈 nuevo
+  final RxnString localImagePath = RxnString(); 
 
   QuoteItem({required InventoryEntity inventoryProduct, double initialQty = 1.0})
       : product = inventoryProduct,
@@ -120,6 +120,13 @@ final selectedPackagePercent = Rxn<double>();
   ];
 
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
+final envio = Rxn<double>();
+double get embalajeAmount {
+  if (!selectedShippingOptions.contains('paquete')) return 0.0;
+  final pct = selectedPackagePercent.value;
+  if (pct == null) return 0.0;
+  return subtotal * (pct / 100);
+}
 
   final items = <QuoteItem>[].obs;
   final productSearchQuery = ''.obs;
@@ -149,10 +156,10 @@ final selectedPackagePercent = Rxn<double>();
 
   final includeIva = true.obs;
 
-  double get ivaAmount =>
-      includeIva.value ? (subtotal - globalDiscount.value) * 0.16 : 0.0;
-  double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
-
+double get ivaAmount =>
+    includeIva.value ? (subtotal - globalDiscount.value) * 0.16 : 0.0;
+double get totalToPay =>
+    subtotal - globalDiscount.value + ivaAmount + (envio.value ?? 0.0) + embalajeAmount;
   @override
   void onInit() {
     super.onInit();
@@ -176,8 +183,10 @@ void toggleShippingOption(String option) {
   if (selectedShippingOptions.contains(option)) {
     selectedShippingOptions.remove(option);
     if (option == 'paquete') selectedPackagePercent.value = null;
+    if (option == 'envio') envio.value = null;  
   } else {
     selectedShippingOptions.add(option);
+    if (option == 'envio') envio.value = 0.0;  
   }
 }
   Future<void> validateCart() async { 
@@ -303,7 +312,7 @@ void toggleShippingOption(String option) {
     productSearchQuery.value = '';
     isSearching.value = false;
     searchResults.clear();
-    validateCart(); // 👈 valida al agregar
+    validateCart();  
   }
 
   void addCustomProduct({
@@ -504,8 +513,7 @@ void toggleShippingOption(String option) {
     try {
       isCreating.value = true;
       errorMessage.value = '';
-
-      // Valida una vez más antes de crear para tener precios frescos
+ 
       await validateCart();
 
       final entity = QuoteEntity(
@@ -518,6 +526,8 @@ void toggleShippingOption(String option) {
         diasEnt: validUntil.value.difference(DateTime.now()).inDays,
         comentarios: commentsCtrl.text.trim(),
         referencia: referencia.value,
+         envio: envio.value,
+           embalaje: embalajeAmount > 0 ? embalajeAmount : null, 
         productos: items.asMap().entries.map((entry) {
           final i = entry.value;
           return ProductoEntity(
@@ -581,8 +591,7 @@ void toggleShippingOption(String option) {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Descripción del producto
+        children: [ 
           Text(
             item.description,
             style: ThemeColor.bodySmall.copyWith(
@@ -592,8 +601,7 @@ void toggleShippingOption(String option) {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
-
-          // Chips de porcentaje rápido
+ 
           Text(
             'Selecciona un porcentaje',
             style: ThemeColor.bodySmall.copyWith(
@@ -643,8 +651,7 @@ void toggleShippingOption(String option) {
           ),
 
           const SizedBox(height: 16),
-
-          // Preview del descuento
+ 
           if (tempDiscount.value > 0)
             Container(
               padding: const EdgeInsets.all(10),
@@ -687,7 +694,7 @@ void toggleShippingOption(String option) {
           ),
           onPressed: () {
             item.discount.value = tempDiscount.value;
-            items.refresh(); // refresca la lista para recalcular totales
+            items.refresh(); 
             Get.back();
           },
           child: const Text('Aplicar'),

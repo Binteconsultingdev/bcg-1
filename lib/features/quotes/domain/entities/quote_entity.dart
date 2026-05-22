@@ -14,6 +14,8 @@ class QuoteEntity {
   final String referencia;
   final String? attn;
   final int? cantidadProductos;
+  final double? envio;
+  final double? embalaje;
   final List<ProductoEntity> productos;
 
   QuoteEntity({
@@ -32,6 +34,8 @@ class QuoteEntity {
     required this.referencia,
      this.attn,
      this.cantidadProductos,
+      this.envio,
+      this.embalaje,
     required this.productos,
   });
 }

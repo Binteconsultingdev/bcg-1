@@ -732,6 +732,84 @@ class _TotalsSection extends StatelessWidget {
                   ],
                 ),
               ),
+            if (ctrl.selectedShippingOptions.contains('envio'))
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _showEnvioDialog(context),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.local_shipping_outlined,
+                            size: 15,
+                            color: ThemeColor.primaryColor,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Costo de envío',
+                            style: ThemeColor.bodyMedium.copyWith(
+                              color: ThemeColor.primaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.edit_outlined,
+                            size: 13,
+                            color: ThemeColor.primaryColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      ctrl.envio.value != null
+                          ? '\$${ctrl.envio.value!.toStringAsFixed(2)}'
+                          : '\$0.00',
+                      style: ThemeColor.bodyMedium.copyWith(
+                        color: ThemeColor.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (ctrl.selectedShippingOptions.contains('paquete') &&
+                ctrl.selectedPackagePercent.value != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 15,
+                          color: ThemeColor.primaryColor,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Embalaje ${ctrl.selectedPackagePercent.value!.toString().replaceAll('.0', '')}%',
+                          style: ThemeColor.bodyMedium.copyWith(
+                            color: ThemeColor.primaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      '\$${ctrl.embalajeAmount.toStringAsFixed(2)}',
+                      style: ThemeColor.bodyMedium.copyWith(
+                        color: ThemeColor.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             _TotalRow(
               label: 'Total a pagar',
               value: '\$${ctrl.totalToPay.toStringAsFixed(2)}',
@@ -739,6 +817,101 @@ class _TotalsSection extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEnvioDialog(BuildContext context) {
+    final envioCtrl = TextEditingController(
+      text: ctrl.envio.value != null && ctrl.envio.value! > 0
+          ? ctrl.envio.value!.toStringAsFixed(2)
+          : '',
+    );
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: ThemeColor.surfaceColor,
+        title: Text('Costo de envío', style: ThemeColor.headingSmall),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: envioCtrl,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                hintText: '0.00',
+                prefixText: '\$ ',
+                labelText: 'Monto de envío',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Opciones rápidas
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [50, 100, 150, 200, 300, 500].map((monto) {
+                return GestureDetector(
+                  onTap: () {
+                    envioCtrl.text = monto.toString();
+                    envioCtrl.selection = TextSelection.fromPosition(
+                      TextPosition(offset: envioCtrl.text.length),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ThemeColor.backgroundColor,
+                      borderRadius: ThemeColor.circularBorderRadius,
+                      border: Border.all(color: ThemeColor.dividerColor),
+                    ),
+                    child: Text(
+                      '\$$monto',
+                      style: ThemeColor.bodySmall.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: ThemeColor.textSecondaryColor),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeColor.primaryColor,
+            ),
+            onPressed: () {
+              ctrl.envio.value = double.tryParse(envioCtrl.text) ?? 0.0;
+              Get.back();
+            },
+            child: const Text('Aplicar'),
+          ),
+        ],
       ),
     );
   }
