@@ -45,6 +45,7 @@ dependencies:
   share_plus: ^12.0.2
   permission_handler: ^12.0.1
   open_filex: ^4.7.0 
+  mobile_scanner: ^7.2.0
 
 flutter_native_splash:
   color: "#FFFFFF"

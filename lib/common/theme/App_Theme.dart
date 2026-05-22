@@ -19,6 +19,7 @@ class ThemeColor {
   static const Color cardColor = Colors.white;
   static final Color backgroundColorfondo = const Color(0xFFEEEEEE);
 
+  static const Color colorAccionButtons = accentColor;
   // Colores de texto
   static const Color textPrimaryColor = Color(0xFF1A1A1A); // Negro
   static const Color textSecondaryColor = Color(0xFF757575); // Gris medio

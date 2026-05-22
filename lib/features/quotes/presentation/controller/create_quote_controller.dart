@@ -1,8 +1,10 @@
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
+import 'package:bcg/common/widgets/qr_scanner_widget.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/post_validate_cart_entity.dart';
 import 'package:bcg/features/Inventory/domain/usecase/validate_cart_usecase.dart';
+import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
 import 'package:bcg/features/client/domain/entities/client_entity.dart';
 import 'package:bcg/features/client/presentation/controller/client_controller.dart';
 import 'package:bcg/features/client/presentation/controller/client_search_controller.dart';
@@ -15,6 +17,7 @@ import 'package:bcg/features/quotes/presentation/controller/quotes_controller.da
 import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 class CustomQuoteItem {
   final String descripcion;
@@ -59,8 +62,7 @@ class QuoteItem {
       isCustom ? customProduct!.descripcion : product!.description ?? '';
 
   String? get imageUrl => isCustom ? null : product!.imageUrl;
-
-  // 👇 precio validado por backend (solo para productos de inventario)
+ 
   final RxnDouble validatedPrice = RxnDouble();
 
   double get unitPrice {
@@ -129,10 +131,9 @@ class CreateQuoteController extends GetxController {
   final referencia = ''.obs;
 
   final isCreating = false.obs;
-  final isValidatingCart = false.obs; // 👈 nuevo
+  final isValidatingCart = false.obs; 
   final errorMessage = ''.obs;
-
-  // Totales globales validados por backend 👇
+ 
   final validatedPriceWithoutVAT = Rxn<double>();
   final validatedPriceWithVAT = Rxn<double>();
 
@@ -154,8 +155,7 @@ class CreateQuoteController extends GetxController {
   void onInit() {
     super.onInit();
     _loadFolio();
-
-    // Re-valida al cambiar tipo de precio
+ 
     ever(selectedPriceType, (_) => validateCart());
   }
 
@@ -169,12 +169,9 @@ class CreateQuoteController extends GetxController {
       clientSearch.showResults.value = false;
       clientSearch.manuallyClosed = true;
     });
-  }
+  } 
 
-  // ─── Validación de carrito ────────────────────────────────────────────────
-
-  Future<void> validateCart() async {
-    // Solo items de inventario con id válido
+  Future<void> validateCart() async { 
     final inventoryItems = items
         .where((i) => !i.isCustom && i.product?.id != null)
         .toList();
@@ -190,7 +187,7 @@ class CreateQuoteController extends GetxController {
 
       final response = await validateCartUsecase.call(
         PostValidateCartEntity(
-          pricetype: selectedPriceType.value, // cataPrecio → pricetype
+          pricetype: selectedPriceType.value, 
           items: inventoryItems
               .map(
                 (i) => PostItemValidateCartEntity(
@@ -201,8 +198,7 @@ class CreateQuoteController extends GetxController {
               .toList(),
         ),
       );
-
-      // Actualiza el precio validado en cada item
+ 
       for (final responseItem in response.items) {
         final match = items.firstWhereOrNull(
           (i) => !i.isCustom && i.product?.id == responseItem.productid,
@@ -220,8 +216,7 @@ class CreateQuoteController extends GetxController {
       isValidatingCart.value = false;
     }
   }
-
-  // ─── Clientes ─────────────────────────────────────────────────────────────
+ 
 
   void onClientSelected(ClientEntity client) {
     final name = client.displayName ?? '';
@@ -261,8 +256,7 @@ class CreateQuoteController extends GetxController {
     selectedClientId.value = id;
     selectedClientName.value = name;
   }
-
-  // ─── Folio ────────────────────────────────────────────────────────────────
+ 
 
   Future<void> _loadFolio() async {
     try {
@@ -275,8 +269,7 @@ class CreateQuoteController extends GetxController {
       isLoadingFolio.value = false;
     }
   }
-
-  // ─── Productos ────────────────────────────────────────────────────────────
+ 
 
   void onProductSearchChanged(String value) {
     productSearchQuery.value = value;
@@ -326,9 +319,7 @@ class CreateQuoteController extends GetxController {
       costo: costo,
       initialQty: cantidad,
     );
-    items.add(QuoteItem.custom(custom: custom));
-    // 👇 custom no se valida, pero actualizamos totales globales si hay
-    // items de inventario en el carrito
+    items.add(QuoteItem.custom(custom: custom)); 
     validateCart();
   }
 
@@ -435,7 +426,7 @@ class CreateQuoteController extends GetxController {
 
   void removeItem(QuoteItem item) {
     items.remove(item);
-    validateCart(); // 👈 valida al quitar
+    validateCart();  
   }
 
   void duplicateItem(QuoteItem item) {
@@ -452,11 +443,10 @@ class CreateQuoteController extends GetxController {
         initialQty: item.quantity.value,
       ));
     }
-    validateCart(); // 👈 valida al duplicar
+    validateCart(); 
   }
 
-  // ─── Descuento global ─────────────────────────────────────────────────────
-
+ 
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
       globalDiscountType.value = 'porcentaje';
@@ -471,8 +461,7 @@ class CreateQuoteController extends GetxController {
         globalDiscount.value > 0 ? globalDiscount.value.toStringAsFixed(2) : '';
   }
 
-  // ─── Fecha ────────────────────────────────────────────────────────────────
-
+ 
   Future<void> pickDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
@@ -492,8 +481,7 @@ class CreateQuoteController extends GetxController {
     if (picked != null) validUntil.value = picked;
   }
 
-  // ─── Crear cotización ─────────────────────────────────────────────────────
-
+ 
   Future<void> createQuote() async {
     if (clienteName.value.trim().isEmpty) {
       showErrorSnackbar('Selecciona un cliente para continuar');
@@ -551,8 +539,7 @@ class CreateQuoteController extends GetxController {
       isCreating.value = false;
     }
   }
-
-  // ─── PDF ──────────────────────────────────────────────────────────────────
+ 
 
   Future<void> generateAndOpenPdf() async {
     final id = createdQuoteId.value;
@@ -592,11 +579,9 @@ void editCustomProduct({
   if (cantidad <= 0) {
     showErrorSnackbar('La cantidad debe ser mayor a 0');
     return;
-  }
-  // Muta directamente los Rx del customProduct
+  } 
   item.customProduct!.cantidad.value = cantidad;
-  item.quantity.value = cantidad;
-  // descripcion y costo son final, recrea el item en su posición
+  item.quantity.value = cantidad; 
   final index = items.indexOf(item);
   if (index == -1) return;
   final updated = QuoteItem.custom(
@@ -715,8 +700,162 @@ void showEditCustomProductDialog(BuildContext context, QuoteItem item) {
     ),
   );
 }
-  // ─── Reset ────────────────────────────────────────────────────────────────
+ 
+@override
+final Rx<MobileScannerController?> qrScannerController =
+    Rx<MobileScannerController?>(null);
 
+@override
+final RxBool isTorchOn = false.obs;
+
+@override
+void iniciarEscaneoQR() {
+  qrScannerController.value = MobileScannerController();
+}
+
+@override
+void detenerEscaneoQR() {
+  qrScannerController.value?.dispose();
+  qrScannerController.value = null;
+  if (Get.isBottomSheetOpen ?? false) Get.back();
+}
+
+@override
+void toggleTorch() {
+  isTorchOn.value = !isTorchOn.value;
+  qrScannerController.value?.toggleTorch();
+}
+
+@override
+void switchCamera() {
+  qrScannerController.value?.switchCamera();
+}
+
+@override
+void onQRCodeDetected(String qrData) {
+  detenerEscaneoQR();
+  _buscarPorNumParte(qrData.trim());
+}
+
+// ─── Búsqueda por núm. parte (QR) ─────────────────────────────────────────
+
+final RxBool isSearchingByQR = false.obs;
+
+Future<void> _buscarPorNumParte(String numParte) async {
+  if (numParte.isEmpty) return;
+  try {
+    isSearchingByQR.value = true;
+
+    // Usa solo numparte (segunda llamada del Future.wait en searchProducts)
+    final inventoryCtrl = Get.find<InventoryController>();
+    final results = await inventoryCtrl.fetchInventarioUsecase.call(
+      '',         // descripcion vacía
+      numParte,   // numparte exacto
+      '',         // familia
+      '',         // subfamilia
+      1,
+      20,
+    );
+
+    if (results.isEmpty) {
+      showErrorSnackbar('No se encontró producto: $numParte');
+      return;
+    }
+
+    if (results.length == 1) {
+      addProduct(results.first);
+    } else {
+      _showQRResultsSheet(results);
+    }
+  } catch (e) {
+    showErrorSnackbar('Error al buscar producto por QR');
+    debugPrint('_buscarPorNumParte error: $e');
+  } finally {
+    isSearchingByQR.value = false;
+  }
+}
+void _showQRResultsSheet(List<InventoryEntity> results) {
+  Get.bottomSheet(
+    DraggableScrollableSheet(
+      initialChildSize: 0.5,
+      minChildSize: 0.3,
+      maxChildSize: 0.85,
+      expand: false,
+      builder: (_, scrollController) => Container(
+        padding: const EdgeInsets.all(ThemeColor.paddingMedium),
+        decoration: const BoxDecoration(
+          color: ThemeColor.surfaceColor,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: ThemeColor.textSecondaryColor.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Text(
+              'Selecciona producto (${results.length})',
+              style: ThemeColor.headingSmall,
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.separated(
+                controller: scrollController,
+                itemCount: results.length,
+                separatorBuilder: (_, __) =>
+                    Divider(height: 1, color: ThemeColor.dividerColor),
+                itemBuilder: (_, i) {
+                  final p = results[i];
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(p.description ?? '', style: ThemeColor.bodyMedium),
+                    subtitle: Text(
+                      'Parte: ${p.partNumber ?? ''} · \$${(p.price ?? 0).toStringAsFixed(2)}',
+                      style: ThemeColor.bodySmall
+                          .copyWith(color: ThemeColor.textSecondaryColor),
+                    ),
+                    trailing: const Icon(
+                      Icons.add_circle_outline,
+                      color: ThemeColor.accentColor,
+                    ),
+                    onTap: () {
+                      Get.back();
+                      addProduct(p);
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    ),
+    isScrollControlled: true,
+  );
+}
+
+void abrirScannerQR(BuildContext context) {
+  iniciarEscaneoQR();
+  Get.bottomSheet(
+    QRScannerWidget(
+      controller: this,
+      title: 'ESCANEAR PRODUCTO',
+      description: 'Apunta al código QR o de barras del producto',
+    ),
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+  );
+}
   void resetState() {
     items.clear();
     clienteName.value = '';

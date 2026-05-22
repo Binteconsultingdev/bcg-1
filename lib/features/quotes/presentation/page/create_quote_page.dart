@@ -126,10 +126,38 @@ class _TopSection extends StatelessWidget {
             child: _PriceSelector(ctrl: ctrl),
           ),
           Divider(height: 1, color: ThemeColor.dividerColor),
-          _RowField(
-            label: 'Producto',
-            child: ProductSearchField(onSelected: ctrl.addProduct),
-          ),
+        Divider(height: 1, color: ThemeColor.dividerColor),
+_RowField(
+  label: 'Producto',
+  child: Row(
+    children: [
+      Expanded(
+        child: ProductSearchField(onSelected: ctrl.addProduct),
+      ),
+      Obx(() => GestureDetector(
+        onTap: () => ctrl.abrirScannerQR(context),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: ctrl.isSearchingByQR.value
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: ThemeColor.primaryColor,
+                  ),
+                )
+              : const Icon(
+                  Icons.qr_code_scanner,
+                  size: 22,
+                  color: ThemeColor.primaryColor,
+                ),
+        ),
+      )),
+    ],
+  ),
+),
+ProductSearchResults(onSelected: ctrl.addProduct),
           ProductSearchResults(onSelected: ctrl.addProduct), 
           const SizedBox(height: 4),
           GestureDetector(

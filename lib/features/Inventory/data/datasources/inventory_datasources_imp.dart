@@ -85,7 +85,7 @@ class InventoryDatasourcesImp {
       Uri url = Uri.parse(
         '$defaultApiServer/inventario/buscar?familia=$familia&descripcion=$description&numparte=$numparte&subfamilia=$subfamilia&pagina=$page&tamanoPagina=$pageSize',
       );
-      print('Fetching inventory with URL: $url'); // DEBUG
+      print('Fetching inventory with URL: $url');  
       final response = await http.get(
         url,
         headers: {'Content-Type': 'application/json' , 'Authorization': 'Bearer $token'},
