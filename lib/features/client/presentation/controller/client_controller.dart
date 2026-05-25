@@ -52,10 +52,8 @@ class ClientController extends GetxController {
   final RxString companyFilter = ''.obs;
   final RxString rfcFilter = ''.obs;
   final RxString emailFilter = ''.obs;
-
-  // null = todos, true = con adeudo, false = sin adeudo
-  final Rxn<bool> porCobrarFilter = Rxn<bool>();
-  // Para el sheet de filtros (temporal antes de aplicar)
+ 
+  final Rxn<bool> porCobrarFilter = Rxn<bool>(); 
   final Rxn<bool> filterPorCobrar = Rxn<bool>();
 
   int get activeFilters => [
@@ -156,8 +154,7 @@ Future<void> openAccountStatementPdf(
       loadMoreClients();
     }
   }
-
-  // Inicializa valores temporales del sheet antes de abrirlo
+ 
   void initFilterSheet() {
     filterPorCobrar.value = porCobrarFilter.value;
   }

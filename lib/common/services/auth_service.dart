@@ -20,10 +20,7 @@ class AuthService extends GetxService {
     await getUserData();
     return this;
   }
-
-  // ================================
-  // Obtener datos de sesión
-  // ================================
+ 
   Future<LoginResponseModel?> getUserData() async {
     if (_cachedUserData != null) return _cachedUserData;
 
@@ -46,10 +43,7 @@ class AuthService extends GetxService {
       return null;
     }
   }
-
-  // ================================
-  // Helpers
-  // ================================
+ 
   Future<String?> getToken() async {
     final userData = await getUserData();
     return userData?.token;
@@ -59,10 +53,7 @@ class AuthService extends GetxService {
     final userData = await getUserData();
     return userData?.userId;
   }
-
-  // ================================
-  // Guardar sesión
-  // ================================
+ 
 Future<bool> saveLoginResponse(LoginResponseEntity loginResponse) async {
   try {
     final modelToSave = LoginResponseModel.fromEntity(loginResponse);
@@ -83,18 +74,12 @@ Future<bool> saveLoginResponse(LoginResponseEntity loginResponse) async {
   }
 }
 
-
-  // ================================
-  // Estado de sesión
-  // ================================
+ 
   Future<bool> isLoggedIn() async {
     final userData = await getUserData();
     return userData != null && userData.token.isNotEmpty;
   }
-
-  // ================================
-  // Logout
-  // ================================
+ 
   Future<bool> logout() async {
     try {
       _cachedUserData = null;

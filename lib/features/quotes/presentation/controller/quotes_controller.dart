@@ -96,12 +96,12 @@ void onTabChanged(int tab) {
 
  Future<List<List<GetQuoteEntity>>> _buildSearchCalls(int page) {
   final calls = <Future<List<GetQuoteEntity>>>[];
-  final status = statusFilter.value; // <-- usar este
+  final status = statusFilter.value;  
 
   if (_isEmpty) {
     calls.add(fetchQuoteUsecase.cal(
       '', numParteFilter.value,
-      status, // <-- aquí
+      status, 
       dateFromFilter.value, dateUntilFilter.value,
       page, _pageSize,
     ));

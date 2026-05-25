@@ -196,8 +196,7 @@ class _LoginPageState extends State<LoginPage>
     child: logoWidget,
   );
 }
-
-// El fallback con la "B" lo extraes a su propio método
+ 
 Widget _buildLogoFallback() {
   return Row(
     mainAxisAlignment: MainAxisAlignment.center,

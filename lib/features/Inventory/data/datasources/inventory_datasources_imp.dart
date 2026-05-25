@@ -112,8 +112,7 @@ Future<List<InventoryEntity>> fetchInventario(
 
     Uri url = Uri.parse(
       '$defaultApiServer/inventario/buscar',
-    ).replace(queryParameters: queryParams);
-  debugPrint('🔍 URL de búsqueda: $url');
+    ).replace(queryParameters: queryParams); 
 
     final response = await http.get(
       url,

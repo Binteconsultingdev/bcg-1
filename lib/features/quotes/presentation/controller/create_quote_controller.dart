@@ -511,63 +511,107 @@ class CreateQuoteController extends GetxController {
   }
 
   Future<void> createQuote() async {
-    if (clienteName.value.trim().isEmpty) {
-      showErrorSnackbar('Selecciona un cliente para continuar');
-      return;
-    }
-    if (items.isEmpty) {
-      showErrorSnackbar('Agrega al menos un producto');
-      return;
-    }
-
-    try {
-      isCreating.value = true;
-      errorMessage.value = '';
-
-      await validateCart();
-
-      final entity = QuoteEntity(
-        folio: folio.value,
-        cliente: clienteName.value.trim(),
-        total: totalToPay,
-        cataPrecio: selectedPriceType.value,
-        descuento: globalDiscount.value.toStringAsFixed(2),
-        iva: includeIva.value ? 'SI' : 'NO',
-        diasEnt: validUntil.value.difference(DateTime.now()).inDays,
-        comentarios: commentsCtrl.text.trim(),
-        referencia: referencia.value,
-        envio: envio.value,
-        embalaje: embalajeAmount > 0 ? embalajeAmount : null,
-        productos: items.asMap().entries.map((entry) {
-          final i = entry.value;
-          return ProductoEntity(
-            codigo: i.isCustom ? 'CUSTOM' : (i.product!.partNumber ?? ''),
-            descripcion: i.description,
-            disponible: i.availableQty,
-            unidad: i.isCustom ? 'PZA' : (i.product!.unit ?? 'PZA'),
-            precio: i.unitPrice,
-            cantidad: i.quantity.value,
-            importe: i.total,
-            iva: (i.total * 0.16).toStringAsFixed(2),
-            claveSat: i.isCustom ? '' : (i.product!.claveSat ?? ''),
-            url: i.imageUrl ?? '',
-            descuento: i.discountAmount,
-            prioridad: entry.key + 1,
-          );
-        }).toList(),
-      );
-
-      final response = await createQuotesUsecase.call(entity);
-      createdQuoteId.value = response.id;
-      await _quotesCtrl.fetchQuotes();
-      await generateAndOpenPdf();
-    } catch (e) {
-      errorMessage.value = 'Error al crear cotización: $e';
-      showErrorSnackbar('Error al crear cotización');
-    } finally {
-      isCreating.value = false;
-    }
+  if (clienteName.value.trim().isEmpty) {
+    showErrorSnackbar('Selecciona un cliente para continuar');
+    return;
   }
+  if (items.isEmpty) {
+    showErrorSnackbar('Agrega al menos un producto');
+    return;
+  }
+
+  try {
+    isCreating.value = true;
+    errorMessage.value = '';
+
+    await validateCart();
+
+    final List<ProductoEntity> productos = items.asMap().entries.map((entry) {
+      final i = entry.value;
+      return ProductoEntity(
+        codigo: i.isCustom ? 'CUSTOM' : (i.product!.partNumber ?? ''),
+        descripcion: i.description,
+        disponible: i.availableQty,
+        unidad: i.isCustom ? 'PZA' : (i.product!.unit ?? 'PZA'),
+        precio: i.unitPrice,
+        cantidad: i.quantity.value,
+        importe: i.total,
+        iva: (i.total * 0.16).toStringAsFixed(2),
+        claveSat: i.isCustom ? '' : (i.product!.claveSat ?? ''),
+        url: i.imageUrl ?? '',
+        descuento: i.discountAmount,
+        prioridad: entry.key + 1,
+      );
+    }).toList();
+ 
+    if (selectedShippingOptions.contains('paquete') &&
+        selectedPackagePercent.value != null &&
+        embalajeAmount > 0) {
+      productos.add(
+        ProductoEntity(
+          codigo: 'ARTEMP01',
+          descripcion:
+              'EMPAQUE Y EMBALAJE (${selectedPackagePercent.value!.toString().replaceAll('.0', '')}%)',
+          disponible: 0,
+          unidad: 'UNIDAD DE SERVICIO',
+          precio: embalajeAmount,
+          cantidad: 1,
+          importe: embalajeAmount,
+          iva: '0.00',
+          claveSat: '',
+          url: '',
+          descuento: 0,
+          prioridad: productos.length + 1,
+        ),
+      );
+    }
+ 
+    if (selectedShippingOptions.contains('envio')) {
+      final costoEnvio = envio.value ?? 0.0;
+      productos.add(
+        ProductoEntity(
+          codigo: 'ARTENV01',
+          descripcion: costoEnvio > 0
+              ? 'COSTO DE ENVÍO'
+              : 'COSTO DE ENVIO PENDIENTE',
+          disponible: 0,
+          unidad: 'UNIDAD DE SERVICIO',
+          precio: costoEnvio,
+          cantidad: 1,
+          importe: costoEnvio,
+          iva: '0.00',
+          claveSat: '',
+          url: '',
+          descuento: 0,
+          prioridad: productos.length + 1,
+        ),
+      );
+    }
+
+    final entity = QuoteEntity(
+      folio: folio.value,
+      cliente: clienteName.value.trim(),
+      total: totalToPay,
+      cataPrecio: selectedPriceType.value,
+      descuento: globalDiscount.value.toStringAsFixed(2),
+      iva: includeIva.value ? 'SI' : 'NO',
+      diasEnt: validUntil.value.difference(DateTime.now()).inDays,
+      comentarios: commentsCtrl.text.trim(),
+      referencia: referencia.value,
+      productos: productos,
+    );
+
+    final response = await createQuotesUsecase.call(entity);
+    createdQuoteId.value = response.id;
+    await _quotesCtrl.fetchQuotes();
+    await generateAndOpenPdf();
+  } catch (e) {
+    errorMessage.value = 'Error al crear cotización: $e';
+    showErrorSnackbar('Error al crear cotización');
+  } finally {
+    isCreating.value = false;
+  }
+}
 
   Future<void> generateAndOpenPdf() async {
     final id = createdQuoteId.value;

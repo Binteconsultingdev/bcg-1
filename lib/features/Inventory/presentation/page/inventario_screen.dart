@@ -296,8 +296,7 @@ class _ProductTile extends StatelessWidget {
   final InventoryEntity product;
   const _ProductTile({required this.product});
 
-  // ✅ Método dentro de la clase — tiene acceso a `product`
-  void _openSucursalesSheet(BuildContext context, InventoryController controller) {
+   void _openSucursalesSheet(BuildContext context, InventoryController controller) {
     controller.fetchSucursales(product.partNumber ?? '');
     showModalBottomSheet(
       context: context,
@@ -402,8 +401,7 @@ class _SucursalesBottomSheet extends StatelessWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
+        children: [ 
           Container(
             margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
             width: 40,
@@ -413,8 +411,7 @@ class _SucursalesBottomSheet extends StatelessWidget {
               borderRadius: ThemeColor.circularBorderRadius,
             ),
           ),
-
-          // Header
+ 
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -438,8 +435,7 @@ class _SucursalesBottomSheet extends StatelessWidget {
             ),
           ),
           Divider(height: 1, color: ThemeColor.dividerColor),
-
-          // Info del producto
+ 
           Padding(
             padding: const EdgeInsets.all(ThemeColor.paddingMedium),
             child: Row(
@@ -470,8 +466,7 @@ class _SucursalesBottomSheet extends StatelessWidget {
             ),
           ),
           Divider(height: 1, color: ThemeColor.dividerColor),
-
-          // Contenido
+ 
           Obx(() {
             if (controller.isLoadingSucursales.value) {
               return const Padding(
@@ -500,8 +495,7 @@ class _SucursalesBottomSheet extends StatelessWidget {
 
             return Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                // Total general
+              children: [ 
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: ThemeColor.paddingMedium,
@@ -537,8 +531,7 @@ class _SucursalesBottomSheet extends StatelessWidget {
                   ),
                 ),
                 Divider(height: 1, color: ThemeColor.dividerColor),
-
-                // Lista de sucursales
+ 
                 ListView.separated(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -561,8 +554,7 @@ class _SucursalesBottomSheet extends StatelessWidget {
                                 color: ThemeColor.textPrimaryColor,
                               ),
                             ),
-                          ),
-                          // Precio
+                          ), 
                           Text(
                             '\$${sucursal.precio.toStringAsFixed(2)}',
                             style: ThemeColor.bodyMedium.copyWith(
@@ -570,7 +562,7 @@ class _SucursalesBottomSheet extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: ThemeColor.paddingSmall),
-                          // Disponible
+                 
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: ThemeColor.paddingSmall,

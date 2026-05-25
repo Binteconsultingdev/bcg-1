@@ -17,9 +17,7 @@ class QuoteModel extends QuoteEntity {
     required super.referencia,
     super.attn,
     super.cantidadProductos,
-    required super.productos,
-    super.envio,
-    super.embalaje,
+    required super.productos, 
   });
 
   factory QuoteModel.fromJson(Map<String, dynamic> json) {
@@ -42,9 +40,7 @@ class QuoteModel extends QuoteEntity {
       productos: (json['productos'] as List<dynamic>?)
               ?.map((e) => ProductoModel.fromJson(e))
               .toList() ??
-          [],
-      envio: json['envio'],
-      embalaje: json['embalaje'],
+          [], 
     );
   }
 
@@ -67,8 +63,7 @@ class QuoteModel extends QuoteEntity {
       cantidadProductos: entity.cantidadProductos,
       productos:
           entity.productos.map((e) => ProductoModel.fromEntity(e)).toList(),
-      envio: entity.envio,
-      embalaje: entity.embalaje,
+    
     );
   }
 
@@ -90,8 +85,7 @@ class QuoteModel extends QuoteEntity {
       'attn': attn,
       'cantidadProductos': cantidadProductos,
       'productos': productos.map((e) => (e as ProductoModel).toJson()).toList(),
-      'envio': envio,
-      'embalaje': embalaje,
+      
     };
   }
 }

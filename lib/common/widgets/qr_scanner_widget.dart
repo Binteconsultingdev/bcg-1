@@ -1,6 +1,6 @@
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
-import 'package:bcg/features/sales/presentation/controller/create_sales_controller.dart'; // si aplica
+import 'package:bcg/features/sales/presentation/controller/create_sales_controller.dart'; 
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:get/get.dart';
@@ -28,8 +28,7 @@ class QRScannerWidget extends StatelessWidget {
   });
 
   dynamic get _controller {
-    if (controller != null) return controller;
-    // Intenta encontrar cualquier controller registrado que implemente el mixin
+    if (controller != null) return controller; 
     try {
       return Get.find<CreateQuoteController>();
     } catch (_) {}
@@ -56,8 +55,7 @@ class QRScannerWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // ── Handle ──────────────────────────────────────────────────────
+        children: [ 
           Center(
             child: Container(
               width: 40,
@@ -69,8 +67,7 @@ class QRScannerWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-
-          // ── Título ───────────────────────────────────────────────────────
+ 
           Text(
             _getTitle(scannerController, title),
             style: const TextStyle(
@@ -83,8 +80,7 @@ class QRScannerWidget extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-
-          // ── Descripción ──────────────────────────────────────────────────
+ 
           Text(
             _getDescription(scannerController, description),
             style: const TextStyle(
@@ -95,16 +91,14 @@ class QRScannerWidget extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-
-          // ── Cámara ───────────────────────────────────────────────────────
+ 
           SizedBox(
             height: 300,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Stack(
                 alignment: Alignment.center,
-                children: [
-                  // Vista de cámara
+                children: [ 
                   Obx(() {
                     final scannerCtrl =
                         _getQRScannerController(scannerController);
@@ -162,8 +156,7 @@ class QRScannerWidget extends StatelessWidget {
                       },
                     );
                   }),
-
-                  // Marco exterior
+ 
                   Container(
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -171,8 +164,7 @@ class QRScannerWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-
-                  // Marco de escaneo
+ 
                   Container(
                     height: 200,
                     width: 200,
@@ -181,8 +173,7 @@ class QRScannerWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-
-                  // Línea animada
+ 
                   ScannerAnimation(
                     width: 180,
                     color: ThemeColor.colorAccionButtons,
@@ -193,8 +184,7 @@ class QRScannerWidget extends StatelessWidget {
           ),
 
           const SizedBox(height: 20),
-
-          // ── Hint ─────────────────────────────────────────────────────────
+ 
           const Text(
             'Coloca el código QR dentro del marco y mantén estable el dispositivo',
             style: TextStyle(
@@ -206,8 +196,7 @@ class QRScannerWidget extends StatelessWidget {
           ),
 
           const SizedBox(height: 20),
-
-          // ── Botones linterna / cámara ─────────────────────────────────────
+ 
           Row(
             children: [
               Expanded(
@@ -250,8 +239,7 @@ class QRScannerWidget extends StatelessWidget {
           ),
 
           const SizedBox(height: 16),
-
-          // ── Cancelar ─────────────────────────────────────────────────────
+ 
           TextButton(
             onPressed: scannerController.detenerEscaneoQR,
             child: const Text(
@@ -266,15 +254,12 @@ class QRScannerWidget extends StatelessWidget {
       ),
     );
   }
-
-  // ── Helpers ──────────────────────────────────────────────────────────────
+ 
 
   String _getTitle(dynamic controller, String? customTitle) {
     if (customTitle != null) return customTitle;
     if (controller is CreateQuoteController) return 'ESCANEAR PRODUCTO';
-    // Agrega aquí otros controllers si los necesitas:
-    // if (controller is ExitController) return 'ESCANEAR PARA SALIDA';
-    // if (controller is ProductosController) return 'ESCANEAR PARA ENTRADA';
+     
     return 'ESCANEAR QR DE PRODUCTO';
   }
 
@@ -305,8 +290,7 @@ class QRScannerWidget extends StatelessWidget {
     }
   }
 }
-
-// ── Animación de línea de escaneo ─────────────────────────────────────────
+ 
 
 class ScannerAnimation extends StatefulWidget {
   final double width;

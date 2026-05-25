@@ -860,8 +860,7 @@ class _TotalsSection extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            // Opciones rápidas
+            const SizedBox(height: 8), 
             Wrap(
               spacing: 8,
               runSpacing: 8,

@@ -18,7 +18,7 @@ import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.da
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 class EditQuoteItem {
-  final int? productId; // 👈 nuevo
+  final int? productId;  
   final RxString codigo;
   final RxString descripcion;
   final RxDouble precio;
@@ -31,7 +31,7 @@ class EditQuoteItem {
   int prioridad;
 
   EditQuoteItem({
-    this.productId, // 👈 nuevo
+    this.productId,  
     required String codigo,
     required String descripcion,
     required double precio,
@@ -55,7 +55,7 @@ class EditQuoteItem {
 
   factory EditQuoteItem.fromInventory(InventoryEntity product, int index) {
     return EditQuoteItem(
-      productId: product.id, // 👈
+      productId: product.id,  
       codigo: product.partNumber ?? '',
       descripcion: product.description ?? '',
       precio: (product.price ?? 0).toDouble(),
@@ -71,7 +71,7 @@ class EditQuoteItem {
 
   factory EditQuoteItem.fromProductoEntity(ProductoEntity p) {
     return EditQuoteItem(
-      productId: (p.id != null && p.id != 0) ? p.id : null, // 👈 filtra id=0
+      productId: (p.id != null && p.id != 0) ? p.id : null,
       codigo: p.codigo,
       descripcion: p.descripcion,
       precio: p.precio,
@@ -162,12 +162,10 @@ void onInit() {
   Get.find<ClientSearchController>().showResults.value = false;
   Get.find<ClientSearchController>().manuallyClosed = true;
 
-  // Re-valida al cambiar tipo de precio
   ever(selectedPriceType, (_) => validateCart());
 }
 
 Future<void> validateCart() async {
-  // Solo items con productId válido (no null, no 0)
   final validItems = items
       .where((i) => i.productId != null && i.productId! > 0)
       .toList();
@@ -195,7 +193,6 @@ Future<void> validateCart() async {
       ),
     );
 
-    // Actualiza precio en cada item que tenga respuesta
     for (final r in response.items) {
       final match = items.firstWhereOrNull(
         (i) => i.productId == r.productid,
@@ -231,7 +228,7 @@ Future<void> loadQuote(int id) async {
     errorMessage.value = '';
     final quote = await fetchQuotesByidUsecase.call(id);
     _populateFromEntity(quote);
-    await validateCart(); // 👈
+    await validateCart();
   } catch (e) {
     errorMessage.value = 'Error al cargar cotización: $e';
     showErrorSnackbar('Error al cargar cotización');
@@ -295,11 +292,11 @@ void addProduct(InventoryEntity product) {
     items.add(EditQuoteItem.fromInventory(product, items.length + 1));
   }
   Get.find<ProductSearchController>().clearSearch();
-  validateCart(); // 👈
+  validateCart();
 }
 void removeItem(EditQuoteItem item) {
   items.remove(item);
-  validateCart(); // 👈
+  validateCart(); 
 }
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
@@ -389,8 +386,7 @@ void removeItem(EditQuoteItem item) {
 await validateCart();
       await putQuotesUsecase.call(id, entity);
       await _quotesCtrl.fetchQuotes();
-
-      // 👇 Abre el PDF automáticamente al guardar
+ 
       await generateAndOpenPdf(context);
     } catch (e) {
       errorMessage.value = 'Error al guardar: $e';

@@ -360,7 +360,7 @@ class _CotizacionTile extends StatelessWidget {
     case 'vendida':
       return ThemeColor.successColor;
     case 'vencida':
-      return ThemeColor.warningColor; // o el color que uses para advertencia
+      return ThemeColor.warningColor; 
     case 'generada':
       return ThemeColor.infoColor;
     default:
@@ -418,8 +418,7 @@ class _CotizacionTile extends StatelessWidget {
             
             Column(
   crossAxisAlignment: CrossAxisAlignment.end,
-  children: [
-    // Badge de status
+  children: [ 
     Container(
       padding: const EdgeInsets.symmetric(
         horizontal: ThemeColor.paddingSmall + 2,
@@ -443,8 +442,7 @@ class _CotizacionTile extends StatelessWidget {
         ),
       ),
     ),
-    const SizedBox(height: 6),
-    // Botón PDF
+    const SizedBox(height: 6), 
     Obx(() {
       final isLoading = Get.find<PdfController>().isLoadingPdf.value;
       return GestureDetector(

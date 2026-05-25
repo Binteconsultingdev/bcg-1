@@ -3,11 +3,7 @@ import 'package:bcg/common/controller/product_search_controller.dart';
 import 'package:bcg/common/widgets/product_thumbnail.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
-// ── Campo de búsqueda ─────────────────────────────────────────────────────────
-
-// ── Resultados ────────────────────────────────────────────────────────────────
+import 'package:get/get.dart'; 
 
 class ProductSearchResults extends StatelessWidget {
   final Function(InventoryEntity) onSelected;

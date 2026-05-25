@@ -1108,8 +1108,7 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge + bottomPadding,
       ),
-      child: Obx(() {
-        // — Venta ya creada: mostrar Cerrar + Ver PDF —
+      child: Obx(() { 
         if (ctrl.createdSaleId.value != null) {
           return Row(
             children: [
@@ -1144,8 +1143,7 @@ class _BottomButton extends StatelessWidget {
             ],
           );
         }
-
-        // — Aún no creada: botón Crear Venta —
+ 
         final blocked = ctrl.hasOutOfStockItems;
         return AnimatedOpacity(
           opacity: blocked ? 0.5 : 1.0,

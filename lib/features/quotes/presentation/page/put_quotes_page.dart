@@ -85,8 +85,7 @@ class EditQuotePage extends StatelessWidget {
   static Widget _sectionGap() =>
       Container(height: 8, color: ThemeColor.backgroundColor);
 }
-
-// ─── AppBar ───────────────────────────────────────────────────────────────────
+ 
 
 class _AppBar extends StatelessWidget implements PreferredSizeWidget {
   final PutQuotesController ctrl;
@@ -132,8 +131,7 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
-
-// ─── Top Section ──────────────────────────────────────────────────────────────
+  
 
 class _TopSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -282,8 +280,7 @@ class _PriceBottomSheet extends StatelessWidget {
     );
   }
 }
-
-// ─── Product List ─────────────────────────────────────────────────────────────
+ 
 
 class _ProductList extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -327,8 +324,7 @@ class _ProductList extends StatelessWidget {
     });
   }
 }
-
-// ─── Totals Section ───────────────────────────────────────────────────────────
+ 
 
 class _TotalsSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -350,8 +346,7 @@ class _TotalsSection extends StatelessWidget {
               value: '\$${ctrl.subtotal.toStringAsFixed(2)}',
             ),
             const SizedBox(height: 6),
-
-            // ── Descuento global ────────────────────────────────────────
+ 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -380,8 +375,7 @@ class _TotalsSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-
-            // ── IVA con switch ──────────────────────────────────────────
+ 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -405,8 +399,7 @@ class _TotalsSection extends StatelessWidget {
             ),
 
             Divider(height: 20, color: ThemeColor.dividerColor),
-
-            // ── Precios validados por backend ───────────────────────────
+ 
             if (ctrl.isValidatingCart.value)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -430,8 +423,7 @@ class _TotalsSection extends StatelessWidget {
                   ],
                 ),
               ),
-
-            // ── Total final ─────────────────────────────────────────────
+ 
             _TotalRow(
               label: 'Total a pagar',
               value: '\$${ctrl.totalToPay.toStringAsFixed(2)}',
@@ -673,8 +665,7 @@ class _TotalsSection extends StatelessWidget {
     );
   }
 }
-
-// ─── Total Row ────────────────────────────────────────────────────────────────
+ 
 
 class _TotalRow extends StatelessWidget {
   final String label;
@@ -700,9 +691,7 @@ class _TotalRow extends StatelessWidget {
     );
   }
 }
-
-// ─── Valid Until Section ──────────────────────────────────────────────────────
-
+ 
 class _ValidUntilSection extends StatelessWidget {
   final PutQuotesController ctrl;
   const _ValidUntilSection({required this.ctrl});
@@ -759,8 +748,7 @@ class _ValidUntilSection extends StatelessWidget {
       '${d.month.toString().padLeft(2, '0')}/'
       '${d.year}';
 }
-
-// ─── Comments Section ─────────────────────────────────────────────────────────
+ 
 
 class _CommentsSection extends StatelessWidget {
   final PutQuotesController ctrl;
@@ -815,8 +803,7 @@ class _CommentsSection extends StatelessWidget {
     );
   }
 }
-
-// ─── Bottom Button ────────────────────────────────────────────────────────────
+ 
 
 class _BottomButton extends StatelessWidget {
   final PutQuotesController ctrl;

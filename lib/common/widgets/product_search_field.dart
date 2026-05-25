@@ -4,8 +4,7 @@ import 'package:bcg/common/widgets/product_thumbnail.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-// ── Campo de búsqueda ─────────────────────────────────────────────────────────
+ 
 class ProductSearchField extends StatelessWidget {
   final Function(InventoryEntity) onSelected;
   const ProductSearchField({required this.onSelected});
@@ -24,6 +23,4 @@ class ProductSearchField extends StatelessWidget {
       onClear: ctrl.clearSearch,
     ));
   }
-}
-
-// ── Resultados ────────────────────────────────────────────────────────────────
+} 

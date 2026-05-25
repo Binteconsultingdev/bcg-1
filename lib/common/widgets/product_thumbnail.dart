@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class ProductThumbnail extends StatelessWidget {
   final String? imageUrl;
   final double size;
-  final String? localPath; // 👈 nuevo
+  final String? localPath;  
 
   const ProductThumbnail({
     super.key,
@@ -31,8 +31,7 @@ class ProductThumbnail extends StatelessWidget {
     );
   }
 
-  Widget _buildImage() {
-    // Primero local, luego red, luego placeholder
+  Widget _buildImage() { 
     if (localPath != null && localPath!.isNotEmpty) {
       return Image.file(
         File(localPath!),

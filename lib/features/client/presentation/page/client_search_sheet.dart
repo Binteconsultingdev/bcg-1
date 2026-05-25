@@ -23,8 +23,7 @@ class ClientSearchSheetState extends State<ClientSearchSheet> {
 
   @override
   void initState() {
-    super.initState();
-    // Carga inicial sin filtro
+    super.initState(); 
     widget.clientCtrl.fetchClients();
   }
 
@@ -49,8 +48,7 @@ class ClientSearchSheetState extends State<ClientSearchSheet> {
         ),
       ),
       child: Column(
-        children: [
-          // Handle
+        children: [ 
           Container(
             margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
             width: 40,
@@ -59,8 +57,7 @@ class ClientSearchSheetState extends State<ClientSearchSheet> {
               color: ThemeColor.dividerColor,
               borderRadius: ThemeColor.circularBorderRadius,
             ),
-          ),
-          // Header
+          ), 
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -83,7 +80,7 @@ class ClientSearchSheetState extends State<ClientSearchSheet> {
             ),
           ),
           Divider(height: 1, color: ThemeColor.dividerColor),
-          // Buscador
+         
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -115,7 +112,7 @@ class ClientSearchSheetState extends State<ClientSearchSheet> {
               ),
             ),
           ),
-          // Lista
+       
           Expanded(
             child: Obx(() {
               if (widget.clientCtrl.isLoading.value) {
