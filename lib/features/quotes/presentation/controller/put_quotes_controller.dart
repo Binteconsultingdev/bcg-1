@@ -17,8 +17,9 @@ import 'package:bcg/features/quotes/presentation/controller/quotes_controller.da
 import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 class EditQuoteItem {
-  final int? productId;  
+  final int? productId;
   final RxString codigo;
   final RxString descripcion;
   final RxDouble precio;
@@ -31,7 +32,7 @@ class EditQuoteItem {
   int prioridad;
 
   EditQuoteItem({
-    this.productId,  
+    this.productId,
     required String codigo,
     required String descripcion,
     required double precio,
@@ -42,11 +43,11 @@ class EditQuoteItem {
     required this.url,
     required this.disponible,
     required this.prioridad,
-  })  : codigo = codigo.obs,
-        descripcion = descripcion.obs,
-        precio = precio.obs,
-        quantity = quantity.obs,
-        descuento = descuento.obs;
+  }) : codigo = codigo.obs,
+       descripcion = descripcion.obs,
+       precio = precio.obs,
+       quantity = quantity.obs,
+       descuento = descuento.obs;
 
   RxDouble get totalRx => total.obs;
   double get subtotal => precio.value * quantity.value;
@@ -55,7 +56,7 @@ class EditQuoteItem {
 
   factory EditQuoteItem.fromInventory(InventoryEntity product, int index) {
     return EditQuoteItem(
-      productId: product.id,  
+      productId: product.id,
       codigo: product.partNumber ?? '',
       descripcion: product.description ?? '',
       precio: (product.price ?? 0).toDouble(),
@@ -84,6 +85,12 @@ class EditQuoteItem {
       prioridad: p.prioridad,
     );
   }
+  final RxnString localImagePath = RxnString();
+
+  bool get isCustom =>
+      codigo.value == 'CUSTOM' ||
+      (productId == null && codigo.value != 'ARTEMP01' && codigo.value != 'ARTENV01');
+
 }
 
 class PutQuotesController extends GetxController {
@@ -120,11 +127,21 @@ class PutQuotesController extends GetxController {
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
 
-final isValidatingCart = false.obs;
-final validatedPriceWithoutVAT = Rxn<double>();
-final validatedPriceWithVAT = Rxn<double>();
+  final isValidatingCart = false.obs;
+  final validatedPriceWithoutVAT = Rxn<double>();
+  final validatedPriceWithVAT = Rxn<double>();
 
   final items = <EditQuoteItem>[].obs;
+  final selectedShippingOptions = <String>{}.obs;
+  final selectedPackagePercent = Rxn<double>();
+  final envio = Rxn<double>();
+
+  double get embalajeAmount {
+    if (!selectedShippingOptions.contains('paquete')) return 0.0;
+    final pct = selectedPackagePercent.value;
+    if (pct == null) return 0.0;
+    return subtotal * (pct / 100);
+  }
 
   final commentsCtrl = TextEditingController();
   final globalDiscountCtrl = TextEditingController();
@@ -148,68 +165,68 @@ final validatedPriceWithVAT = Rxn<double>();
 
   double get ivaAmount =>
       includeIva.value ? (subtotal - globalDiscount.value) * 0.16 : 0.0;
-  double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
+  double get totalToPay =>
+      subtotal - globalDiscount.value + ivaAmount + (envio.value ?? 0.0);
 
-@override
-void onInit() {
-  super.onInit();
-  final args = Get.arguments;
-  if (args != null && args['idQuote'] != null) {
-    loadQuote(args['idQuote'] as int);
-  }
-
-  Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
-  Get.find<ClientSearchController>().showResults.value = false;
-  Get.find<ClientSearchController>().manuallyClosed = true;
-
-  ever(selectedPriceType, (_) => validateCart());
-}
-
-Future<void> validateCart() async {
-  final validItems = items
-      .where((i) => i.productId != null && i.productId! > 0)
-      .toList();
-
-  if (validItems.isEmpty) {
-    validatedPriceWithoutVAT.value = null;
-    validatedPriceWithVAT.value = null;
-    return;
-  }
-
-  try {
-    isValidatingCart.value = true;
-
-    final response = await validateCartUsecase.call(
-      PostValidateCartEntity(
-        pricetype: selectedPriceType.value,
-        items: validItems
-            .map(
-              (i) => PostItemValidateCartEntity(
-                productid: i.productId!,
-                quantity: i.quantity.value.toInt(),
-              ),
-            )
-            .toList(),
-      ),
-    );
-
-    for (final r in response.items) {
-      final match = items.firstWhereOrNull(
-        (i) => i.productId == r.productid,
-      );
-      if (match != null) {
-        match.precio.value = r.newPrice;
-      }
+  @override
+  void onInit() {
+    super.onInit();
+    final args = Get.arguments;
+    if (args != null && args['idQuote'] != null) {
+      loadQuote(args['idQuote'] as int);
     }
 
-    validatedPriceWithoutVAT.value = response.priceWithoutVAT;
-    validatedPriceWithVAT.value = response.priceWithVAT;
-  } catch (e) {
-    debugPrint('validateCart error: $e');
-  } finally {
-    isValidatingCart.value = false;
+    Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
+    Get.find<ClientSearchController>().showResults.value = false;
+    Get.find<ClientSearchController>().manuallyClosed = true;
+
+    ever(selectedPriceType, (_) => validateCart());
   }
-}
+
+  Future<void> validateCart() async {
+    final validItems = items
+        .where((i) => i.productId != null && i.productId! > 0)
+        .toList();
+
+    if (validItems.isEmpty) {
+      validatedPriceWithoutVAT.value = null;
+      validatedPriceWithVAT.value = null;
+      return;
+    }
+
+    try {
+      isValidatingCart.value = true;
+
+      final response = await validateCartUsecase.call(
+        PostValidateCartEntity(
+          pricetype: selectedPriceType.value,
+          items: validItems
+              .map(
+                (i) => PostItemValidateCartEntity(
+                  productid: i.productId!,
+                  quantity: i.quantity.value.toInt(),
+                ),
+              )
+              .toList(),
+        ),
+      );
+
+      for (final r in response.items) {
+        final match = items.firstWhereOrNull((i) => i.productId == r.productid);
+        if (match != null) {
+          match.precio.value = r.newPrice;
+        }
+      }
+
+      validatedPriceWithoutVAT.value = response.priceWithoutVAT;
+      validatedPriceWithVAT.value = response.priceWithVAT;
+    } catch (e) {
+      debugPrint('validateCart error: $e');
+    } finally {
+      isValidatingCart.value = false;
+    }
+  }
+
   void onFreeTextClient(String value) {
     clienteName.value = value;
   }
@@ -221,22 +238,38 @@ Future<void> validateCart() async {
     Get.find<ClientSearchController>().searchCtrl.text = name;
   }
 
-Future<void> loadQuote(int id) async {
-  try {
-    quoteId.value = id;
-    isLoadingQuote.value = true;
-    errorMessage.value = '';
-    final quote = await fetchQuotesByidUsecase.call(id);
-    _populateFromEntity(quote);
-    await validateCart();
-  } catch (e) {
-    errorMessage.value = 'Error al cargar cotización: $e';
-    showErrorSnackbar('Error al cargar cotización');
-  } finally {
-    isLoadingQuote.value = false;
+  Future<void> loadQuote(int id) async {
+    try {
+      quoteId.value = id;
+      isLoadingQuote.value = true;
+      errorMessage.value = '';
+      final quote = await fetchQuotesByidUsecase.call(id);
+      _populateFromEntity(quote);
+      await validateCart();
+    } catch (e) {
+      errorMessage.value = 'Error al cargar cotización: $e';
+      showErrorSnackbar('Error al cargar cotización');
+    } finally {
+      isLoadingQuote.value = false;
+    }
   }
-}
 
+  void toggleShippingOption(String option) {
+    if (selectedShippingOptions.contains(option)) {
+      selectedShippingOptions.remove(option);
+      if (option == 'paquete') {
+        selectedPackagePercent.value = null;
+        items.removeWhere((i) => i.codigo.value == 'ARTEMP01');
+      }
+      if (option == 'envio') {
+        envio.value = null;
+        items.removeWhere((i) => i.codigo.value == 'ARTENV01');
+      }
+    } else {
+      selectedShippingOptions.add(option);
+      if (option == 'envio') envio.value = 0.0;
+    }
+  }
 
   void _populateFromEntity(QuoteEntity quote) {
     folio.value = quote.folio;
@@ -252,10 +285,34 @@ Future<void> loadQuote(int id) async {
     final desc = double.tryParse(quote.descuento) ?? 0;
     globalDiscount.value = desc;
     if (desc > 0) globalDiscountCtrl.text = desc.toStringAsFixed(2);
+  
+    selectedShippingOptions.clear();
+    selectedPackagePercent.value = null;
+    envio.value = null;
 
     items.assignAll(
       quote.productos.map((p) => EditQuoteItem.fromProductoEntity(p)).toList(),
     );
+
+    final embalajeItem = items.firstWhereOrNull(
+      (i) => i.codigo.value == 'ARTEMP01',
+    );
+    if (embalajeItem != null) {
+      selectedShippingOptions.add('paquete');
+      final match = RegExp(
+        r'\((\d+\.?\d*)%\)',
+      ).firstMatch(embalajeItem.descripcion.value);
+      if (match != null) {
+        selectedPackagePercent.value = double.tryParse(match.group(1) ?? '');
+      }
+    }
+    final envioItem = items.firstWhereOrNull(
+      (i) => i.codigo.value == 'ARTENV01',
+    );
+    if (envioItem != null) {
+      selectedShippingOptions.add('envio');
+      envio.value = envioItem.precio.value > 0 ? envioItem.precio.value : 0.0;
+    }
 
     final clientSearch = Get.find<ClientSearchController>();
     clientSearch.searchCtrl.text = quote.cliente;
@@ -278,26 +335,28 @@ Future<void> loadQuote(int id) async {
     );
   }
 
-void addProduct(InventoryEntity product) {
-  if ((product.price ?? 0) <= 0) {
-    showErrorSnackbar('Este producto no tiene precio asignado');
-    return;
+  void addProduct(InventoryEntity product) {
+    if ((product.price ?? 0) <= 0) {
+      showErrorSnackbar('Este producto no tiene precio asignado');
+      return;
+    }
+    final existing = items.firstWhereOrNull(
+      (i) => i.codigo.value == (product.partNumber ?? ''),
+    );
+    if (existing != null) {
+      existing.quantity.value++;
+    } else {
+      items.add(EditQuoteItem.fromInventory(product, items.length + 1));
+    }
+    Get.find<ProductSearchController>().clearSearch();
+    validateCart();
   }
-  final existing = items.firstWhereOrNull(
-    (i) => i.codigo.value == (product.partNumber ?? ''),
-  );
-  if (existing != null) {
-    existing.quantity.value++;
-  } else {
-    items.add(EditQuoteItem.fromInventory(product, items.length + 1));
+
+  void removeItem(EditQuoteItem item) {
+    items.remove(item);
+    validateCart();
   }
-  Get.find<ProductSearchController>().clearSearch();
-  validateCart();
-}
-void removeItem(EditQuoteItem item) {
-  items.remove(item);
-  validateCart(); 
-}
+
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
       globalDiscountType.value = 'porcentaje';
@@ -355,6 +414,82 @@ void removeItem(EditQuoteItem item) {
       isSaving.value = true;
       errorMessage.value = '';
 
+      await validateCart();
+ 
+      final productosBase = items
+          .where(
+            (i) => i.codigo.value != 'ARTEMP01' && i.codigo.value != 'ARTENV01',
+          )
+          .toList();
+
+      final List<ProductoEntity> productos = productosBase.asMap().entries.map((
+        entry,
+      ) {
+        final i = entry.value;
+        return ProductoEntity(
+          codigo: i.codigo.value,
+          descripcion: i.descripcion.value,
+          disponible: i.disponible,
+          unidad: i.unidad,
+          precio: i.precio.value,
+          cantidad: i.quantity.value,
+          importe: i.total,
+          iva: (i.total * 0.16).toStringAsFixed(2),
+          claveSat: i.claveSat,
+          url: i.url,
+          descuento: i.discountAmount,
+          prioridad: entry.key + 1,
+        );
+      }).toList();
+ 
+      if (selectedShippingOptions.contains('paquete') &&
+          selectedPackagePercent.value != null) {
+        final subtotalBase = productosBase.fold(0.0, (s, i) => s + i.total);
+        final monto = subtotalBase * (selectedPackagePercent.value! / 100);
+        if (monto > 0) {
+          productos.add(
+             ProductoEntity(
+          codigo: 'ARTEMP01',
+          descripcion:
+              'EMPAQUE Y EMBALAJE (${selectedPackagePercent.value!.toString().replaceAll('.0', '')}%)',
+          disponible: 0,
+          unidad: 'UNIDAD DE SERVICIO',
+          precio: embalajeAmount,
+          cantidad: 1,
+          importe: embalajeAmount,
+          iva: '0.00',
+          claveSat: '',
+          url: 'https://web.whatsapp.com"https://sgp-web.nyc3.digitaloceanspaces.com/sgp-web/Stown/Productos/PT_16042605083190',
+          descuento: 0,
+          prioridad: productos.length + 1,
+        ),
+          );
+        }
+      }
+ 
+      if (selectedShippingOptions.contains('envio')) {
+      
+        final costoEnvio = envio.value ?? 0.0;
+        productos.add(
+          ProductoEntity(
+          codigo: 'ARTENV01',
+          descripcion: costoEnvio > 0
+              ? 'COSTO DE ENVÍO'
+              : 'COSTO DE ENVIO PENDIENTE',
+          disponible: 0,
+          unidad: 'UNIDAD DE SERVICIO',
+          precio: costoEnvio,
+          cantidad: 1,
+          importe: costoEnvio,
+          iva: '0.00',
+          claveSat: '',
+          url: 'https://web.whatsapp.com"https://sgp-web.nyc3.digitaloceanspaces.com/sgp-web/Stown/Productos/PT_16042605083190',
+          descuento: 0,
+          prioridad: productos.length + 1,
+        ),
+        );
+      }
+
       final entity = QuoteEntity(
         folio: folio.value,
         cliente: clienteName.value.trim(),
@@ -365,28 +500,11 @@ void removeItem(EditQuoteItem item) {
         diasEnt: validUntil.value.difference(DateTime.now()).inDays,
         comentarios: commentsCtrl.text.trim(),
         referencia: '',
-        productos: items.asMap().entries.map((entry) {
-          final i = entry.value;
-          return ProductoEntity(
-            codigo: i.codigo.value,
-            descripcion: i.descripcion.value,
-            disponible: i.disponible,
-            unidad: i.unidad,
-            precio: i.precio.value,
-            cantidad: i.quantity.value,
-            importe: i.total,
-            iva: (i.total * 0.16).toStringAsFixed(2),
-            claveSat: i.claveSat,
-            url: i.url,
-            descuento: i.discountAmount,
-            prioridad: entry.key + 1,
-          );
-        }).toList(),
+        productos: productos,
       );
-await validateCart();
+
       await putQuotesUsecase.call(id, entity);
       await _quotesCtrl.fetchQuotes();
- 
       await generateAndOpenPdf(context);
     } catch (e) {
       errorMessage.value = 'Error al guardar: $e';
@@ -419,7 +537,228 @@ await validateCart();
       _pdfCtrl.isLoadingPdf.value = false;
     }
   }
+void showItemDiscountDialog(BuildContext context, EditQuoteItem item) {
+  final RxDouble tempDiscount = item.descuento.value.obs;
 
+  Get.dialog(
+    Obx(
+      () => AlertDialog(
+        backgroundColor: ThemeColor.surfaceColor,
+        title: Text('Descuento del producto', style: ThemeColor.headingSmall),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.descripcion.value,
+              style: ThemeColor.bodySmall.copyWith(
+                color: ThemeColor.textSecondaryColor,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Selecciona un porcentaje',
+              style: ThemeColor.bodySmall.copyWith(
+                color: ThemeColor.textSecondaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
+                final isSelected = tempDiscount.value == pct.toDouble();
+                return GestureDetector(
+                  onTap: () => tempDiscount.value = pct.toDouble(),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? ThemeColor.primaryColor
+                          : ThemeColor.backgroundColor,
+                      borderRadius: ThemeColor.circularBorderRadius,
+                      border: Border.all(
+                        color: isSelected
+                            ? ThemeColor.primaryColor
+                            : ThemeColor.dividerColor,
+                      ),
+                    ),
+                    child: Text(
+                      pct == 0 ? 'Sin desc.' : '$pct%',
+                      style: ThemeColor.bodySmall.copyWith(
+                        color: isSelected
+                            ? Colors.white
+                            : ThemeColor.textPrimaryColor,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            if (tempDiscount.value > 0)
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: ThemeColor.errorColor.withOpacity(0.07),
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Descuento ${tempDiscount.value.toInt()}%',
+                      style: ThemeColor.bodySmall.copyWith(
+                          color: ThemeColor.errorColor),
+                    ),
+                    Text(
+                      '-\$${(item.subtotal * (tempDiscount.value / 100)).toStringAsFixed(2)}',
+                      style: ThemeColor.bodySmall.copyWith(
+                        color: ThemeColor.errorColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar',
+                style: TextStyle(color: ThemeColor.textSecondaryColor)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeColor.primaryColor),
+            onPressed: () {
+              item.descuento.value = tempDiscount.value;
+              items.refresh();
+              Get.back();
+            },
+            child: const Text('Aplicar'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void showEditCustomProductDialog(BuildContext context, EditQuoteItem item) {
+  final descCtrl = TextEditingController(text: item.descripcion.value);
+  final costoCtrl = TextEditingController(
+      text: item.precio.value.toStringAsFixed(2));
+  final cantCtrl = TextEditingController(
+    text: item.quantity.value % 1 == 0
+        ? item.quantity.value.toInt().toString()
+        : item.quantity.value.toString(),
+  );
+
+  Get.dialog(
+    AlertDialog(
+      backgroundColor: ThemeColor.surfaceColor,
+      title: Text('Editar producto', style: ThemeColor.headingSmall),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: descCtrl,
+            textCapitalization: TextCapitalization.sentences,
+            style: ThemeColor.bodyMedium,
+            decoration: InputDecoration(
+              labelText: 'Descripción',
+              border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+                borderSide: const BorderSide(
+                    color: ThemeColor.accentColor, width: 1.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: costoCtrl,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            style: ThemeColor.bodyMedium,
+            decoration: InputDecoration(
+              labelText: 'Precio unitario',
+              prefixText: '\$ ',
+              border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+                borderSide: const BorderSide(
+                    color: ThemeColor.accentColor, width: 1.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: cantCtrl,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            style: ThemeColor.bodyMedium,
+            decoration: InputDecoration(
+              labelText: 'Cantidad',
+              border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+                borderSide: const BorderSide(
+                    color: ThemeColor.accentColor, width: 1.5),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text('Cancelar',
+              style: TextStyle(color: ThemeColor.textSecondaryColor)),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeColor.primaryColor),
+          onPressed: () {
+            final desc = descCtrl.text.trim();
+            final costo = double.tryParse(costoCtrl.text) ?? 0;
+            final cant = double.tryParse(cantCtrl.text) ?? 1;
+            if (desc.isEmpty) {
+              showErrorSnackbar('Ingresa una descripción');
+              return;
+            }
+            if (costo <= 0) {
+              showErrorSnackbar('El costo debe ser mayor a 0');
+              return;
+            }
+            if (cant <= 0) {
+              showErrorSnackbar('La cantidad debe ser mayor a 0');
+              return;
+            }
+            item.descripcion.value = desc;
+            item.precio.value = costo;
+            item.quantity.value = cant;
+            items.refresh();
+            Get.back();
+          },
+          child: const Text('Guardar'),
+        ),
+      ],
+    ),
+  );
+}
   @override
   void onClose() {
     clienteController.dispose();

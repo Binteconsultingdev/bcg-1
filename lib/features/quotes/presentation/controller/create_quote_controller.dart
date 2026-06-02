@@ -10,9 +10,11 @@ import 'package:bcg/features/client/presentation/controller/client_controller.da
 import 'package:bcg/features/client/presentation/controller/client_search_controller.dart';
 import 'package:bcg/features/client/presentation/page/client_search_sheet.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_entity.dart';
+import 'package:bcg/features/quotes/domain/entities/quote_from_entity.dart';
 import 'package:bcg/features/quotes/domain/usecase/create_quotes_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/fetch_folio_usecase.dart';
 import 'package:bcg/features/quotes/domain/usecase/generate_pdf_usecase.dart';
+import 'package:bcg/features/quotes/domain/usecase/quote_from_usecase.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
 import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
 import 'package:flutter/material.dart';
@@ -84,13 +86,13 @@ class QuoteItem {
 }
 
 class CreateQuoteController extends GetxController {
-  final CreateQuotesUsecase createQuotesUsecase;
+  final QuoteFromUsecase quoteFromUsecase;
   final FetchFolioUsecase fetchFolioUsecase;
   final GeneratePdfUsecase generatePdfUsecase;
   final ValidateCartUsecase validateCartUsecase;
 
   CreateQuoteController({
-    required this.createQuotesUsecase,
+    required this.quoteFromUsecase,
     required this.fetchFolioUsecase,
     required this.generatePdfUsecase,
     required this.validateCartUsecase,
@@ -510,7 +512,7 @@ class CreateQuoteController extends GetxController {
     if (picked != null) validUntil.value = picked;
   }
 
-  Future<void> createQuote() async {
+Future<void> createQuote() async {
   if (clienteName.value.trim().isEmpty) {
     showErrorSnackbar('Selecciona un cliente para continuar');
     return;
@@ -543,7 +545,7 @@ class CreateQuoteController extends GetxController {
         prioridad: entry.key + 1,
       );
     }).toList();
- 
+
     if (selectedShippingOptions.contains('paquete') &&
         selectedPackagePercent.value != null &&
         embalajeAmount > 0) {
@@ -558,14 +560,14 @@ class CreateQuoteController extends GetxController {
           cantidad: 1,
           importe: embalajeAmount,
           iva: '0.00',
-          claveSat: '',
+          claveSat: '31181701',
           url: '',
           descuento: 0,
           prioridad: productos.length + 1,
         ),
       );
     }
- 
+
     if (selectedShippingOptions.contains('envio')) {
       final costoEnvio = envio.value ?? 0.0;
       productos.add(
@@ -580,15 +582,27 @@ class CreateQuoteController extends GetxController {
           cantidad: 1,
           importe: costoEnvio,
           iva: '0.00',
-          claveSat: '',
+          claveSat: '81141606',
           url: '',
           descuento: 0,
           prioridad: productos.length + 1,
         ),
       );
     }
+ 
+    final Map<String, String> imagenesMap = {};
+    for (final item in items) {
+      if (!item.isCustom &&
+          item.localImagePath.value != null &&
+          item.localImagePath.value!.isNotEmpty) {
+        final codigo = item.product!.partNumber ?? '';
+        if (codigo.isNotEmpty) {
+          imagenesMap[codigo] = item.localImagePath.value!;
+        }
+      }
+    }
 
-    final entity = QuoteEntity(
+    final entity = QuoteFromEntity(
       folio: folio.value,
       cliente: clienteName.value.trim(),
       total: totalToPay,
@@ -599,9 +613,10 @@ class CreateQuoteController extends GetxController {
       comentarios: commentsCtrl.text.trim(),
       referencia: referencia.value,
       productos: productos,
+      imagenes: imagenesMap.isNotEmpty ? imagenesMap : null,
     );
 
-    final response = await createQuotesUsecase.call(entity);
+    final response = await quoteFromUsecase.call(entity);
     createdQuoteId.value = response.id;
     await _quotesCtrl.fetchQuotes();
     await generateAndOpenPdf();

@@ -4,6 +4,7 @@ import 'package:bcg/features/quotes/domain/entities/folito_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/get_quote_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/post_validate_cart_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_entity.dart';
+import 'package:bcg/features/quotes/domain/entities/quote_from_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/quote_pdf_entity.dart';
 import 'package:bcg/features/quotes/domain/entities/response_create_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/response_validate_cart_entity.dart';
@@ -81,6 +82,12 @@ class QuotesRepositoryImp implements QuotesRepository {
         await authService.getToken() ??
         (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
     return await quotesDataSourcesImp.updateQuote(token, entity, id);
+  }
+
+  @override
+  Future<ResponseCreateEntity> createQuotefrom(QuoteFromEntity entity) async {
+    final token = await authService.getToken() ??  (throw ('No hay sesión activa. El usuario debe iniciar sesión.'));
+    return await quotesDataSourcesImp.createQuotefrom(entity, token);
   }
 
 }

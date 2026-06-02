@@ -51,6 +51,7 @@ class App extends StatelessWidget {
         Get.put(usecaseConfig.createQuotesUsecase! ,permanent: true);
         Get.put(usecaseConfig.fetchQuotesByidUsecase!, permanent: true);
         Get.put(usecaseConfig.putQuotesUsecase!, permanent: true);
+        Get.put(usecaseConfig.quoteFromUsecase!, permanent: true);
         Get.put(usecaseConfig.fetchQuoteUsecase!,permanent: true);
         Get.put(usecaseConfig.pointSalesUsecase!, permanent: true);
         Get.put(usecaseConfig.generateSalesUsecase!, permanent: true);
@@ -70,7 +71,7 @@ class App extends StatelessWidget {
         Get.lazyPut(() => InventoryController(fetchInventarioUsecase: Get.find(), fetchSubfamiliasUsecase: Get.find(), fetchFamiliasUsecase: Get.find(), fetchSucursalesUsecase: Get.find()),fenix: true);
         Get.lazyPut(() => SplashController(), fenix: true);
         Get.lazyPut(() => QuotesController(fetchQuoteUsecase: Get.find(), generatePdfUsecase: Get.find(),),fenix: true);
-        Get.lazyPut(() => CreateQuoteController(createQuotesUsecase: Get.find(), fetchFolioUsecase: Get.find(), generatePdfUsecase: Get.find(), validateCartUsecase: Get.find(),),fenix: true);
+        Get.lazyPut(() => CreateQuoteController(quoteFromUsecase: Get.find(), fetchFolioUsecase: Get.find(), generatePdfUsecase: Get.find(), validateCartUsecase: Get.find(),),fenix: true);
         Get.lazyPut(() => SalesController(pointSalesUsecase:Get.find(), generatePdfSales: Get.find()),fenix: true);
         Get.lazyPut(() => ClientController(fetchClientsUsecase:Get.find(), createClientUsecase: Get.find(), generateAccountStatementUsecase: Get.find()),fenix: true);
         Get.lazyPut(() => CreateSalesController(generateSalesUsecase:  Get.find(), fetchQuotesByidUsecase: Get.find(), fetchQuoteUsecase: Get.find(), generatePdfSales: Get.find()),fenix: true);

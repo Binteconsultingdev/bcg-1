@@ -121,7 +121,7 @@ Future<List<InventoryEntity>> fetchInventario(
         'Authorization': 'Bearer $token',
       },
     );
-
+print('🔍 URL de búsqueda: $url');
     if (response.statusCode == 200) {
       final dataUTF8 = utf8.decode(response.bodyBytes);
 
