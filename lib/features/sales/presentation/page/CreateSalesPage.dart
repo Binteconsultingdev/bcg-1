@@ -283,8 +283,7 @@ class _TopSection extends StatelessWidget {
             label: 'Producto',
             child: ProductSearchField(onSelected: ctrl.addProduct),
           ),
-          ProductSearchResults(onSelected: ctrl.addProduct),
-          // al final del Column en _TopSection, después de ProductSearchResults
+          ProductSearchResults(onSelected: ctrl.addProduct), 
 const SizedBox(height: 4),
 Column(
   children: [
