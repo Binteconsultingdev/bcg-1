@@ -1,10 +1,6 @@
 import 'package:bcg/common/theme/App_Theme.dart';
-import 'package:bcg/common/controller/product_search_controller.dart';
 import 'package:bcg/common/widgets/product_search_field.dart';
 import 'package:bcg/common/widgets/product_search_results.dart';
-import 'package:bcg/common/widgets/product_thumbnail.dart';
-import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
-import 'package:bcg/features/Inventory/presentation/controller/inventory_controller.dart';
 import 'package:bcg/features/client/presentation/page/client_search_field.dart';
 import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
 import 'package:bcg/features/sales/presentation/page/quote_product_item.dart';
@@ -189,7 +185,7 @@ class _TopSection extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Obx(
-                      () => _ShippingOptionCard(
+                      () => ShippingOptionCard(
                         icon: Icons.inventory_2_outlined,
                         label: 'Paquete y Embalaje',
                         isSelected: ctrl.selectedShippingOptions.contains(
@@ -202,7 +198,7 @@ class _TopSection extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Obx(
-                      () => _ShippingOptionCard(
+                      () => ShippingOptionCard(
                         icon: Icons.local_shipping_outlined,
                         label: 'Envío de Productos',
                         isSelected: ctrl.selectedShippingOptions.contains(
@@ -303,13 +299,13 @@ class _TopSection extends StatelessWidget {
   }
 }
 
-class _ShippingOptionCard extends StatelessWidget {
+class ShippingOptionCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _ShippingOptionCard({
+  const ShippingOptionCard({
     required this.icon,
     required this.label,
     required this.isSelected,
@@ -506,7 +502,8 @@ class _ProductList extends StatelessWidget {
                     item.quantity.value = v;
                     ctrl.validateCart();
                   },
-                  onEdit: item.isCustom  ? () => ctrl.showEditCustomProductDialog(context, item)
+                  onEdit: item.isCustom
+                      ? () => ctrl.showEditCustomProductDialog(context, item)
                       : null,
                   allowImageEdit: true,
                   onImageChanged: (path) => item.localImagePath.value = path,
@@ -860,7 +857,7 @@ class _TotalsSection extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 8), 
+            const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -1253,6 +1250,7 @@ class _CommentsSection extends StatelessWidget {
           const SizedBox(height: ThemeColor.paddingSmall),
           TextField(
             controller: ctrl.commentsCtrl,
+            maxLength: 500,
             maxLines: 4,
             style: ThemeColor.bodyMedium,
             decoration: InputDecoration(

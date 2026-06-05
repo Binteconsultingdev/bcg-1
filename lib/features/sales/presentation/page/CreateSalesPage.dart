@@ -3,6 +3,7 @@ import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/common/widgets/product_search_field.dart';
 import 'package:bcg/common/widgets/product_search_results.dart';
 import 'package:bcg/features/client/presentation/page/client_search_field.dart';
+import 'package:bcg/features/quotes/presentation/page/create_quote_page.dart';
 import 'package:bcg/features/sales/presentation/controller/create_sales_controller.dart';
 import 'package:bcg/features/sales/presentation/page/quote_product_item.dart';
 import 'package:flutter/material.dart';
@@ -283,6 +284,98 @@ class _TopSection extends StatelessWidget {
             child: ProductSearchField(onSelected: ctrl.addProduct),
           ),
           ProductSearchResults(onSelected: ctrl.addProduct),
+          // al final del Column en _TopSection, después de ProductSearchResults
+const SizedBox(height: 4),
+Column(
+  children: [
+    Row(
+      children: [
+        Expanded(
+          child: Obx(
+            () => ShippingOptionCard(
+              icon: Icons.inventory_2_outlined,
+              label: 'Paquete y Embalaje',
+              isSelected: ctrl.selectedShippingOptions.contains('paquete'),
+              onTap: () => ctrl.toggleShippingOption('paquete'),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Obx(
+            () => ShippingOptionCard(
+              icon: Icons.local_shipping_outlined,
+              label: 'Envío de Productos',
+              isSelected: ctrl.selectedShippingOptions.contains('envio'),
+              onTap: () => ctrl.toggleShippingOption('envio'),
+            ),
+          ),
+        ),
+      ],
+    ),
+    Obx(() {
+      if (!ctrl.selectedShippingOptions.contains('paquete')) {
+        return const SizedBox.shrink();
+      }
+      return AnimatedSize(
+        duration: const Duration(milliseconds: 200),
+        child: Container(
+          margin: const EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: ThemeColor.primaryColor.withOpacity(0.06),
+            borderRadius: ThemeColor.smallBorderRadius,
+            border: Border.all(color: ThemeColor.primaryColor.withOpacity(0.2)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Porcentaje de embalaje',
+                style: ThemeColor.bodySmall.copyWith(
+                  color: ThemeColor.textSecondaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Obx(
+                () => Row(
+                  children: [1.5, 2.0, 3.0].map((pct) {
+                    final isSelected = ctrl.selectedPackagePercent.value == pct;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () => ctrl.selectedPackagePercent.value = pct,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? ThemeColor.primaryColor : ThemeColor.surfaceColor,
+                            borderRadius: ThemeColor.circularBorderRadius,
+                            border: Border.all(
+                              color: isSelected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
+                            ),
+                          ),
+                          child: Text(
+                            '$pct%',
+                            style: ThemeColor.bodyMedium.copyWith(
+                              color: isSelected ? Colors.white : ThemeColor.textPrimaryColor,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }),
+  ],
+),
         ],
       ),
     );
@@ -634,6 +727,59 @@ class _TotalsSection extends StatelessWidget {
               ],
             ),
             Divider(height: 20, color: ThemeColor.dividerColor),
+            if (ctrl.selectedShippingOptions.contains('envio'))
+  Padding(
+    padding: const EdgeInsets.only(top: 6),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        GestureDetector(
+          onTap: () => _showEnvioDialog(context),
+          child: Row(
+            children: [
+              const Icon(Icons.local_shipping_outlined, size: 15, color: ThemeColor.primaryColor),
+              const SizedBox(width: 6),
+              Text('Costo de envío',
+                  style: ThemeColor.bodyMedium.copyWith(
+                      color: ThemeColor.primaryColor, fontWeight: FontWeight.w500)),
+              const SizedBox(width: 4),
+              const Icon(Icons.edit_outlined, size: 13, color: ThemeColor.primaryColor),
+            ],
+          ),
+        ),
+        Text(
+          ctrl.envio.value != null ? '\$${ctrl.envio.value!.toStringAsFixed(2)}' : '\$0.00',
+          style: ThemeColor.bodyMedium.copyWith(
+              color: ThemeColor.primaryColor, fontWeight: FontWeight.w600),
+        ),
+      ],
+    ),
+  ),
+if (ctrl.selectedShippingOptions.contains('paquete') && ctrl.selectedPackagePercent.value != null)
+  Padding(
+    padding: const EdgeInsets.only(top: 6),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.inventory_2_outlined, size: 15, color: ThemeColor.primaryColor),
+            const SizedBox(width: 6),
+            Text(
+              'Embalaje ${ctrl.selectedPackagePercent.value!.toString().replaceAll('.0', '')}%',
+              style: ThemeColor.bodyMedium.copyWith(
+                  color: ThemeColor.primaryColor, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+        Text(
+          '\$${ctrl.embalajeAmount.toStringAsFixed(2)}',
+          style: ThemeColor.bodyMedium.copyWith(
+              color: ThemeColor.primaryColor, fontWeight: FontWeight.w600),
+        ),
+      ],
+    ),
+  ),
             _TotalRow(
               label: 'Total a pagar',
               value: '\$${ctrl.totalToPay.toStringAsFixed(2)}',
@@ -641,6 +787,100 @@ class _TotalsSection extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEnvioDialog(BuildContext context) {
+    final envioCtrl = TextEditingController(
+      text: ctrl.envio.value != null && ctrl.envio.value! > 0
+          ? ctrl.envio.value!.toStringAsFixed(2)
+          : '',
+    );
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: ThemeColor.surfaceColor,
+        title: Text('Costo de envío', style: ThemeColor.headingSmall),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: envioCtrl,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                hintText: '0.00',
+                prefixText: '\$ ',
+                labelText: 'Monto de envío',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8), 
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [50, 100, 150, 200, 300, 500].map((monto) {
+                return GestureDetector(
+                  onTap: () {
+                    envioCtrl.text = monto.toString();
+                    envioCtrl.selection = TextSelection.fromPosition(
+                      TextPosition(offset: envioCtrl.text.length),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ThemeColor.backgroundColor,
+                      borderRadius: ThemeColor.circularBorderRadius,
+                      border: Border.all(color: ThemeColor.dividerColor),
+                    ),
+                    child: Text(
+                      '\$$monto',
+                      style: ThemeColor.bodySmall.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: ThemeColor.textSecondaryColor),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeColor.primaryColor,
+            ),
+            onPressed: () {
+              ctrl.envio.value = double.tryParse(envioCtrl.text) ?? 0.0;
+              Get.back();
+            },
+            child: const Text('Aplicar'),
+          ),
+        ],
       ),
     );
   }
@@ -1066,6 +1306,7 @@ class _CommentsSection extends StatelessWidget {
             controller: ctrl.commentsCtrl,
             maxLines: 4,
             style: ThemeColor.bodyMedium,
+              maxLength: 500,   
             decoration: InputDecoration(
               filled: true,
               fillColor: ThemeColor.surfaceColor,

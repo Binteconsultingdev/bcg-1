@@ -49,19 +49,15 @@ class CreateSalesController extends GetxController {
   final _authService = AuthService();
   late final _salesCtrl = Get.find<SalesController>();
   late final PdfController _pdfCtrl = Get.find<PdfController>();
-
-  // Getter para widgets
+ 
   bool get isLoadingPdf => _pdfCtrl.isLoadingPdf.value;
-
-  // — ID de la venta creada —
+ 
   final createdSaleId = Rxn<int>();
-
-  // — Cliente —
+ 
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<int>();
-
-  // — Config venta —
+ 
   final metodoEmbarque = 'CAMIONETA'.obs;
   final incIVA = true.obs;
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
@@ -95,11 +91,16 @@ class CreateSalesController extends GetxController {
   double get ivaAmount =>incIVA.value ? (subtotal - globalDiscount.value) * 0.16 : 0;
 
   
-  double get totalToPay => subtotal - globalDiscount.value + ivaAmount;
+  double get totalToPay =>
+    subtotal - globalDiscount.value + ivaAmount + (envio.value ?? 0.0) + embalajeAmount;
   bool get hasOutOfStockItems => items.any((i) {
     final stock = (i.product.availableQuantity ?? 0);
     return stock <= 0 || i.quantity.value > stock;
   });
+
+  final selectedShippingOptions = <String>{}.obs;
+final selectedPackagePercent = Rxn<double>();
+final envio = Rxn<double>();
   @override
   void onInit() {
     super.onInit();
@@ -109,7 +110,23 @@ class CreateSalesController extends GetxController {
       time: const Duration(milliseconds: 600),
     );
   }
+double get embalajeAmount {
+  if (!selectedShippingOptions.contains('paquete')) return 0.0;
+  final pct = selectedPackagePercent.value;
+  if (pct == null) return 0.0;
+  return subtotal * (pct / 100);
+}
 
+void toggleShippingOption(String option) {
+  if (selectedShippingOptions.contains(option)) {
+    selectedShippingOptions.remove(option);
+    if (option == 'paquete') selectedPackagePercent.value = null;
+    if (option == 'envio') envio.value = null;
+  } else {
+    selectedShippingOptions.add(option);
+    if (option == 'envio') envio.value = 0.0;
+  }
+}
   void onClientSelected(ClientEntity client) {
     final name = client.displayName ?? '';
     clienteController.text = name;
@@ -178,65 +195,89 @@ Future<void> loadInitialQuotes() async {
   } finally {
     isSearchingQuoteApi.value = false;
   }
-}
-  // Utilidad para extraer el ID del formato "(2069) NOMBRE"
+} 
   int? _parseClientIdFromName(String nombre) {
     final match = RegExp(r'^\((\d+)\)').firstMatch(nombre.trim());
     return match != null ? int.tryParse(match.group(1)!) : null;
   }
 
   Future<void> loadFromQuote(GetQuoteEntity quoteEntity) async {
-    if (quoteEntity.id == null) return;
-    if ((quoteEntity.status ?? '').toUpperCase() != 'GENERADA') {
-      showErrorSnackbar(
-        'Solo se pueden cargar cotizaciones con estatus GENERADA',
-      );
-      return;
-    }
-    try {
-      isLoadingQuote.value = true;
-
-      final quote = await fetchQuotesByidUsecase.call(quoteEntity.id!);
-
-      clienteController.text = quote.cliente;
-      clienteName.value = quote.cliente;
-      Get.find<ClientSearchController>().searchCtrl.text = quote.cliente;
-
-      selectedClientId.value = _parseClientIdFromName(quote.cliente);
-      commentsCtrl.text = quote.comentarios;
-      referenciaCtrl.text = quote.folio;
-      selectedFolioQuote.value = quote.folio;
-
-      final desc = double.tryParse(quote.descuento) ?? 0;
-      if (desc > 0) {
-        globalDiscount.value = desc;
-        globalDiscountCtrl.text = desc.toStringAsFixed(2);
-      }
-
-      items.assignAll(
-        quote.productos.map(
-          (p) => SaleItem(
-            product: InventoryEntity(
-              id: 0,
-              partNumber: p.codigo,
-              description: p.descripcion,
-              price: p.precio,
-              availableQuantity: p.disponible.toInt(),
-              imageUrl: p.url.isNotEmpty ? p.url : null,
-            ),
-            initialQty: p.cantidad,
-          ),
-        ),
-      );
-
-      _clearQuoteSearch();
-      showSuccessSnackbar('Cotización ${quote.folio} cargada correctamente');
-    } catch (e) {
-      showErrorSnackbar('Error al cargar cotización: $e');
-    } finally {
-      isLoadingQuote.value = false;
-    }
+  if (quoteEntity.id == null) return;
+  if ((quoteEntity.status ?? '').toUpperCase() != 'GENERADA') {
+    showErrorSnackbar(
+      'Solo se pueden cargar cotizaciones con estatus GENERADA',
+    );
+    return;
   }
+  try {
+    isLoadingQuote.value = true;
+
+    final quote = await fetchQuotesByidUsecase.call(quoteEntity.id!);
+
+    clienteController.text = quote.cliente;
+    clienteName.value = quote.cliente;
+    Get.find<ClientSearchController>().searchCtrl.text = quote.cliente;
+
+    selectedClientId.value = _parseClientIdFromName(quote.cliente);
+    commentsCtrl.text = quote.comentarios;
+    referenciaCtrl.text = quote.folio;
+    selectedFolioQuote.value = quote.folio;
+
+    final desc = double.tryParse(quote.descuento) ?? 0;
+    if (desc > 0) {
+      globalDiscount.value = desc;
+      globalDiscountCtrl.text = desc.toStringAsFixed(2);
+    }
+ 
+    selectedShippingOptions.clear();
+    selectedPackagePercent.value = null;
+    envio.value = null;
+
+    final embalajeProducto = quote.productos.firstWhereOrNull(
+      (p) => p.codigo == 'ARTEMP01',
+    );
+    if (embalajeProducto != null) {
+      selectedShippingOptions.add('paquete');
+      final match = RegExp(r'\((\d+\.?\d*)%\)').firstMatch(embalajeProducto.descripcion);
+      if (match != null) {
+        selectedPackagePercent.value = double.tryParse(match.group(1) ?? '');
+      }
+    }
+
+    final envioProducto = quote.productos.firstWhereOrNull(
+      (p) => p.codigo == 'ARTENV01',
+    );
+    if (envioProducto != null) {
+      selectedShippingOptions.add('envio');
+      envio.value = envioProducto.precio > 0 ? envioProducto.precio : 0.0;
+    }
+ 
+    items.assignAll(
+      quote.productos
+          .where((p) => p.codigo != 'ARTEMP01' && p.codigo != 'ARTENV01')
+          .map(
+            (p) => SaleItem(
+              product: InventoryEntity(
+                id: 0,
+                partNumber: p.codigo,
+                description: p.descripcion,
+                price: p.precio,
+                availableQuantity: p.disponible.toInt(),
+                imageUrl: p.url.isNotEmpty ? p.url : null,
+              ),
+              initialQty: p.cantidad,
+            ),
+          ),
+    );
+
+    _clearQuoteSearch();
+    showSuccessSnackbar('Cotización ${quote.folio} cargada correctamente');
+  } catch (e) {
+    showErrorSnackbar('Error al cargar cotización: $e');
+  } finally {
+    isLoadingQuote.value = false;
+  }
+}
 
   void _clearQuoteSearch() {
     quoteResults.clear();
@@ -279,7 +320,7 @@ Future<void> loadInitialQuotes() async {
     if (picked != null) validUntil.value = picked;
   }
 
-  Future<void> createSale( ) async {
+ Future<void> createSale() async {
   if (clienteName.value.trim().isEmpty) {
     showErrorSnackbar('Selecciona un cliente para continuar');
     return;
@@ -291,6 +332,50 @@ Future<void> loadInitialQuotes() async {
   try {
     isCreating.value = true;
     final vendedor = (await _authService.getUserData())?.nombre ?? '';
+
+    final List<PartidaEntity> partidas = items
+        .map(
+          (i) => PartidaEntity(
+            numParte: i.product.partNumber ?? '',
+            descripcion: i.product.description ?? '',
+            cantidad: i.quantity.value,
+            precio: i.unitPrice,
+            claveSat: '',
+            um: 'PZA',
+          ),
+        )
+        .toList();
+
+    if (selectedShippingOptions.contains('paquete') &&
+        selectedPackagePercent.value != null &&
+        embalajeAmount > 0) {
+      partidas.add(
+        PartidaEntity(
+          numParte: 'ARTEMP01',
+          descripcion:
+              'EMPAQUE Y EMBALAJE (${selectedPackagePercent.value!.toString().replaceAll('.0', '')}%)',
+          cantidad: 1,
+          precio: embalajeAmount,
+          claveSat: '31181701',
+          um: 'UNIDAD DE SERVICIO',
+        ),
+      );
+    }
+
+    if (selectedShippingOptions.contains('envio')) {
+      final costoEnvio = envio.value ?? 0.0;
+      partidas.add(
+        PartidaEntity(
+          numParte: 'ARTENV01',
+          descripcion:
+              costoEnvio > 0 ? 'COSTO DE ENVÍO' : 'COSTO DE ENVIO PENDIENTE',
+          cantidad: 1,
+          precio: costoEnvio,
+          claveSat: '81141606',
+          um: 'UNIDAD DE SERVICIO',
+        ),
+      );
+    }
 
     final response = await generateSalesUsecase.call(
       CreateSalesEntity(
@@ -305,28 +390,14 @@ Future<void> loadInitialQuotes() async {
         incIVA: incIVA.value,
         folioPre: selectedFolioQuote.value,
         descuento: globalDiscount.value,
-        partidas: items
-            .map(
-              (i) => PartidaEntity(
-                numParte: i.product.partNumber ?? '',
-                descripcion: i.product.description ?? '',
-                cantidad: i.quantity.value,
-                precio: i.unitPrice,
-                claveSat: '',
-                um: 'PZA',
-              ),
-            )
-            .toList(),
+        partidas: partidas,
       ),
     );
 
     createdSaleId.value = response.saleId;
     await _salesCtrl.fetchSales();
     showSuccessSnackbar('Venta creada correctamente');
-
-    // 👇 Abre el PDF automáticamente al crear
-    await generateAndOpenPdf( );
-
+    await generateAndOpenPdf();
   } catch (e) {
     errorMessage.value = cleanExceptionMessage(e);
     showErrorSnackbar(errorMessage.value);
@@ -360,6 +431,9 @@ Future<void> loadInitialQuotes() async {
   @override
   void onClose() {
     _quoteSearchDebounce?.dispose();
+    selectedShippingOptions.clear();
+selectedPackagePercent.value = null;
+envio.value = null;
     for (final c in [
       clienteController,
       commentsCtrl,
