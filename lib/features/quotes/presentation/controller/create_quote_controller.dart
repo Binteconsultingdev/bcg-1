@@ -934,17 +934,29 @@ class CreateQuoteController extends GetxController {
   @override
   final RxBool isTorchOn = false.obs;
 
-  @override
-  void iniciarEscaneoQR() {
-    qrScannerController.value = MobileScannerController();
-  }
+@override
+void iniciarEscaneoQR() { 
+  qrScannerController.value?.dispose();
+  qrScannerController.value = null;
+  qrScannerController.value = MobileScannerController();
+}
+ 
+void _liberarCamara() {
+  qrScannerController.value?.dispose();
+  qrScannerController.value = null;
+}
 
-  @override
-  void detenerEscaneoQR() {
-    qrScannerController.value?.dispose();
-    qrScannerController.value = null;
-    if (Get.isBottomSheetOpen ?? false) Get.back();
-  }
+@override
+void detenerEscaneoQR() {
+  _liberarCamara();
+  if (Get.isBottomSheetOpen ?? false) Get.back();
+}
+ 
+void reiniciarEscaneoQR() {
+  _liberarCamara();
+  qrScannerController.value = MobileScannerController();
+}
+ 
 
   @override
   void toggleTorch() {
@@ -1074,18 +1086,18 @@ class CreateQuoteController extends GetxController {
     );
   }
 
-  void abrirScannerQR(BuildContext context) {
-    iniciarEscaneoQR();
-    Get.bottomSheet(
-      QRScannerWidget(
-        controller: this,
-        title: 'ESCANEAR PRODUCTO',
-        description: 'Apunta al código QR o de barras del producto',
-      ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-    );
-  }
+void abrirScannerQR(BuildContext context) {
+  iniciarEscaneoQR();
+  Get.bottomSheet(
+    QRScannerWidget(
+      controller: this,
+      title: 'ESCANEAR PRODUCTO',
+      description: 'Apunta al código QR o de barras del producto',
+    ),
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+  ).then((_) => _liberarCamara());  
+}
 
   void resetState() {
     items.clear();

@@ -1,6 +1,6 @@
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
-import 'package:bcg/features/sales/presentation/controller/create_sales_controller.dart'; 
+import 'package:bcg/features/sales/presentation/controller/create_sales_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:get/get.dart';
@@ -13,6 +13,7 @@ mixin QRScannerMixin {
   void iniciarEscaneoQR();
   void toggleTorch();
   void switchCamera();
+  void reiniciarEscaneoQR();
 }
 
 class QRScannerWidget extends StatelessWidget {
@@ -28,11 +29,13 @@ class QRScannerWidget extends StatelessWidget {
   });
 
   dynamic get _controller {
-    if (controller != null) return controller; 
+    if (controller != null) return controller;
     try {
       return Get.find<CreateQuoteController>();
     } catch (_) {}
-    throw Exception('No se encontró un controlador compatible con QRScannerMixin');
+    throw Exception(
+      'No se encontró un controlador compatible con QRScannerMixin',
+    );
   }
 
   @override
@@ -55,7 +58,7 @@ class QRScannerWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [ 
+        children: [
           Center(
             child: Container(
               width: 40,
@@ -67,7 +70,7 @@ class QRScannerWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
- 
+
           Text(
             _getTitle(scannerController, title),
             style: const TextStyle(
@@ -80,7 +83,7 @@ class QRScannerWidget extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
- 
+
           Text(
             _getDescription(scannerController, description),
             style: const TextStyle(
@@ -91,17 +94,18 @@ class QRScannerWidget extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
- 
+
           SizedBox(
             height: 300,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Stack(
                 alignment: Alignment.center,
-                children: [ 
+                children: [
                   Obx(() {
-                    final scannerCtrl =
-                        _getQRScannerController(scannerController);
+                    final scannerCtrl = _getQRScannerController(
+                      scannerController,
+                    );
                     if (scannerCtrl == null || scannerCtrl.value == null) {
                       return Container(
                         color: Colors.black,
@@ -118,8 +122,9 @@ class QRScannerWidget extends StatelessWidget {
                         final barcodes = capture.barcodes;
                         if (barcodes.isNotEmpty &&
                             barcodes.first.rawValue != null) {
-                          scannerController
-                              .onQRCodeDetected(barcodes.first.rawValue!);
+                          scannerController.onQRCodeDetected(
+                            barcodes.first.rawValue!,
+                          );
                         }
                       },
                       errorBuilder: (context, error) {
@@ -129,19 +134,23 @@ class QRScannerWidget extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.error,
-                                    color: Colors.white, size: 64),
+                                const Icon(
+                                  Icons.error,
+                                  color: Colors.white,
+                                  size: 64,
+                                ),
                                 const SizedBox(height: 16),
                                 Text(
                                   'Error de cámara: ${error.errorCode}',
                                   style: const TextStyle(
-                                      color: Colors.white, fontSize: 16),
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 ElevatedButton(
                                   onPressed: () {
-                                    scannerController.detenerEscaneoQR();
-                                    scannerController.iniciarEscaneoQR();
+                                    scannerController.reiniciarEscaneoQR();
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor:
@@ -156,15 +165,17 @@ class QRScannerWidget extends StatelessWidget {
                       },
                     );
                   }),
- 
+
                   Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                          color: ThemeColor.primaryColor, width: 2),
+                        color: ThemeColor.primaryColor,
+                        width: 2,
+                      ),
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
- 
+
                   Container(
                     height: 200,
                     width: 200,
@@ -173,7 +184,7 @@ class QRScannerWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
- 
+
                   ScannerAnimation(
                     width: 180,
                     color: ThemeColor.colorAccionButtons,
@@ -184,7 +195,7 @@ class QRScannerWidget extends StatelessWidget {
           ),
 
           const SizedBox(height: 20),
- 
+
           const Text(
             'Coloca el código QR dentro del marco y mantén estable el dispositivo',
             style: TextStyle(
@@ -196,30 +207,32 @@ class QRScannerWidget extends StatelessWidget {
           ),
 
           const SizedBox(height: 20),
- 
+
           Row(
             children: [
               Expanded(
-                child: Obx(() => ElevatedButton.icon(
-                      onPressed: scannerController.toggleTorch,
-                      icon: Icon(
-                        _getTorchState(scannerController)
-                            ? Icons.flashlight_off
-                            : Icons.flashlight_on,
-                        color: Colors.white,
+                child: Obx(
+                  () => ElevatedButton.icon(
+                    onPressed: scannerController.toggleTorch,
+                    icon: Icon(
+                      _getTorchState(scannerController)
+                          ? Icons.flashlight_off
+                          : Icons.flashlight_on,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      _getTorchState(scannerController) ? 'Apagar' : 'Linterna',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: ThemeColor.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
                       ),
-                      label: Text(
-                        _getTorchState(scannerController)
-                            ? 'Apagar'
-                            : 'Linterna',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ThemeColor.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 12),
-                      ),
-                    )),
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -231,7 +244,9 @@ class QRScannerWidget extends StatelessWidget {
                     backgroundColor: ThemeColor.primaryColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 12),
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ),
@@ -239,7 +254,7 @@ class QRScannerWidget extends StatelessWidget {
           ),
 
           const SizedBox(height: 16),
- 
+
           TextButton(
             onPressed: scannerController.detenerEscaneoQR,
             child: const Text(
@@ -254,12 +269,11 @@ class QRScannerWidget extends StatelessWidget {
       ),
     );
   }
- 
 
   String _getTitle(dynamic controller, String? customTitle) {
     if (customTitle != null) return customTitle;
     if (controller is CreateQuoteController) return 'ESCANEAR PRODUCTO';
-     
+
     return 'ESCANEAR QR DE PRODUCTO';
   }
 
@@ -290,17 +304,12 @@ class QRScannerWidget extends StatelessWidget {
     }
   }
 }
- 
 
 class ScannerAnimation extends StatefulWidget {
   final double width;
   final Color color;
 
-  const ScannerAnimation({
-    super.key,
-    required this.width,
-    required this.color,
-  });
+  const ScannerAnimation({super.key, required this.width, required this.color});
 
   @override
   State<ScannerAnimation> createState() => _ScannerAnimationState();
@@ -319,9 +328,10 @@ class _ScannerAnimationState extends State<ScannerAnimation>
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
 
-    _animation = Tween<double>(begin: -100, end: 100).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: -100,
+      end: 100,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
