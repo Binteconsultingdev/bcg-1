@@ -389,7 +389,7 @@ Future<void> loadInitialQuotes() async {
         fechaEntrega: validUntil.value,
         incIVA: incIVA.value,
         folioPre: selectedFolioQuote.value,
-        descuento: globalDiscount.value,
+        descuento: globalDiscountAsPercent,
         partidas: partidas,
       ),
     );
@@ -405,7 +405,13 @@ Future<void> loadInitialQuotes() async {
     isCreating.value = false;
   }
 }
-
+double get globalDiscountAsPercent {
+  if (globalDiscountType.value == 'porcentaje') {
+    return globalDiscountPercent.value;
+  }
+  if (subtotal <= 0) return 0.0;
+  return (globalDiscount.value / subtotal) * 100;
+}
   Future<void> generateAndOpenPdf() async {
     final id = createdSaleId.value;
     if (id == null) return;
