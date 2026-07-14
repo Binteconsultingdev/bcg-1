@@ -75,21 +75,14 @@ class SalesDataSourcesImp {
       throw Exception(e);
     }
   }
-  Future<ResponseCreateSalesEntity> generateSales(
-  CreateSalesEntity entity,
-  String token,
-) async {
+  
+  
+  Future<ResponseCreateSalesEntity> generateSales(CreateSalesEntity entity, String token) async {
   try {
     Uri url = Uri.parse('$defaultApiServer/VentaSalida/generar');
 
-    print('➡️ URL: $url');
-
-    final payload =
-        jsonEncode(CreateSalesModel.fromEntity(entity).toJson());
-
-    print('➡️ Payload enviado:');
-    print(payload);
-
+    final payload = jsonEncode(CreateSalesModel.fromEntity(entity).toJson());
+ 
     final response = await http.post(
       url,
       headers: {
@@ -98,35 +91,28 @@ class SalesDataSourcesImp {
       },
       body: payload,
     );
+ 
+ if (response.statusCode == 200 || response.statusCode == 201) {
+  final dataUTF8 = utf8.decode(response.bodyBytes);
+  final responseDecode = jsonDecode(dataUTF8);
+ 
+  if (responseDecode['success'] == false) {
+    final message = responseDecode['message'] ?? 'Error desconocido';
+    throw Exception(message);
+  }
 
-    print('⬅️ Status Code: ${response.statusCode}');
-    print('⬅️ Headers: ${response.headers}');
-    print('⬅️ Body: ${utf8.decode(response.bodyBytes)}');
+  return ResponseCreateSalesModel.fromJson(responseDecode);
+}
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final dataUTF8 = utf8.decode(response.bodyBytes);
-      final responseDecode = jsonDecode(dataUTF8);
 
-      print('✅ JSON recibido:');
-      print(responseDecode);
-
-      if (responseDecode['success'] == false) {
-        final message = responseDecode['message'] ?? 'Error desconocido';
-        print('❌ Error de negocio: $message');
-        throw Exception(message);
-      }
-
-      return ResponseCreateSalesModel.fromJson(responseDecode);
-    }
-
-    print('⚠️ Error HTTP ${response.statusCode}');
+    print('⚠️ Error en la respuesta del servidor');
 
     ApiExceptionCustom exception = ApiExceptionCustom(response: response);
     exception.validateMesage();
     throw exception;
-  } catch (e, stackTrace) {
-    print('🚨 Excepción: $e');
-    print('📍 StackTrace:\n$stackTrace');
+
+  } catch (e) {
+    print('❌ Error capturado: $e');
 
     if (e is SocketException ||
         e is http.ClientException ||
