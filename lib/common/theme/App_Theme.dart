@@ -2,39 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class ThemeColor {
-  // ===========================
-  // COLORES PRINCIPALES - BCG
-  // ===========================
-  static const Color primaryColor = Color(0xFF1A1A1A); // Negro principal
-  static const Color secondaryColor = Color(0xFF2C2C2C); // Negro secundario
-  static const Color tertiaryColor = Color(0xFF3F3F3F); // Gris oscuro
+class ThemeColor { 
+  static const Color primaryColor = Color(0xFF1A1A1A); 
+  static const Color secondaryColor = Color(0xFF2C2C2C);  
+  static const Color tertiaryColor = Color(0xFF3F3F3F);  
 
-  static const Color accentColor = Color(0xFFF5A623); // Dorado/Amarillo BCG
-  static const Color accentDark = Color(0xFFD4891A); // Dorado oscuro
-
-  // Colores de fondo
-  static const Color backgroundColor = Color(0xFFF5F5F5); // Gris muy claro
+  static const Color accentColor = Color(0xFFF5A623); 
+  static const Color accentDark = Color(0xFFD4891A); 
+  static const Color backgroundColor = Color(0xFFF5F5F5);  
   static const Color surfaceColor = Colors.white;
   static const Color cardColor = Colors.white;
   static final Color backgroundColorfondo = const Color(0xFFEEEEEE);
 
   static const Color colorAccionButtons = accentColor;
-  // Colores de texto
-  static const Color textPrimaryColor = Color(0xFF1A1A1A); // Negro
-  static const Color textSecondaryColor = Color(0xFF757575); // Gris medio
-  static const Color textTertiaryColor = Color(0xFF9E9E9E); // Gris claro
+  
+  static const Color textPrimaryColor = Color(0xFF1A1A1A);  
+  static const Color textSecondaryColor = Color(0xFF757575);  
+  static const Color textTertiaryColor = Color(0xFF9E9E9E);  
   static const Color textLightColor = Colors.white;
   static const Color textDarkColor = Color(0xFF1A1A1A);
-
-  // Colores de estado
-  static const Color successColor = Color(0xFF4CAF50); // Verde - PAGADO
-  static const Color warningColor = Color(0xFFF5A623); // Amarillo - PENDIENTE
-  static const Color errorColor = Color(0xFFE53935); // Rojo - ADEUDO
-  static const Color infoColor = Color(0xFF1565C0); // Azul info
+ 
+  static const Color successColor = Color(0xFF4CAF50);  
+  static const Color warningColor = Color(0xFFF5A623);  
+  static const Color errorColor = Color(0xFFE53935); 
+  static const Color infoColor = Color(0xFF1565C0); 
   static const Color onlineColor = Color(0xFF4CAF50);
-
-  // Loading
+ 
   static final Color loaddingwithOpacity1 = const Color(
     0xFFBDBDBD,
   ).withOpacity(0.15);
@@ -42,22 +35,18 @@ class ThemeColor {
     0xFF9E9E9E,
   ).withOpacity(0.35);
   static final Color loadding = const Color(0xFF757575);
-
-  // Colores específicos de la app
+ 
   static const Color badgeColor = accentColor;
   static const Color distanceBadgeColor = accentColor;
   static const Color likeButtonColor = accentColor;
-
-  // Colores para navegación
+ 
   static const Color navbarSelectedColor = accentColor;
   static final Color navbarUnselectedColor = Colors.grey.shade500;
-
-  // Utilidades
+ 
   static final Color shadowColor = Colors.black.withOpacity(0.12);
   static final Color dividerColor = const Color(0xFFE0E0E0);
   static final Color disabledColor = Colors.grey.shade400;
-
-  // Dimensiones
+ 
   static const double smallRadius = 8.0;
   static const double mediumRadius = 12.0;
   static const double largeRadius = 16.0;
@@ -71,8 +60,7 @@ class ThemeColor {
   static const double elevationSmall = 2.0;
   static const double elevationMedium = 4.0;
   static const double elevationLarge = 8.0;
-
-  // BorderRadius
+ 
   static BorderRadius get smallBorderRadius =>
       BorderRadius.circular(smallRadius);
   static BorderRadius get mediumBorderRadius =>
@@ -82,8 +70,7 @@ class ThemeColor {
   static BorderRadius get extraLargeBorderRadius =>
       BorderRadius.circular(extraLargeRadius);
   static BorderRadius get circularBorderRadius => BorderRadius.circular(100);
-
-  // Sombras
+ 
   static BoxShadow get lightShadow => BoxShadow(
     color: Colors.black.withOpacity(0.05),
     blurRadius: 8,
@@ -107,8 +94,7 @@ class ThemeColor {
     blurRadius: 8,
     offset: const Offset(0, 2),
   );
-
-  // Gradientes
+ 
   static LinearGradient get primaryGradient => const LinearGradient(
     colors: [primaryColor, secondaryColor],
     begin: Alignment.topLeft,
@@ -120,8 +106,7 @@ class ThemeColor {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-
-  // Decoraciones
+ 
   static BoxDecoration get cardDecoration => BoxDecoration(
     color: cardColor,
     borderRadius: mediumBorderRadius,
@@ -133,8 +118,7 @@ class ThemeColor {
     borderRadius: largeBorderRadius,
     boxShadow: [cardShadow],
   );
-
-  // Estilos de texto
+ 
   static TextStyle get headingLarge => const TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
@@ -188,8 +172,7 @@ class ThemeColor {
     fontWeight: FontWeight.w500,
     color: textDarkColor,
   );
-
-  // Theme Data
+ 
   static ThemeData get themeData => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -285,10 +268,7 @@ class ThemeColor {
 
     iconTheme: const IconThemeData(color: textPrimaryColor, size: 24),
   );
-
-  // ========================================
-  // WIDGETS PERSONALIZADOS
-  // ========================================
+ 
 
   static Widget createAppLogo({
     String imagePath = 'assets/logo/logo.png',
@@ -311,8 +291,7 @@ class ThemeColor {
       ),
     );
   }
-
-  // Badge de estado (PAGADO, PENDIENTE, ADEUDO, VENDIDO, etc.)
+ 
   static Widget createStatusBadge(String text, {Color? color}) {
     Color badgeBackgroundColor;
     Color textCol = Colors.white;
@@ -352,8 +331,7 @@ class ThemeColor {
       ),
     );
   }
-
-  // Badge genérico (reemplaza createTurnBadge y createDistanceBadge)
+ 
   static Widget createTurnBadge(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -453,8 +431,7 @@ class ThemeColor {
       ),
     );
   }
-
-  // Botón de acción con acento dorado (para acciones primarias como "Cobrar")
+ 
   static Widget widgetAccentButton({
     required VoidCallback onPressed,
     required String text,
@@ -507,8 +484,7 @@ class ThemeColor {
       ),
     );
   }
-
-  // Botón circular de acción
+ 
   static Widget createCircularActionButton({
     required IconData icon,
     required VoidCallback onTap,
@@ -750,8 +726,7 @@ class ThemeColor {
       ],
     );
   }
-
-  // Card de perfil activo (adaptado para app de ventas - item de cliente/producto)
+ 
   static Widget createActiveProfileCard({
     required String imageUrl,
     required String name,
@@ -802,8 +777,7 @@ class ThemeColor {
       ),
     );
   }
-
-  // Item de lista genérico (reemplaza createChatItem para ventas/cotizaciones)
+ 
   static Widget createListItem({
     required String title,
     required String subtitle,
@@ -857,7 +831,7 @@ static Widget searchTextField({
   required String hintText,
   required void Function(String) onChanged,
   VoidCallback? onClear,
-  VoidCallback? onTap,          // <-- agrega este
+  VoidCallback? onTap,          
   bool isLoading = false,
   bool hasText = false,
   IconData? prefixIcon,
@@ -872,7 +846,7 @@ static Widget searchTextField({
     style: bodyMedium.copyWith(color: textPrimaryColor),
     textCapitalization: textCapitalization,
     onChanged: onChanged,
-    onTap: onTap,               // <-- agrega este
+    onTap: onTap,               
     decoration: InputDecoration(
       hintText: hintText,
       hintStyle: bodyMedium.copyWith(color: textSecondaryColor),
