@@ -260,8 +260,7 @@ class _LicenseScreenState extends State<LicenseScreen>
                     color: ThemeColor.textSecondaryColor,
                   ),
                 ),
-              ),
-              // ✅ Solo "aviso de privacidad" es clickeable y abre el webview
+              ), 
              GestureDetector(
   onTap: () async {
     final uri = Uri.parse(

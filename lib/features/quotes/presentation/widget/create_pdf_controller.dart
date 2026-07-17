@@ -19,8 +19,7 @@ class PdfController extends GetxController {
   String folio = '';
 
   void setPdfUrl(String url) => pdfUrl.value = url;
-
-  /// Extrae el nombre del archivo desde la URL.
+ 
   String _fileNameFromUrl(String url) {
     try {
       final uri = Uri.parse(url);
@@ -57,7 +56,7 @@ class PdfController extends GetxController {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final directory = await getTemporaryDirectory();
-        final fileName = _fileNameFromUrl(url); // ← usa nombre de la URL
+        final fileName = _fileNameFromUrl(url);  
         final file = File('${directory.path}/$fileName');
         await file.writeAsBytes(response.bodyBytes);
 
@@ -90,7 +89,7 @@ class PdfController extends GetxController {
         return;
       }
 
-      final fileName = _fileNameFromUrl(url); // ← usa nombre de la URL
+      final fileName = _fileNameFromUrl(url);  
 
       final String savePath;
       if (Platform.isAndroid) {

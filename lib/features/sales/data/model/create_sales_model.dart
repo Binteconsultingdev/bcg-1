@@ -47,8 +47,7 @@ factory CreateSalesModel.fromEntity(CreateSalesEntity entity) {
     
     incIVA: entity.incIVA,
     folioPre: entity.folioPre,
-    descuento: entity.descuento,
-    // ✅ Convierte cada PartidaEntity a PartidaModel aquí
+    descuento: entity.descuento, 
     partidas: entity.partidas
         .map((p) => PartidaModel(
               numParte: p.numParte,

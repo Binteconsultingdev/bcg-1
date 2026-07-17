@@ -107,8 +107,7 @@ final VoidCallback onOpenPdf;
                   ],
                 );
               }
-
-              // Ya descargado: muestra botón "Abrir PDF"
+ 
               if (lastDownloadedPath.value != null) {
                 return Column(
                   children: [
@@ -123,8 +122,7 @@ final VoidCallback onOpenPdf;
                       showShadow: false,
                       onPressed: onOpenPdf,
                     ),
-                    const SizedBox(height: ThemeColor.paddingSmall),
-                    // Botón secundario para volver a descargar
+                    const SizedBox(height: ThemeColor.paddingSmall), 
                     GestureDetector(
                       onTap: onDownloadPdf,
                       child: Text(
@@ -138,8 +136,7 @@ final VoidCallback onOpenPdf;
                   ],
                 );
               }
-
-              // Sin descarga aún
+ 
               return ThemeColor.widgetButton(
                 text: 'Descargar PDF',
                 backgroundColor: ThemeColor.backgroundColor,

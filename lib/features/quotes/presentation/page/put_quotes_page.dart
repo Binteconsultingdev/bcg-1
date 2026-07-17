@@ -591,9 +591,7 @@ class _ProductList extends StatelessWidget {
                   onEdit: item.isCustom
                       ? () => ctrl.showEditCustomProductDialog(context, item)
                       : null,
-                  //  allowImageEdit: true,
-                  //  onImageChanged: (path) => item.localImagePath.value = path,
-                  //  readOnly: !ctrl.isEditable,
+                 
                 ),
                 if (!isLast)
                   Divider(

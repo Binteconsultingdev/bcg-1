@@ -15,15 +15,13 @@ class SalesController extends GetxController {
   SalesController({required this.pointSalesUsecase, required this.generatePdfSales});
 
   final ScrollController scrollController = ScrollController();
-
-  // — Lista —
+ 
   final RxList<PointSaleEntity> sales = <PointSaleEntity>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMorePages = true.obs;
   final RxString errorMessage = ''.obs;
-
-  // — Filtros activos —
+ 
   final RxString dateFromFilter = ''.obs;
   final RxString dateUntilFilter = ''.obs;
   final RxString clientFilter = ''.obs;
@@ -32,12 +30,10 @@ class SalesController extends GetxController {
   final RxString userFilter = ''.obs;
   final RxBool ignoreDatesFilter = true.obs;
   final RxInt selectedTab = 0.obs;
-
-  // — Búsqueda —
+ 
   final RxString searchInput = ''.obs;
   final TextEditingController searchController = TextEditingController();
-
-  // — Filtros del sheet —
+ 
   final RxString filterDateFrom = ''.obs;
   final RxString filterDateUntil = ''.obs;
   final RxString filterClienteName = ''.obs;
@@ -49,8 +45,7 @@ class SalesController extends GetxController {
   String get _trimmed => searchInput.value.trim();
   bool get _isEmpty => _trimmed.isEmpty;
   bool get _isNumeric => int.tryParse(_trimmed) != null;
-
-  // — Getters del sheet —
+ 
   String get filterStatusPayment {
     if (filterPagoIndex.value == 0) return 'pagado';
     if (filterPagoIndex.value == 1) return 'por cobrar';
@@ -63,8 +58,7 @@ class SalesController extends GetxController {
     if (filterClienteName.value.isNotEmpty) true,
     if (filterPagoIndex.value != null) true,
   ].length;
-
-  // — PDF —
+ 
   Future<void> openSalePdf(BuildContext context, int saleId, String folio) async {
     final pdfCtrl = Get.find<PdfController>();
     
@@ -243,8 +237,7 @@ class SalesController extends GetxController {
       isLoadingMore.value = false;
     }
   }
-
-  // — Sheet de filtros —
+ 
   void initFilterSheet() {
     filterDateFrom.value = dateFromFilter.value;
     filterDateUntil.value = dateUntilFilter.value;

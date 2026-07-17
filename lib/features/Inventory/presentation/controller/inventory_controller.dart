@@ -113,7 +113,7 @@ Future<void> _fetchCategorias() async {
   try {
     isLoadingCategorias.value = true;
     subfamilias.clear();
-    selectedSubfamilia.value = null; // resetea subfamilia al cambiar familia
+    selectedSubfamilia.value = null; 
     final results = await fetchSubfamiliasUsecase.call(familia);
     subfamilias.assignAll(results);
   } catch (e) {
@@ -209,8 +209,7 @@ Future<void> _fetchCategorias() async {
       isLoadingInventario.value = false;
     }
   }
-
-  // Método público para buscar desde otros controllers (ej. CreateQuoteController)
+ 
   Future<List<InventoryEntity>> searchProducts(String query) async {
     if (query.trim().isEmpty) return [];
     final trimmed = query.trim();
