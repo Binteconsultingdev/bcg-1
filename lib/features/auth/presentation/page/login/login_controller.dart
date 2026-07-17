@@ -22,14 +22,12 @@ class LoginController extends GetxController {
     final LicenseService _licenseService = Get.find<LicenseService>(); 
 
   final LoginUsecase loginUsecase;
-  final ValidateLicensesUsecase validateLicensesUsecase;
-  //final SaveTokenFcmUsecase saveTokenFcmUsecase;
+  final ValidateLicensesUsecase validateLicensesUsecase; 
 
 
   LoginController({
     required this.loginUsecase,
-    required this.validateLicensesUsecase,
-   //required this.saveTokenFcmUsecase,
+    required this.validateLicensesUsecase, 
   });
 
   @override
