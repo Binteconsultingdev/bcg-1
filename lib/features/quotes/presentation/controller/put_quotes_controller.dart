@@ -766,4 +766,4 @@ void showEditCustomProductDialog(BuildContext context, EditQuoteItem item) {
     globalDiscountCtrl.dispose();
     super.onClose();
   }
-}
+}. 
