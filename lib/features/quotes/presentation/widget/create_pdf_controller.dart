@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bcg/common/settings/routes_names.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/quotes/presentation/widget/pdf_options_sheet.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ class PdfController extends GetxController {
   String folio = '';
 
   void setPdfUrl(String url) => pdfUrl.value = url;
- 
+
   String _fileNameFromUrl(String url) {
     try {
       final uri = Uri.parse(url);
@@ -56,7 +57,7 @@ class PdfController extends GetxController {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final directory = await getTemporaryDirectory();
-        final fileName = _fileNameFromUrl(url);  
+        final fileName = _fileNameFromUrl(url);
         final file = File('${directory.path}/$fileName');
         await file.writeAsBytes(response.bodyBytes);
 
@@ -65,6 +66,8 @@ class PdfController extends GetxController {
           subject: 'Cotización $folio',
           text: 'Te comparto la cotización $folio',
         );
+        Get.back();
+        Get.back();
       } else {
         showErrorSnackbar('No se pudo descargar el PDF');
       }
@@ -89,7 +92,7 @@ class PdfController extends GetxController {
         return;
       }
 
-      final fileName = _fileNameFromUrl(url);  
+      final fileName = _fileNameFromUrl(url);
 
       final String savePath;
       if (Platform.isAndroid) {

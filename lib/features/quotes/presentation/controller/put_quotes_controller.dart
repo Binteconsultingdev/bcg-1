@@ -89,8 +89,9 @@ class EditQuoteItem {
 
   bool get isCustom =>
       codigo.value == 'CUSTOM' ||
-      (productId == null && codigo.value != 'ARTEMP01' && codigo.value != 'ARTENV01');
-
+      (productId == null &&
+          codigo.value != 'ARTEMP01' &&
+          codigo.value != 'ARTENV01');
 }
 
 class PutQuotesController extends GetxController {
@@ -285,7 +286,7 @@ class PutQuotesController extends GetxController {
     final desc = double.tryParse(quote.descuento) ?? 0;
     globalDiscount.value = desc;
     if (desc > 0) globalDiscountCtrl.text = desc.toStringAsFixed(2);
-  
+
     selectedShippingOptions.clear();
     selectedPackagePercent.value = null;
     envio.value = null;
@@ -415,7 +416,7 @@ class PutQuotesController extends GetxController {
       errorMessage.value = '';
 
       await validateCart();
- 
+
       final productosBase = items
           .where(
             (i) => i.codigo.value != 'ARTEMP01' && i.codigo.value != 'ARTENV01',
@@ -423,70 +424,71 @@ class PutQuotesController extends GetxController {
           .toList();
 
       final List<ProductoEntity> productos = productosBase.asMap().entries.map((
-  entry,
-) {
-  final i = entry.value;
-  return ProductoEntity(
-    codigo: i.codigo.value,
-    descripcion: i.descripcion.value,
-    disponible: i.disponible,
-    unidad: i.unidad,
-    precio: i.precio.value,
-    cantidad: i.quantity.value,
-    importe: i.total,
-    iva: (i.total * 0.16).toStringAsFixed(2),
-    claveSat: i.claveSat,
-    url: i.url,
-    descuento: i.descuento.value,  
-    prioridad: entry.key + 1,
-  );
-}).toList();
- 
+        entry,
+      ) {
+        final i = entry.value;
+        return ProductoEntity(
+          codigo: i.codigo.value,
+          descripcion: i.descripcion.value,
+          disponible: i.disponible,
+          unidad: i.unidad,
+          precio: i.precio.value,
+          cantidad: i.quantity.value,
+          importe: i.total,
+          iva: (i.total * 0.16).toStringAsFixed(2),
+          claveSat: i.claveSat,
+          url: i.url,
+          descuento: i.descuento.value,
+          prioridad: entry.key + 1,
+        );
+      }).toList();
+
       if (selectedShippingOptions.contains('paquete') &&
           selectedPackagePercent.value != null) {
         final subtotalBase = productosBase.fold(0.0, (s, i) => s + i.total);
         final monto = subtotalBase * (selectedPackagePercent.value! / 100);
         if (monto > 0) {
           productos.add(
-             ProductoEntity(
-          codigo: 'ARTEMP01',
-          descripcion:
-              'EMPAQUE Y EMBALAJE (${selectedPackagePercent.value!.toString().replaceAll('.0', '')}%)',
-          disponible: 0,
-          unidad: 'UNIDAD DE SERVICIO',
-          precio: embalajeAmount,
-          cantidad: 1,
-          importe: embalajeAmount,
-          iva: '0.00',
-          claveSat: '',
-          url: 'https://web.whatsapp.com"https://sgp-web.nyc3.digitaloceanspaces.com/sgp-web/Stown/Productos/PT_16042605083190',
-          descuento: 0,
-          prioridad: productos.length + 1,
-        ),
+            ProductoEntity(
+              codigo: 'ARTEMP01',
+              descripcion:
+                  'EMPAQUE Y EMBALAJE (${selectedPackagePercent.value!.toString().replaceAll('.0', '')}%)',
+              disponible: 0,
+              unidad: 'UNIDAD DE SERVICIO',
+              precio: embalajeAmount,
+              cantidad: 1,
+              importe: embalajeAmount,
+              iva: '0.00',
+              claveSat: '',
+              url:
+                  'https://web.whatsapp.com"https://sgp-web.nyc3.digitaloceanspaces.com/sgp-web/Stown/Productos/PT_16042605083190',
+              descuento: 0,
+              prioridad: productos.length + 1,
+            ),
           );
         }
       }
- 
+
       if (selectedShippingOptions.contains('envio')) {
-      
         final costoEnvio = envio.value ?? 0.0;
         productos.add(
           ProductoEntity(
-          codigo: 'ARTENV01',
-          descripcion: costoEnvio > 0
-              ? 'COSTO DE ENVÍO'
-              : 'COSTO DE ENVIO PENDIENTE',
-          disponible: 0,
-          unidad: 'UNIDAD DE SERVICIO',
-          precio: costoEnvio,
-          cantidad: 1,
-          importe: costoEnvio,
-          iva: '0.00',
-          claveSat: '',
-          url: 'https://web.whatsapp.com"https://sgp-web.nyc3.digitaloceanspaces.com/sgp-web/Stown/Productos/PT_16042605083190',
-          descuento: 0,
-          prioridad: productos.length + 1,
-        ),
+            codigo: 'ARTENV01',
+            descripcion: costoEnvio > 0
+                ? 'COSTO DE ENVÍO'
+                : 'COSTO DE ENVIO PENDIENTE',
+            disponible: 0,
+            unidad: 'UNIDAD DE SERVICIO',
+            precio: costoEnvio,
+            cantidad: 1,
+            importe: costoEnvio,
+            iva: '0.00',
+            claveSat: '',
+            url:
+                'https://web.whatsapp.com"https://sgp-web.nyc3.digitaloceanspaces.com/sgp-web/Stown/Productos/PT_16042605083190',
+            descuento: 0,
+            prioridad: productos.length + 1,
+          ),
         );
       }
 
@@ -496,8 +498,8 @@ class PutQuotesController extends GetxController {
         total: totalToPay,
         cataPrecio: selectedPriceType.value,
         descuento: globalDiscountType.value == 'porcentaje'
-      ? globalDiscountPercent.value.toStringAsFixed(2)
-      : globalDiscount.value.toStringAsFixed(2),
+            ? globalDiscountPercent.value.toStringAsFixed(2)
+            : globalDiscount.value.toStringAsFixed(2),
         iva: includeIva.value ? 'SI' : 'NO',
         diasEnt: validUntil.value.difference(DateTime.now()).inDays,
         comentarios: commentsCtrl.text.trim(),
@@ -539,228 +541,251 @@ class PutQuotesController extends GetxController {
       _pdfCtrl.isLoadingPdf.value = false;
     }
   }
-void showItemDiscountDialog(BuildContext context, EditQuoteItem item) {
-  final RxDouble tempDiscount = item.descuento.value.obs;
 
-  Get.dialog(
-    Obx(
-      () => AlertDialog(
-        backgroundColor: ThemeColor.surfaceColor,
-        title: Text('Descuento del producto', style: ThemeColor.headingSmall),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              item.descripcion.value,
-              style: ThemeColor.bodySmall.copyWith(
-                color: ThemeColor.textSecondaryColor,
+  void showItemDiscountDialog(BuildContext context, EditQuoteItem item) {
+    final RxDouble tempDiscount = item.descuento.value.obs;
+
+    Get.dialog(
+      Obx(
+        () => AlertDialog(
+          backgroundColor: ThemeColor.surfaceColor,
+          title: Text('Descuento del producto', style: ThemeColor.headingSmall),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item.descripcion.value,
+                style: ThemeColor.bodySmall.copyWith(
+                  color: ThemeColor.textSecondaryColor,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Selecciona un porcentaje',
-              style: ThemeColor.bodySmall.copyWith(
-                color: ThemeColor.textSecondaryColor,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 16),
+              Text(
+                'Selecciona un porcentaje',
+                style: ThemeColor.bodySmall.copyWith(
+                  color: ThemeColor.textSecondaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
-                final isSelected = tempDiscount.value == pct.toDouble();
-                return GestureDetector(
-                  onTap: () => tempDiscount.value = pct.toDouble(),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? ThemeColor.primaryColor
-                          : ThemeColor.backgroundColor,
-                      borderRadius: ThemeColor.circularBorderRadius,
-                      border: Border.all(
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
+                  final isSelected = tempDiscount.value == pct.toDouble();
+                  return GestureDetector(
+                    onTap: () => tempDiscount.value = pct.toDouble(),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
                         color: isSelected
                             ? ThemeColor.primaryColor
-                            : ThemeColor.dividerColor,
+                            : ThemeColor.backgroundColor,
+                        borderRadius: ThemeColor.circularBorderRadius,
+                        border: Border.all(
+                          color: isSelected
+                              ? ThemeColor.primaryColor
+                              : ThemeColor.dividerColor,
+                        ),
+                      ),
+                      child: Text(
+                        pct == 0 ? 'Sin desc.' : '$pct%',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: isSelected
+                              ? Colors.white
+                              : ThemeColor.textPrimaryColor,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      pct == 0 ? 'Sin desc.' : '$pct%',
-                      style: ThemeColor.bodySmall.copyWith(
-                        color: isSelected
-                            ? Colors.white
-                            : ThemeColor.textPrimaryColor,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                      ),
-                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              if (tempDiscount.value > 0)
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: ThemeColor.errorColor.withOpacity(0.07),
+                    borderRadius: ThemeColor.smallBorderRadius,
                   ),
-                );
-              }).toList(),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Descuento ${tempDiscount.value.toInt()}%',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: ThemeColor.errorColor,
+                        ),
+                      ),
+                      Text(
+                        '-\$${(item.subtotal * (tempDiscount.value / 100)).toStringAsFixed(2)}',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: ThemeColor.errorColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: ThemeColor.textSecondaryColor),
+              ),
             ),
-            const SizedBox(height: 16),
-            if (tempDiscount.value > 0)
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: ThemeColor.errorColor.withOpacity(0.07),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeColor.primaryColor,
+              ),
+              onPressed: () {
+                item.descuento.value = tempDiscount.value;
+                items.refresh();
+                Get.back();
+              },
+              child: const Text('Aplicar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void showEditCustomProductDialog(BuildContext context, EditQuoteItem item) {
+    final descCtrl = TextEditingController(text: item.descripcion.value);
+    final costoCtrl = TextEditingController(
+      text: item.precio.value.toStringAsFixed(2),
+    );
+    final cantCtrl = TextEditingController(
+      text: item.quantity.value % 1 == 0
+          ? item.quantity.value.toInt().toString()
+          : item.quantity.value.toString(),
+    );
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: ThemeColor.surfaceColor,
+        title: Text('Editar producto', style: ThemeColor.headingSmall),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: descCtrl,
+              textCapitalization: TextCapitalization.sentences,
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Descripción',
+                border: OutlineInputBorder(
                   borderRadius: ThemeColor.smallBorderRadius,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Descuento ${tempDiscount.value.toInt()}%',
-                      style: ThemeColor.bodySmall.copyWith(
-                          color: ThemeColor.errorColor),
-                    ),
-                    Text(
-                      '-\$${(item.subtotal * (tempDiscount.value / 100)).toStringAsFixed(2)}',
-                      style: ThemeColor.bodySmall.copyWith(
-                        color: ThemeColor.errorColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
                 ),
               ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: costoCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Precio unitario',
+                prefixText: '\$ ',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: cantCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Cantidad',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Cancelar',
-                style: TextStyle(color: ThemeColor.textSecondaryColor)),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: ThemeColor.textSecondaryColor),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: ThemeColor.primaryColor),
+              backgroundColor: ThemeColor.primaryColor,
+            ),
             onPressed: () {
-              item.descuento.value = tempDiscount.value;
+              final desc = descCtrl.text.trim();
+              final costo = double.tryParse(costoCtrl.text) ?? 0;
+              final cant = double.tryParse(cantCtrl.text) ?? 1;
+              if (desc.isEmpty) {
+                showErrorSnackbar('Ingresa una descripción');
+                return;
+              }
+              if (costo <= 0) {
+                showErrorSnackbar('El costo debe ser mayor a 0');
+                return;
+              }
+              if (cant <= 0) {
+                showErrorSnackbar('La cantidad debe ser mayor a 0');
+                return;
+              }
+              item.descripcion.value = desc;
+              item.precio.value = costo;
+              item.quantity.value = cant;
               items.refresh();
               Get.back();
             },
-            child: const Text('Aplicar'),
+            child: const Text('Guardar'),
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
-void showEditCustomProductDialog(BuildContext context, EditQuoteItem item) {
-  final descCtrl = TextEditingController(text: item.descripcion.value);
-  final costoCtrl = TextEditingController(
-      text: item.precio.value.toStringAsFixed(2));
-  final cantCtrl = TextEditingController(
-    text: item.quantity.value % 1 == 0
-        ? item.quantity.value.toInt().toString()
-        : item.quantity.value.toString(),
-  );
-
-  Get.dialog(
-    AlertDialog(
-      backgroundColor: ThemeColor.surfaceColor,
-      title: Text('Editar producto', style: ThemeColor.headingSmall),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: descCtrl,
-            textCapitalization: TextCapitalization.sentences,
-            style: ThemeColor.bodyMedium,
-            decoration: InputDecoration(
-              labelText: 'Descripción',
-              border: OutlineInputBorder(
-                  borderRadius: ThemeColor.smallBorderRadius),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-                borderSide: const BorderSide(
-                    color: ThemeColor.accentColor, width: 1.5),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: costoCtrl,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            style: ThemeColor.bodyMedium,
-            decoration: InputDecoration(
-              labelText: 'Precio unitario',
-              prefixText: '\$ ',
-              border: OutlineInputBorder(
-                  borderRadius: ThemeColor.smallBorderRadius),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-                borderSide: const BorderSide(
-                    color: ThemeColor.accentColor, width: 1.5),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: cantCtrl,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            style: ThemeColor.bodyMedium,
-            decoration: InputDecoration(
-              labelText: 'Cantidad',
-              border: OutlineInputBorder(
-                  borderRadius: ThemeColor.smallBorderRadius),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-                borderSide: const BorderSide(
-                    color: ThemeColor.accentColor, width: 1.5),
-              ),
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: const Text('Cancelar',
-              style: TextStyle(color: ThemeColor.textSecondaryColor)),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeColor.primaryColor),
-          onPressed: () {
-            final desc = descCtrl.text.trim();
-            final costo = double.tryParse(costoCtrl.text) ?? 0;
-            final cant = double.tryParse(cantCtrl.text) ?? 1;
-            if (desc.isEmpty) {
-              showErrorSnackbar('Ingresa una descripción');
-              return;
-            }
-            if (costo <= 0) {
-              showErrorSnackbar('El costo debe ser mayor a 0');
-              return;
-            }
-            if (cant <= 0) {
-              showErrorSnackbar('La cantidad debe ser mayor a 0');
-              return;
-            }
-            item.descripcion.value = desc;
-            item.precio.value = costo;
-            item.quantity.value = cant;
-            items.refresh();
-            Get.back();
-          },
-          child: const Text('Guardar'),
-        ),
-      ],
-    ),
-  );
-}
   @override
   void onClose() {
     clienteController.dispose();
