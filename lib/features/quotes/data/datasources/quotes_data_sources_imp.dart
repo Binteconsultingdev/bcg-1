@@ -217,8 +217,7 @@ class QuotesDataSourcesImp {
       }
     });
 
-    print('➡️ Campos enviados:');
-    request.fields.forEach((key, value) {
+     request.fields.forEach((key, value) {
       print('   $key: $value');
     });
 
@@ -226,8 +225,7 @@ class QuotesDataSourcesImp {
       for (final entry in entity.imagenes!.entries) {
         final codigo = entry.key;
         final filePath = entry.value;
-
-        print('📷 Agregando imagen: $codigo -> $filePath');
+ 
 
         final file = await http.MultipartFile.fromPath(
           'Imagenes[$codigo]',
@@ -239,29 +237,20 @@ class QuotesDataSourcesImp {
       }
     }
 
-    print('📁 Total de archivos: ${request.files.length}');
-    for (final file in request.files) {
-      print('   ${file.field} -> ${file.filename}');
-    }
+     
 
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
-
-    print('⬅️ Status Code: ${response.statusCode}');
-    print('⬅️ Headers: ${response.headers}');
-    print('⬅️ Body: ${utf8.decode(response.bodyBytes)}');
+ 
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final dataUTF8 = utf8.decode(response.bodyBytes);
       final responseDecode = jsonDecode(dataUTF8);
-
-      print('✅ JSON recibido: $responseDecode');
+ 
 
       return ResponseCreateModel.fromJson(responseDecode);
     }
-
-    print('❌ Error HTTP ${response.statusCode}');
-
+ 
     ApiExceptionCustom exception = ApiExceptionCustom(response: response);
     exception.validateMesage();
     throw exception;

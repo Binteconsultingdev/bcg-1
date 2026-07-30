@@ -423,24 +423,24 @@ class PutQuotesController extends GetxController {
           .toList();
 
       final List<ProductoEntity> productos = productosBase.asMap().entries.map((
-        entry,
-      ) {
-        final i = entry.value;
-        return ProductoEntity(
-          codigo: i.codigo.value,
-          descripcion: i.descripcion.value,
-          disponible: i.disponible,
-          unidad: i.unidad,
-          precio: i.precio.value,
-          cantidad: i.quantity.value,
-          importe: i.total,
-          iva: (i.total * 0.16).toStringAsFixed(2),
-          claveSat: i.claveSat,
-          url: i.url,
-          descuento: i.discountAmount,
-          prioridad: entry.key + 1,
-        );
-      }).toList();
+  entry,
+) {
+  final i = entry.value;
+  return ProductoEntity(
+    codigo: i.codigo.value,
+    descripcion: i.descripcion.value,
+    disponible: i.disponible,
+    unidad: i.unidad,
+    precio: i.precio.value,
+    cantidad: i.quantity.value,
+    importe: i.total,
+    iva: (i.total * 0.16).toStringAsFixed(2),
+    claveSat: i.claveSat,
+    url: i.url,
+    descuento: i.descuento.value,  
+    prioridad: entry.key + 1,
+  );
+}).toList();
  
       if (selectedShippingOptions.contains('paquete') &&
           selectedPackagePercent.value != null) {
@@ -495,7 +495,9 @@ class PutQuotesController extends GetxController {
         cliente: clienteName.value.trim(),
         total: totalToPay,
         cataPrecio: selectedPriceType.value,
-        descuento: globalDiscount.value.toStringAsFixed(2),
+        descuento: globalDiscountType.value == 'porcentaje'
+      ? globalDiscountPercent.value.toStringAsFixed(2)
+      : globalDiscount.value.toStringAsFixed(2),
         iva: includeIva.value ? 'SI' : 'NO',
         diasEnt: validUntil.value.difference(DateTime.now()).inDays,
         comentarios: commentsCtrl.text.trim(),
@@ -766,4 +768,4 @@ void showEditCustomProductDialog(BuildContext context, EditQuoteItem item) {
     globalDiscountCtrl.dispose();
     super.onClose();
   }
-}. 
+}
