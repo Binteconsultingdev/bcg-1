@@ -1,4 +1,5 @@
 import 'package:bcg/common/errors/convert_message.dart';
+import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/common/controller/product_search_controller.dart';
@@ -136,7 +137,7 @@ class PutQuotesController extends GetxController {
   final selectedShippingOptions = <String>{}.obs;
   final selectedPackagePercent = Rxn<double>();
   final envio = Rxn<double>();
-
+  final isStrowLicense = false.obs;
   double get embalajeAmount {
     if (!selectedShippingOptions.contains('paquete')) return 0.0;
     final pct = selectedPackagePercent.value;
@@ -169,21 +170,100 @@ class PutQuotesController extends GetxController {
   double get totalToPay =>
       subtotal - globalDiscount.value + ivaAmount + (envio.value ?? 0.0);
 
-  @override
-  void onInit() {
-    super.onInit();
-    final args = Get.arguments;
-    if (args != null && args['idQuote'] != null) {
-      loadQuote(args['idQuote'] as int);
-    }
-
-    Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
-    Get.find<ClientSearchController>().showResults.value = false;
-    Get.find<ClientSearchController>().manuallyClosed = true;
-
-    ever(selectedPriceType, (_) => validateCart());
+@override
+void onInit() {
+  super.onInit();
+  final args = Get.arguments;
+  if (args != null && args['idQuote'] != null) {
+    loadQuote(args['idQuote'] as int);
   }
 
+  _checkStrowLicense(); 
+
+  Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
+  Get.find<ClientSearchController>().showResults.value = false;
+  Get.find<ClientSearchController>().manuallyClosed = true;
+
+  ever(selectedPriceType, (_) => validateCart());
+}
+
+Future<void> _checkStrowLicense() async {
+  final base = await LicenseService().getBase();
+  isStrowLicense.value = (base ?? '').trim().toLowerCase() == 'strow';
+}
+void showEditPriceDialog(BuildContext context, EditQuoteItem item) {
+  final priceCtrl = TextEditingController(
+    text: item.precio.value.toStringAsFixed(2),
+  );
+
+  Get.dialog(
+    AlertDialog(
+      backgroundColor: ThemeColor.surfaceColor,
+      title: Text('Cambiar precio', style: ThemeColor.headingSmall),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            item.descripcion.value,
+            style: ThemeColor.bodySmall.copyWith(
+              color: ThemeColor.textSecondaryColor,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: priceCtrl,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: ThemeColor.bodyMedium,
+            decoration: InputDecoration(
+              labelText: 'Nuevo precio unitario',
+              prefixText: '\$ ',
+              border: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+                borderSide: const BorderSide(
+                  color: ThemeColor.accentColor,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text(
+            'Cancelar',
+            style: TextStyle(color: ThemeColor.textSecondaryColor),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ThemeColor.primaryColor,
+          ),
+          onPressed: () {
+            final nuevoPrecio = double.tryParse(priceCtrl.text);
+            if (nuevoPrecio == null || nuevoPrecio <= 0) {
+              showErrorSnackbar('Ingresa un precio válido');
+              return;
+            }
+            item.precio.value = nuevoPrecio;
+            items.refresh();
+            validateCart(); 
+            Get.back();
+          },
+          child: const Text('Aplicar'),
+        ),
+      ],
+    ),
+  );
+}
   Future<void> validateCart() async {
     final validItems = items
         .where((i) => i.productId != null && i.productId! > 0)
