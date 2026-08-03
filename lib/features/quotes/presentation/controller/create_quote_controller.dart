@@ -181,7 +181,10 @@ void onInit() {
 
 Future<void> _checkStrowLicense() async {
   final base = await LicenseService().getBase();
-  isStrowLicense.value = (base ?? '').trim().toLowerCase() == 'strow';
+  final normalized = (base ?? '').trim().toLowerCase();
+  print('🔍 [_checkStrowLicense] base crudo: "$base" | normalizado: "$normalized"');
+  isStrowLicense.value = normalized == 'stown' || normalized == 'pruebastablas';
+  print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
 }
   @override
   void onReady() {

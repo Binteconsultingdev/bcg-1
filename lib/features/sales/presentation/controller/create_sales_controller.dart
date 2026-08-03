@@ -106,7 +106,7 @@ final selectedPackagePercent = Rxn<double>();
 final envio = Rxn<double>();
 @override
 void onInit() {
-  super.onInit();
+  super.onInit();print('🟢 CreateSalesController.onInit() ejecutado');
   _checkStrowLicense();  
   _quoteSearchDebounce = debounce(
     quoteSearchInput,
@@ -117,7 +117,10 @@ void onInit() {
 
 Future<void> _checkStrowLicense() async {
   final base = await LicenseService().getBase();
-  isStrowLicense.value = (base ?? '').trim().toLowerCase() == 'strow';
+  final normalized = (base ?? '').trim().toLowerCase();
+  print('🔍 [_checkStrowLicense] base crudo: "$base" | normalizado: "$normalized"');
+  isStrowLicense.value = normalized == 'stown' || normalized == 'pruebastablas';
+  print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
 }
 double get embalajeAmount {
   if (!selectedShippingOptions.contains('paquete')) return 0.0;

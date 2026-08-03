@@ -189,7 +189,10 @@ void onInit() {
 
 Future<void> _checkStrowLicense() async {
   final base = await LicenseService().getBase();
-  isStrowLicense.value = (base ?? '').trim().toLowerCase() == 'strow';
+  final normalized = (base ?? '').trim().toLowerCase();
+  print('🔍 [_checkStrowLicense] base crudo: "$base" | normalizado: "$normalized"');
+  isStrowLicense.value = normalized == 'stown' || normalized == 'pruebastablas';
+  print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
 }
 void showEditPriceDialog(BuildContext context, EditQuoteItem item) {
   final priceCtrl = TextEditingController(
@@ -255,7 +258,7 @@ void showEditPriceDialog(BuildContext context, EditQuoteItem item) {
             }
             item.precio.value = nuevoPrecio;
             items.refresh();
-            validateCart(); // opcional: si no quieres que se sobreescriba con el precio del backend, quita esta línea
+            validateCart(); 
             Get.back();
           },
           child: const Text('Aplicar'),
