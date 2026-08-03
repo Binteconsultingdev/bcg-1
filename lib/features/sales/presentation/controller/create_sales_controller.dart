@@ -1,6 +1,7 @@
 import 'package:bcg/common/controller/product_search_controller.dart';
 import 'package:bcg/common/errors/convert_message.dart';
 import 'package:bcg/common/services/auth_service.dart';
+import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
@@ -21,12 +22,14 @@ class SaleItem {
   final InventoryEntity product;
   final RxDouble quantity;
   final RxDouble discount;
+  final RxnDouble manualPriceOverride = RxnDouble();  
 
   SaleItem({required this.product, double initialQty = 1.0})
     : quantity = initialQty.obs,
       discount = 0.0.obs;
 
-  double get unitPrice => (product.price ?? 0).toDouble();
+  double get unitPrice =>
+      manualPriceOverride.value ?? (product.price ?? 0).toDouble(); 
   double get subtotal => unitPrice * quantity.value;
   double get total => subtotal - (subtotal * (discount.value / 100));
   double get stock => (product.availableQuantity ?? 0).toDouble();
@@ -64,7 +67,7 @@ class CreateSalesController extends GetxController {
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
-
+final isStrowLicense = false.obs;
   final items = <SaleItem>[].obs;
   final quoteSearchType = 'folio'.obs;
 
@@ -101,15 +104,21 @@ class CreateSalesController extends GetxController {
   final selectedShippingOptions = <String>{}.obs;
 final selectedPackagePercent = Rxn<double>();
 final envio = Rxn<double>();
-  @override
-  void onInit() {
-    super.onInit();
-    _quoteSearchDebounce = debounce(
-      quoteSearchInput,
-      (v) => v.trim().isNotEmpty ? searchQuoteByFolio() : quoteResults.clear(),
-      time: const Duration(milliseconds: 600),
-    );
-  }
+@override
+void onInit() {
+  super.onInit();
+  _checkStrowLicense();  
+  _quoteSearchDebounce = debounce(
+    quoteSearchInput,
+    (v) => v.trim().isNotEmpty ? searchQuoteByFolio() : quoteResults.clear(),
+    time: const Duration(milliseconds: 600),
+  );
+}
+
+Future<void> _checkStrowLicense() async {
+  final base = await LicenseService().getBase();
+  isStrowLicense.value = (base ?? '').trim().toLowerCase() == 'strow';
+}
 double get embalajeAmount {
   if (!selectedShippingOptions.contains('paquete')) return 0.0;
   final pct = selectedPackagePercent.value;
@@ -285,7 +294,78 @@ Future<void> loadInitialQuotes() async {
     quoteSearchInput.value = '';
     isSearchingQuote.value = false;
   }
+void showEditPriceDialog(BuildContext context, SaleItem item) {
+  final priceCtrl = TextEditingController(
+    text: item.unitPrice.toStringAsFixed(2),
+  );
 
+  Get.dialog(
+    AlertDialog(
+      backgroundColor: ThemeColor.surfaceColor,
+      title: Text('Cambiar precio', style: ThemeColor.headingSmall),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            item.product.description ?? '',
+            style: ThemeColor.bodySmall.copyWith(
+              color: ThemeColor.textSecondaryColor,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: priceCtrl,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: ThemeColor.bodyMedium,
+            decoration: InputDecoration(
+              labelText: 'Nuevo precio unitario',
+              prefixText: '\$ ',
+              border: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+                borderSide: const BorderSide(
+                  color: ThemeColor.accentColor,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text(
+            'Cancelar',
+            style: TextStyle(color: ThemeColor.textSecondaryColor),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ThemeColor.primaryColor,
+          ),
+          onPressed: () {
+            final nuevoPrecio = double.tryParse(priceCtrl.text);
+            if (nuevoPrecio == null || nuevoPrecio <= 0) {
+              showErrorSnackbar('Ingresa un precio válido');
+              return;
+            }
+            item.manualPriceOverride.value = nuevoPrecio;
+            items.refresh();
+            Get.back();
+          },
+          child: const Text('Aplicar'),
+        ),
+      ],
+    ),
+  );
+}
   void applyGlobalDiscount(double value, {bool isPercent = false}) {
     if (isPercent) {
       globalDiscountType.value = 'porcentaje';
