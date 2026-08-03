@@ -255,7 +255,7 @@ void showEditPriceDialog(BuildContext context, EditQuoteItem item) {
             }
             item.precio.value = nuevoPrecio;
             items.refresh();
-            validateCart(); 
+            validateCart(); // opcional: si no quieres que se sobreescriba con el precio del backend, quita esta línea
             Get.back();
           },
           child: const Text('Aplicar'),

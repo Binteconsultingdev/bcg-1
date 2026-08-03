@@ -1,3 +1,4 @@
+import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
 import 'package:bcg/common/widgets/qr_scanner_widget.dart';
@@ -39,13 +40,13 @@ class CustomQuoteItem {
   double get discountAmount => subtotal * (discount.value / 100);
   double get total => subtotal - discountAmount;
 }
-
 class QuoteItem {
   final InventoryEntity? product;
   final CustomQuoteItem? customProduct;
   final RxDouble quantity;
   final RxDouble discount;
   final RxnString localImagePath = RxnString();
+  final RxnDouble manualPriceOverride = RxnDouble();  
 
   QuoteItem({
     required InventoryEntity inventoryProduct,
@@ -72,6 +73,7 @@ class QuoteItem {
   final RxnDouble validatedPrice = RxnDouble();
 
   double get unitPrice {
+    if (manualPriceOverride.value != null) return manualPriceOverride.value!;  
     if (isCustom) return customProduct!.costo;
     return validatedPrice.value ?? (product!.price ?? 0).toDouble();
   }
@@ -138,7 +140,7 @@ class CreateQuoteController extends GetxController {
   final isSearching = false.obs;
   final RxList<InventoryEntity> searchResults = <InventoryEntity>[].obs;
   final RxBool isLoadingSearch = false.obs;
-
+final isStrowLicense = false.obs;
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
@@ -169,14 +171,18 @@ class CreateQuoteController extends GetxController {
       ivaAmount +
       (envio.value ?? 0.0) +
       embalajeAmount;
-  @override
-  void onInit() {
-    super.onInit();
-    _loadFolio();
+@override
+void onInit() {
+  super.onInit();
+  _loadFolio();
+  _checkStrowLicense();  
+  ever(selectedPriceType, (_) => validateCart());
+}
 
-    ever(selectedPriceType, (_) => validateCart());
-  }
-
+Future<void> _checkStrowLicense() async {
+  final base = await LicenseService().getBase();
+  isStrowLicense.value = (base ?? '').trim().toLowerCase() == 'strow';
+}
   @override
   void onReady() {
     super.onReady();
@@ -199,7 +205,78 @@ class CreateQuoteController extends GetxController {
       if (option == 'envio') envio.value = 0.0;
     }
   }
+void showEditPriceDialog(BuildContext context, QuoteItem item) {
+  final priceCtrl = TextEditingController(
+    text: item.unitPrice.toStringAsFixed(2),
+  );
 
+  Get.dialog(
+    AlertDialog(
+      backgroundColor: ThemeColor.surfaceColor,
+      title: Text('Cambiar precio', style: ThemeColor.headingSmall),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            item.description,
+            style: ThemeColor.bodySmall.copyWith(
+              color: ThemeColor.textSecondaryColor,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: priceCtrl,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: ThemeColor.bodyMedium,
+            decoration: InputDecoration(
+              labelText: 'Nuevo precio unitario',
+              prefixText: '\$ ',
+              border: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: ThemeColor.smallBorderRadius,
+                borderSide: const BorderSide(
+                  color: ThemeColor.accentColor,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text(
+            'Cancelar',
+            style: TextStyle(color: ThemeColor.textSecondaryColor),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ThemeColor.primaryColor,
+          ),
+          onPressed: () {
+            final nuevoPrecio = double.tryParse(priceCtrl.text);
+            if (nuevoPrecio == null || nuevoPrecio <= 0) {
+              showErrorSnackbar('Ingresa un precio válido');
+              return;
+            }
+            item.manualPriceOverride.value = nuevoPrecio;
+            items.refresh();
+            Get.back();
+          },
+          child: const Text('Aplicar'),
+        ),
+      ],
+    ),
+  );
+}
   Future<void> validateCart() async {
     final inventoryItems = items
         .where((i) => !i.isCustom && i.product?.id != null)
