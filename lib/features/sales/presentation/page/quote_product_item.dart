@@ -158,7 +158,7 @@ if (!readOnly && discount != null) ...[
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Precio', // texto más corto para que quepa mejor
+                                  'Precio', 
                                   style: ThemeColor.caption.copyWith(
                                     color: ThemeColor.primaryColor,
                                     fontWeight: FontWeight.w600,
