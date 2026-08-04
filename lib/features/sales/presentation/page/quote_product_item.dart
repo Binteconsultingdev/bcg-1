@@ -96,12 +96,12 @@ if (!readOnly && discount != null) ...[
                             decoration: BoxDecoration(
                               color: discount!.value > 0
                                   ? ThemeColor.errorColor.withOpacity(0.08)
-                                  : ThemeColor.backgroundColor,
+                                  : ThemeColor.successColor.withOpacity(0.03),
                               borderRadius: ThemeColor.circularBorderRadius,
                               border: Border.all(
                                 color: discount!.value > 0
                                     ? ThemeColor.errorColor.withOpacity(0.35)
-                                    : ThemeColor.dividerColor,
+                                    : ThemeColor.successColor,
                               ),
                             ),
                             child: Row(
@@ -142,12 +142,10 @@ if (!readOnly && discount != null) ...[
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: ThemeColor.primaryColor.withOpacity(0.08),
+                              color: ThemeColor.infoColor.withOpacity(0.03),
                               borderRadius: ThemeColor.circularBorderRadius,
                               border: Border.all(
-                                color: ThemeColor.primaryColor.withOpacity(
-                                  0.35,
-                                ),
+                                color: ThemeColor.infoColor 
                               ),
                             ),
                             child: Row(
