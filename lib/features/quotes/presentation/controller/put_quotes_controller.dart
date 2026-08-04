@@ -170,103 +170,110 @@ class PutQuotesController extends GetxController {
   double get totalToPay =>
       subtotal - globalDiscount.value + ivaAmount + (envio.value ?? 0.0);
 
-@override
-void onInit() {
-  super.onInit();
-  final args = Get.arguments;
-  if (args != null && args['idQuote'] != null) {
-    loadQuote(args['idQuote'] as int);
+  @override
+  void onInit() {
+    super.onInit();
+    final args = Get.arguments;
+    if (args != null && args['idQuote'] != null) {
+      loadQuote(args['idQuote'] as int);
+    }
+
+    _checkStrowLicense();
+
+    Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
+    Get.find<ClientSearchController>().showResults.value = false;
+    Get.find<ClientSearchController>().manuallyClosed = true;
+
+    ever(selectedPriceType, (_) => validateCart());
   }
 
-  _checkStrowLicense(); 
+  Future<void> _checkStrowLicense() async {
+    final base = await LicenseService().getBase();
+    final normalized = (base ?? '').trim().toLowerCase();
+    print(
+      '🔍 [_checkStrowLicense] base crudo: "$base" | normalizado: "$normalized"',
+    );
+    isStrowLicense.value =
+        normalized == 'stown' || normalized == 'pruebastablas';
+    print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
+  }
 
-  Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
-  Get.find<ClientSearchController>().showResults.value = false;
-  Get.find<ClientSearchController>().manuallyClosed = true;
+  void showEditPriceDialog(BuildContext context, EditQuoteItem item) {
+    final priceCtrl = TextEditingController(
+      text: item.precio.value.toStringAsFixed(2),
+    );
 
-  ever(selectedPriceType, (_) => validateCart());
-}
-
-Future<void> _checkStrowLicense() async {
-  final base = await LicenseService().getBase();
-  final normalized = (base ?? '').trim().toLowerCase();
-  print('🔍 [_checkStrowLicense] base crudo: "$base" | normalizado: "$normalized"');
-  isStrowLicense.value = normalized == 'stown' || normalized == 'pruebastablas';
-  print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
-}
-void showEditPriceDialog(BuildContext context, EditQuoteItem item) {
-  final priceCtrl = TextEditingController(
-    text: item.precio.value.toStringAsFixed(2),
-  );
-
-  Get.dialog(
-    AlertDialog(
-      backgroundColor: ThemeColor.surfaceColor,
-      title: Text('Cambiar precio', style: ThemeColor.headingSmall),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            item.descripcion.value,
-            style: ThemeColor.bodySmall.copyWith(
-              color: ThemeColor.textSecondaryColor,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: priceCtrl,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: ThemeColor.bodyMedium,
-            decoration: InputDecoration(
-              labelText: 'Nuevo precio unitario',
-              prefixText: '\$ ',
-              border: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: ThemeColor.surfaceColor,
+        title: Text('Cambiar precio', style: ThemeColor.headingSmall),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.descripcion.value,
+              style: ThemeColor.bodySmall.copyWith(
+                color: ThemeColor.textSecondaryColor,
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-                borderSide: const BorderSide(
-                  color: ThemeColor.accentColor,
-                  width: 1.5,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: priceCtrl,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Nuevo precio unitario',
+                prefixText: '\$ ',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
                 ),
               ),
             ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: ThemeColor.textSecondaryColor),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeColor.primaryColor,
+            ),
+            onPressed: () {
+              final nuevoPrecio = double.tryParse(priceCtrl.text);
+              if (nuevoPrecio == null || nuevoPrecio <= 0) {
+                showErrorSnackbar('Ingresa un precio válido');
+                return;
+              }
+              item.precio.value = nuevoPrecio;
+              items.refresh();
+              validateCart();
+              Get.back();
+            },
+            child: const Text('Aplicar'),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: const Text(
-            'Cancelar',
-            style: TextStyle(color: ThemeColor.textSecondaryColor),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: ThemeColor.primaryColor,
-          ),
-          onPressed: () {
-            final nuevoPrecio = double.tryParse(priceCtrl.text);
-            if (nuevoPrecio == null || nuevoPrecio <= 0) {
-              showErrorSnackbar('Ingresa un precio válido');
-              return;
-            }
-            item.precio.value = nuevoPrecio;
-            items.refresh();
-            validateCart(); 
-            Get.back();
-          },
-          child: const Text('Aplicar'),
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
+
   Future<void> validateCart() async {
     final validItems = items
         .where((i) => i.productId != null && i.productId! > 0)

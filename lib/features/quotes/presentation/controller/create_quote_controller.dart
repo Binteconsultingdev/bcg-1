@@ -40,13 +40,14 @@ class CustomQuoteItem {
   double get discountAmount => subtotal * (discount.value / 100);
   double get total => subtotal - discountAmount;
 }
+
 class QuoteItem {
   final InventoryEntity? product;
   final CustomQuoteItem? customProduct;
   final RxDouble quantity;
   final RxDouble discount;
   final RxnString localImagePath = RxnString();
-  final RxnDouble manualPriceOverride = RxnDouble();  
+  final RxnDouble manualPriceOverride = RxnDouble();
 
   QuoteItem({
     required InventoryEntity inventoryProduct,
@@ -73,7 +74,7 @@ class QuoteItem {
   final RxnDouble validatedPrice = RxnDouble();
 
   double get unitPrice {
-    if (manualPriceOverride.value != null) return manualPriceOverride.value!;  
+    if (manualPriceOverride.value != null) return manualPriceOverride.value!;
     if (isCustom) return customProduct!.costo;
     return validatedPrice.value ?? (product!.price ?? 0).toDouble();
   }
@@ -140,7 +141,7 @@ class CreateQuoteController extends GetxController {
   final isSearching = false.obs;
   final RxList<InventoryEntity> searchResults = <InventoryEntity>[].obs;
   final RxBool isLoadingSearch = false.obs;
-final isStrowLicense = false.obs;
+  final isStrowLicense = false.obs;
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
@@ -171,21 +172,25 @@ final isStrowLicense = false.obs;
       ivaAmount +
       (envio.value ?? 0.0) +
       embalajeAmount;
-@override
-void onInit() {
-  super.onInit();
-  _loadFolio();
-  _checkStrowLicense();  
-  ever(selectedPriceType, (_) => validateCart());
-}
+  @override
+  void onInit() {
+    super.onInit();
+    _loadFolio();
+    _checkStrowLicense();
+    ever(selectedPriceType, (_) => validateCart());
+  }
 
-Future<void> _checkStrowLicense() async {
-  final base = await LicenseService().getBase();
-  final normalized = (base ?? '').trim().toLowerCase();
-  print('🔍 [_checkStrowLicense] base crudo: "$base" | normalizado: "$normalized"');
-  isStrowLicense.value = normalized == 'stown' || normalized == 'pruebastablas';
-  print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
-}
+  Future<void> _checkStrowLicense() async {
+    final base = await LicenseService().getBase();
+    final normalized = (base ?? '').trim().toLowerCase();
+    print(
+      '🔍 [_checkStrowLicense] base crudo: "$base" | normalizado: "$normalized"',
+    );
+    isStrowLicense.value =
+        normalized == 'stown' || normalized == 'pruebastablas';
+    print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
+  }
+
   @override
   void onReady() {
     super.onReady();
@@ -208,78 +213,82 @@ Future<void> _checkStrowLicense() async {
       if (option == 'envio') envio.value = 0.0;
     }
   }
-void showEditPriceDialog(BuildContext context, QuoteItem item) {
-  final priceCtrl = TextEditingController(
-    text: item.unitPrice.toStringAsFixed(2),
-  );
 
-  Get.dialog(
-    AlertDialog(
-      backgroundColor: ThemeColor.surfaceColor,
-      title: Text('Cambiar precio', style: ThemeColor.headingSmall),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            item.description,
-            style: ThemeColor.bodySmall.copyWith(
-              color: ThemeColor.textSecondaryColor,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: priceCtrl,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: ThemeColor.bodyMedium,
-            decoration: InputDecoration(
-              labelText: 'Nuevo precio unitario',
-              prefixText: '\$ ',
-              border: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
+  void showEditPriceDialog(BuildContext context, QuoteItem item) {
+    final priceCtrl = TextEditingController(
+      text: item.unitPrice.toStringAsFixed(2),
+    );
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: ThemeColor.surfaceColor,
+        title: Text('Cambiar precio', style: ThemeColor.headingSmall),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.description,
+              style: ThemeColor.bodySmall.copyWith(
+                color: ThemeColor.textSecondaryColor,
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: ThemeColor.smallBorderRadius,
-                borderSide: const BorderSide(
-                  color: ThemeColor.accentColor,
-                  width: 1.5,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: priceCtrl,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Nuevo precio unitario',
+                prefixText: '\$ ',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
                 ),
               ),
             ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: ThemeColor.textSecondaryColor),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeColor.primaryColor,
+            ),
+            onPressed: () {
+              final nuevoPrecio = double.tryParse(priceCtrl.text);
+              if (nuevoPrecio == null || nuevoPrecio <= 0) {
+                showErrorSnackbar('Ingresa un precio válido');
+                return;
+              }
+              item.manualPriceOverride.value = nuevoPrecio;
+              items.refresh();
+              Get.back();
+            },
+            child: const Text('Aplicar'),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: const Text(
-            'Cancelar',
-            style: TextStyle(color: ThemeColor.textSecondaryColor),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: ThemeColor.primaryColor,
-          ),
-          onPressed: () {
-            final nuevoPrecio = double.tryParse(priceCtrl.text);
-            if (nuevoPrecio == null || nuevoPrecio <= 0) {
-              showErrorSnackbar('Ingresa un precio válido');
-              return;
-            }
-            item.manualPriceOverride.value = nuevoPrecio;
-            items.refresh();
-            Get.back();
-          },
-          child: const Text('Aplicar'),
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
+
   Future<void> validateCart() async {
     final inventoryItems = items
         .where((i) => !i.isCustom && i.product?.id != null)
@@ -1014,29 +1023,28 @@ void showEditPriceDialog(BuildContext context, QuoteItem item) {
   @override
   final RxBool isTorchOn = false.obs;
 
-@override
-void iniciarEscaneoQR() { 
-  qrScannerController.value?.dispose();
-  qrScannerController.value = null;
-  qrScannerController.value = MobileScannerController();
-}
- 
-void _liberarCamara() {
-  qrScannerController.value?.dispose();
-  qrScannerController.value = null;
-}
+  @override
+  void iniciarEscaneoQR() {
+    qrScannerController.value?.dispose();
+    qrScannerController.value = null;
+    qrScannerController.value = MobileScannerController();
+  }
 
-@override
-void detenerEscaneoQR() {
-  _liberarCamara();
-  if (Get.isBottomSheetOpen ?? false) Get.back();
-}
- 
-void reiniciarEscaneoQR() {
-  _liberarCamara();
-  qrScannerController.value = MobileScannerController();
-}
- 
+  void _liberarCamara() {
+    qrScannerController.value?.dispose();
+    qrScannerController.value = null;
+  }
+
+  @override
+  void detenerEscaneoQR() {
+    _liberarCamara();
+    if (Get.isBottomSheetOpen ?? false) Get.back();
+  }
+
+  void reiniciarEscaneoQR() {
+    _liberarCamara();
+    qrScannerController.value = MobileScannerController();
+  }
 
   @override
   void toggleTorch() {
@@ -1166,18 +1174,18 @@ void reiniciarEscaneoQR() {
     );
   }
 
-void abrirScannerQR(BuildContext context) {
-  iniciarEscaneoQR();
-  Get.bottomSheet(
-    QRScannerWidget(
-      controller: this,
-      title: 'ESCANEAR PRODUCTO',
-      description: 'Apunta al código QR o de barras del producto',
-    ),
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-  ).then((_) => _liberarCamara());  
-}
+  void abrirScannerQR(BuildContext context) {
+    iniciarEscaneoQR();
+    Get.bottomSheet(
+      QRScannerWidget(
+        controller: this,
+        title: 'ESCANEAR PRODUCTO',
+        description: 'Apunta al código QR o de barras del producto',
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    ).then((_) => _liberarCamara());
+  }
 
   void resetState() {
     items.clear();

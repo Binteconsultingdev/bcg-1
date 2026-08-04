@@ -546,7 +546,7 @@ class _ProductList extends StatelessWidget {
                       ? () => ctrl.showEditPriceDialog(context, item)
                       : null,
                 ),
-                 
+
                 if (!isLast)
                   Divider(
                     height: 1,

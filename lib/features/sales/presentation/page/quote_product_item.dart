@@ -77,7 +77,7 @@ class QuoteProductItem extends StatelessWidget {
                   ),
                 ),
 
-if (!readOnly && discount != null) ...[
+                if (!readOnly && discount != null) ...[
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -144,9 +144,7 @@ if (!readOnly && discount != null) ...[
                             decoration: BoxDecoration(
                               color: ThemeColor.infoColor.withOpacity(0.03),
                               borderRadius: ThemeColor.circularBorderRadius,
-                              border: Border.all(
-                                color: ThemeColor.infoColor 
-                              ),
+                              border: Border.all(color: ThemeColor.infoColor),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -158,7 +156,7 @@ if (!readOnly && discount != null) ...[
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Precio', 
+                                  'Precio',
                                   style: ThemeColor.caption.copyWith(
                                     color: ThemeColor.primaryColor,
                                     fontWeight: FontWeight.w600,
