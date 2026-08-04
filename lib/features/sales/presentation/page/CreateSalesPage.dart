@@ -283,98 +283,121 @@ class _TopSection extends StatelessWidget {
             label: 'Producto',
             child: ProductSearchField(onSelected: ctrl.addProduct),
           ),
-          ProductSearchResults(onSelected: ctrl.addProduct), 
-const SizedBox(height: 4),
-Column(
-  children: [
-    Row(
-      children: [
-        Expanded(
-          child: Obx(
-            () => ShippingOptionCard(
-              icon: Icons.inventory_2_outlined,
-              label: 'Paquete y Embalaje',
-              isSelected: ctrl.selectedShippingOptions.contains('paquete'),
-              onTap: () => ctrl.toggleShippingOption('paquete'),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Obx(
-            () => ShippingOptionCard(
-              icon: Icons.local_shipping_outlined,
-              label: 'Envío de Productos',
-              isSelected: ctrl.selectedShippingOptions.contains('envio'),
-              onTap: () => ctrl.toggleShippingOption('envio'),
-            ),
-          ),
-        ),
-      ],
-    ),
-    Obx(() {
-      if (!ctrl.selectedShippingOptions.contains('paquete')) {
-        return const SizedBox.shrink();
-      }
-      return AnimatedSize(
-        duration: const Duration(milliseconds: 200),
-        child: Container(
-          margin: const EdgeInsets.only(top: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: ThemeColor.primaryColor.withOpacity(0.06),
-            borderRadius: ThemeColor.smallBorderRadius,
-            border: Border.all(color: ThemeColor.primaryColor.withOpacity(0.2)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          ProductSearchResults(onSelected: ctrl.addProduct),
+          const SizedBox(height: 4),
+          Column(
             children: [
-              Text(
-                'Porcentaje de embalaje',
-                style: ThemeColor.bodySmall.copyWith(
-                  color: ThemeColor.textSecondaryColor,
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Obx(
+                      () => ShippingOptionCard(
+                        icon: Icons.inventory_2_outlined,
+                        label: 'Paquete y Embalaje',
+                        isSelected: ctrl.selectedShippingOptions.contains(
+                          'paquete',
+                        ),
+                        onTap: () => ctrl.toggleShippingOption('paquete'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Obx(
+                      () => ShippingOptionCard(
+                        icon: Icons.local_shipping_outlined,
+                        label: 'Envío de Productos',
+                        isSelected: ctrl.selectedShippingOptions.contains(
+                          'envio',
+                        ),
+                        onTap: () => ctrl.toggleShippingOption('envio'),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Obx(
-                () => Row(
-                  children: [1.5, 2.0, 3.0].map((pct) {
-                    final isSelected = ctrl.selectedPackagePercent.value == pct;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: GestureDetector(
-                        onTap: () => ctrl.selectedPackagePercent.value = pct,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isSelected ? ThemeColor.primaryColor : ThemeColor.surfaceColor,
-                            borderRadius: ThemeColor.circularBorderRadius,
-                            border: Border.all(
-                              color: isSelected ? ThemeColor.primaryColor : ThemeColor.dividerColor,
-                            ),
-                          ),
-                          child: Text(
-                            '$pct%',
-                            style: ThemeColor.bodyMedium.copyWith(
-                              color: isSelected ? Colors.white : ThemeColor.textPrimaryColor,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            ),
+              Obx(() {
+                if (!ctrl.selectedShippingOptions.contains('paquete')) {
+                  return const SizedBox.shrink();
+                }
+                return AnimatedSize(
+                  duration: const Duration(milliseconds: 200),
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ThemeColor.primaryColor.withOpacity(0.06),
+                      borderRadius: ThemeColor.smallBorderRadius,
+                      border: Border.all(
+                        color: ThemeColor.primaryColor.withOpacity(0.2),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Porcentaje de embalaje',
+                          style: ThemeColor.bodySmall.copyWith(
+                            color: ThemeColor.textSecondaryColor,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
+                        const SizedBox(height: 8),
+                        Obx(
+                          () => Row(
+                            children: [1.5, 2.0, 3.0].map((pct) {
+                              final isSelected =
+                                  ctrl.selectedPackagePercent.value == pct;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: GestureDetector(
+                                  onTap: () =>
+                                      ctrl.selectedPackagePercent.value = pct,
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? ThemeColor.primaryColor
+                                          : ThemeColor.surfaceColor,
+                                      borderRadius:
+                                          ThemeColor.circularBorderRadius,
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? ThemeColor.primaryColor
+                                            : ThemeColor.dividerColor,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      '$pct%',
+                                      style: ThemeColor.bodyMedium.copyWith(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : ThemeColor.textPrimaryColor,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
-        ),
-      );
-    }),
-  ],
-),
         ],
       ),
     );
@@ -492,6 +515,7 @@ class _MetodoBottomSheet extends StatelessWidget {
     );
   }
 }
+
 class _ProductList extends StatelessWidget {
   final CreateSalesController ctrl;
   const _ProductList({required this.ctrl});
@@ -518,30 +542,11 @@ class _ProductList extends StatelessWidget {
                   onRemove: () => ctrl.removeItem(item),
                   onQuantityChanged: (v) => item.quantity.value = v,
                   maxQuantity: item.stock.toDouble(),
-                ), 
-                if (ctrl.isStrowLicense.value)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12, bottom: 8),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton.icon(
-                        onPressed: () =>
-                            ctrl.showEditPriceDialog(context, item),
-                        icon: const Icon(
-                          Icons.price_change_outlined,
-                          size: 16,
-                          color: ThemeColor.primaryColor,
-                        ),
-                        label: Text(
-                          'Cambiar precio',
-                          style: ThemeColor.bodySmall.copyWith(
-                            color: ThemeColor.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  onEditPriceTap: ctrl.isStrowLicense.value
+                      ? () => ctrl.showEditPriceDialog(context, item)
+                      : null,
+                ),
+                 
                 if (!isLast)
                   Divider(
                     height: 1,
@@ -748,58 +753,83 @@ class _TotalsSection extends StatelessWidget {
             ),
             Divider(height: 20, color: ThemeColor.dividerColor),
             if (ctrl.selectedShippingOptions.contains('envio'))
-  Padding(
-    padding: const EdgeInsets.only(top: 6),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        GestureDetector(
-          onTap: () => _showEnvioDialog(context),
-          child: Row(
-            children: [
-              const Icon(Icons.local_shipping_outlined, size: 15, color: ThemeColor.primaryColor),
-              const SizedBox(width: 6),
-              Text('Costo de envío',
-                  style: ThemeColor.bodyMedium.copyWith(
-                      color: ThemeColor.primaryColor, fontWeight: FontWeight.w500)),
-              const SizedBox(width: 4),
-              const Icon(Icons.edit_outlined, size: 13, color: ThemeColor.primaryColor),
-            ],
-          ),
-        ),
-        Text(
-          ctrl.envio.value != null ? '\$${ctrl.envio.value!.toStringAsFixed(2)}' : '\$0.00',
-          style: ThemeColor.bodyMedium.copyWith(
-              color: ThemeColor.primaryColor, fontWeight: FontWeight.w600),
-        ),
-      ],
-    ),
-  ),
-if (ctrl.selectedShippingOptions.contains('paquete') && ctrl.selectedPackagePercent.value != null)
-  Padding(
-    padding: const EdgeInsets.only(top: 6),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.inventory_2_outlined, size: 15, color: ThemeColor.primaryColor),
-            const SizedBox(width: 6),
-            Text(
-              'Embalaje ${ctrl.selectedPackagePercent.value!.toString().replaceAll('.0', '')}%',
-              style: ThemeColor.bodyMedium.copyWith(
-                  color: ThemeColor.primaryColor, fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-        Text(
-          '\$${ctrl.embalajeAmount.toStringAsFixed(2)}',
-          style: ThemeColor.bodyMedium.copyWith(
-              color: ThemeColor.primaryColor, fontWeight: FontWeight.w600),
-        ),
-      ],
-    ),
-  ),
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _showEnvioDialog(context),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.local_shipping_outlined,
+                            size: 15,
+                            color: ThemeColor.primaryColor,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Costo de envío',
+                            style: ThemeColor.bodyMedium.copyWith(
+                              color: ThemeColor.primaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.edit_outlined,
+                            size: 13,
+                            color: ThemeColor.primaryColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      ctrl.envio.value != null
+                          ? '\$${ctrl.envio.value!.toStringAsFixed(2)}'
+                          : '\$0.00',
+                      style: ThemeColor.bodyMedium.copyWith(
+                        color: ThemeColor.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (ctrl.selectedShippingOptions.contains('paquete') &&
+                ctrl.selectedPackagePercent.value != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 15,
+                          color: ThemeColor.primaryColor,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Embalaje ${ctrl.selectedPackagePercent.value!.toString().replaceAll('.0', '')}%',
+                          style: ThemeColor.bodyMedium.copyWith(
+                            color: ThemeColor.primaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      '\$${ctrl.embalajeAmount.toStringAsFixed(2)}',
+                      style: ThemeColor.bodyMedium.copyWith(
+                        color: ThemeColor.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             _TotalRow(
               label: 'Total a pagar',
               value: '\$${ctrl.totalToPay.toStringAsFixed(2)}',
@@ -848,7 +878,7 @@ if (ctrl.selectedShippingOptions.contains('paquete') && ctrl.selectedPackagePerc
                 ),
               ),
             ),
-            const SizedBox(height: 8), 
+            const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -1240,7 +1270,6 @@ class _ExtraFieldsSection extends StatelessWidget {
             ),
           ),
           Divider(height: 1, color: ThemeColor.dividerColor),
-          
         ],
       ),
     );
@@ -1326,7 +1355,7 @@ class _CommentsSection extends StatelessWidget {
             controller: ctrl.commentsCtrl,
             maxLines: 4,
             style: ThemeColor.bodyMedium,
-              maxLength: 500,   
+            maxLength: 500,
             decoration: InputDecoration(
               filled: true,
               fillColor: ThemeColor.surfaceColor,
@@ -1369,7 +1398,7 @@ class _BottomButton extends StatelessWidget {
         ThemeColor.paddingMedium,
         ThemeColor.paddingLarge + bottomPadding,
       ),
-      child: Obx(() { 
+      child: Obx(() {
         if (ctrl.createdSaleId.value != null) {
           return Row(
             children: [
@@ -1398,13 +1427,13 @@ class _BottomButton extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   borderRadius: ThemeColor.mediumRadius,
                   isLoading: ctrl.isLoadingPdf,
-                  onPressed: () => ctrl.generateAndOpenPdf( ),
+                  onPressed: () => ctrl.generateAndOpenPdf(),
                 ),
               ),
             ],
           );
         }
- 
+
         final blocked = ctrl.hasOutOfStockItems;
         return AnimatedOpacity(
           opacity: blocked ? 0.5 : 1.0,

@@ -549,6 +549,7 @@ class _PriceBottomSheet extends StatelessWidget {
     );
   }
 }
+
 class _ProductList extends StatelessWidget {
   final PutQuotesController ctrl;
   const _ProductList({required this.ctrl});
@@ -590,33 +591,11 @@ class _ProductList extends StatelessWidget {
                   onEdit: item.isCustom
                       ? () => ctrl.showEditCustomProductDialog(context, item)
                       : null,
-                ), 
-                if (ctrl.isStrowLicense.value)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      right: 12,
-                      bottom: 8,
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton.icon(
-                        onPressed: () =>
-                            ctrl.showEditPriceDialog(context, item),
-                        icon: const Icon(
-                          Icons.price_change_outlined,
-                          size: 16,
-                          color: ThemeColor.primaryColor,
-                        ),
-                        label: Text(
-                          'Cambiar precio',
-                          style: ThemeColor.bodySmall.copyWith(
-                            color: ThemeColor.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  onEditPriceTap: ctrl.isStrowLicense.value
+                      ? () => ctrl.showEditPriceDialog(context, item)
+                      : null,
+                ),
+                
                 if (!isLast)
                   Divider(
                     height: 1,
