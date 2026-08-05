@@ -50,254 +50,260 @@ class QuoteProductItem extends StatelessWidget {
         horizontal: ThemeColor.paddingMedium,
         vertical: ThemeColor.paddingMedium,
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _EditableThumbnail(
-            imageUrl: imageUrl,
-            allowEdit: allowImageEdit,
-            onImageChanged: onImageChanged,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  description,
-                  style: ThemeColor.subtitleMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '\$${unitPrice.toStringAsFixed(2)}',
-                  style: ThemeColor.bodyMedium.copyWith(
-                    color: ThemeColor.textSecondaryColor,
-                  ),
-                ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _EditableThumbnail(
+                imageUrl: imageUrl,
+                allowEdit: allowImageEdit,
+                onImageChanged: onImageChanged,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      description,
+                      style: ThemeColor.subtitleMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '\$${unitPrice.toStringAsFixed(2)}',
+                      style: ThemeColor.bodyMedium.copyWith(
+                        color: ThemeColor.textSecondaryColor,
+                      ),
+                    ),
 
-                if (!readOnly && discount != null) ...[
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
+                    Obx(() {
+                      final qty = quantity.value;
+                      final sinExistencia = availableQuantity <= 0;
+                      final exceedsStock =
+                          !sinExistencia && qty > availableQuantity;
+
+                      if (sinExistencia) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.warning_amber_rounded,
+                                size: 13,
+                                color: Colors.amber,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Sin existencia',
+                                style: ThemeColor.caption.copyWith(
+                                  color: Colors.amber.shade700,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      if (exceedsStock) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                size: 13,
+                                color: Colors.orange.shade600,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Solo hay ${availableQuantity.toInt()} disponible(s)',
+                                style: ThemeColor.caption.copyWith(
+                                  color: Colors.orange.shade700,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+
+                    const SizedBox(height: 8),
+                    if (!readOnly)
+                      _QuantityControls(
+                        quantity: quantity,
+                        onChanged: onQuantityChanged,
+                        maxQuantity: maxQuantity,
+                      )
+                    else
                       Obx(
-                        () => GestureDetector(
-                          onTap: onDiscountTap,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: discount!.value > 0
-                                  ? ThemeColor.errorColor.withOpacity(0.08)
-                                  : ThemeColor.successColor.withOpacity(0.03),
-                              borderRadius: ThemeColor.circularBorderRadius,
-                              border: Border.all(
-                                color: discount!.value > 0
-                                    ? ThemeColor.errorColor.withOpacity(0.35)
-                                    : ThemeColor.successColor,
+                        () => Text(
+                          'Cant: ${quantity.value % 1 == 0 ? quantity.value.toInt() : quantity.value}',
+                          style: ThemeColor.bodySmall.copyWith(
+                            color: ThemeColor.textSecondaryColor,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (!readOnly)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (onEdit != null)
+                          GestureDetector(
+                            onTap: onEdit,
+                            child: const Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Icon(
+                                Icons.edit_outlined,
+                                color: ThemeColor.primaryColor,
+                                size: 20,
                               ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.local_offer_outlined,
-                                  size: 12,
-                                  color: discount!.value > 0
-                                      ? ThemeColor.errorColor
-                                      : ThemeColor.textSecondaryColor,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  discount!.value > 0
-                                      ? '${discount!.value.toStringAsFixed(0)}% desc.'
-                                      : 'Agregar descuento',
-                                  style: ThemeColor.caption.copyWith(
-                                    color: discount!.value > 0
-                                        ? ThemeColor.errorColor
-                                        : ThemeColor.textSecondaryColor,
-                                    fontWeight: discount!.value > 0
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
-                        ),
-                      ),
-                      if (onEditPriceTap != null)
                         GestureDetector(
-                          onTap: onEditPriceTap,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: ThemeColor.infoColor.withOpacity(0.03),
-                              borderRadius: ThemeColor.circularBorderRadius,
-                              border: Border.all(color: ThemeColor.infoColor),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.price_change_outlined,
-                                  size: 12,
-                                  color: ThemeColor.primaryColor,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Precio',
-                                  style: ThemeColor.caption.copyWith(
-                                    color: ThemeColor.primaryColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                          onTap: onRemove,
+                          child: const Padding(
+                            padding: EdgeInsets.all(4),
+                            child: Icon(
+                              Icons.delete_outline,
+                              color: ThemeColor.errorColor,
+                              size: 20,
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                ],
-                Obx(() {
-                  final qty = quantity.value;
-                  final sinExistencia = availableQuantity <= 0;
-                  final exceedsStock =
-                      !sinExistencia && qty > availableQuantity;
-
-                  if (sinExistencia) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.warning_amber_rounded,
-                            size: 13,
-                            color: Colors.amber,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Sin existencia',
-                            style: ThemeColor.caption.copyWith(
-                              color: Colors.amber.shade700,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  if (exceedsStock) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.warning_amber_rounded,
-                            size: 13,
-                            color: Colors.orange.shade600,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Solo hay ${availableQuantity.toInt()} disponible(s)',
-                            style: ThemeColor.caption.copyWith(
-                              color: Colors.orange.shade700,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
-
-                const SizedBox(height: 8),
-                if (!readOnly)
-                  _QuantityControls(
-                    quantity: quantity,
-                    onChanged: onQuantityChanged,
-                    maxQuantity: maxQuantity,
-                  )
-                else
+                      ],
+                    ),
+                  SizedBox(height: readOnly ? 0 : 14),
                   Obx(
                     () => Text(
-                      'Cant: ${quantity.value % 1 == 0 ? quantity.value.toInt() : quantity.value}',
-                      style: ThemeColor.bodySmall.copyWith(
-                        color: ThemeColor.textSecondaryColor,
+                      '\$${total.value.toStringAsFixed(2)}',
+                      style: ThemeColor.subtitleMedium.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (discount != null)
+                    Obx(
+                      () => discount!.value > 0
+                          ? Text(
+                              '-\$${(unitPrice * quantity.value * discount!.value / 100).toStringAsFixed(2)}',
+                              style: ThemeColor.caption.copyWith(
+                                color: ThemeColor.errorColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                ],
+              ),
+            ],
+          ),
+ 
+          if (!readOnly && discount != null) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Obx(
+                  () => GestureDetector(
+                    onTap: onDiscountTap,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: discount!.value > 0
+                            ? ThemeColor.errorColor.withOpacity(0.08)
+                            : ThemeColor.successColor.withOpacity(0.03),
+                        borderRadius: ThemeColor.circularBorderRadius,
+                        border: Border.all(
+                          color: discount!.value > 0
+                              ? ThemeColor.errorColor.withOpacity(0.35)
+                              : ThemeColor.successColor,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.local_offer_outlined,
+                            size: 12,
+                            color: discount!.value > 0
+                                ? ThemeColor.errorColor
+                                : ThemeColor.textSecondaryColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            discount!.value > 0
+                                ? '${discount!.value.toStringAsFixed(0)}% desc.'
+                                : 'Agregar descuento',
+                            style: ThemeColor.caption.copyWith(
+                              color: discount!.value > 0
+                                  ? ThemeColor.errorColor
+                                  : ThemeColor.textSecondaryColor,
+                              fontWeight: discount!.value > 0
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (onEditPriceTap != null)
+                  GestureDetector(
+                    onTap: onEditPriceTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ThemeColor.infoColor.withOpacity(0.03),
+                        borderRadius: ThemeColor.circularBorderRadius,
+                        border: Border.all(color: ThemeColor.infoColor),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.price_change_outlined,
+                            size: 12,
+                            color: ThemeColor.textSecondaryColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Editar Precio',
+                            style: ThemeColor.caption.copyWith(
+                              color: ThemeColor.textSecondaryColor,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (!readOnly)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (onEdit != null)
-                      GestureDetector(
-                        onTap: onEdit,
-                        child: const Padding(
-                          padding: EdgeInsets.all(4),
-                          child: Icon(
-                            Icons.edit_outlined,
-                            color: ThemeColor.primaryColor,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    GestureDetector(
-                      onTap: onRemove,
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(
-                          Icons.delete_outline,
-                          color: ThemeColor.errorColor,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              SizedBox(height: readOnly ? 0 : 14),
-              Obx(
-                () => Text(
-                  '\$${total.value.toStringAsFixed(2)}',
-                  style: ThemeColor.subtitleMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              if (discount != null)
-                Obx(
-                  () => discount!.value > 0
-                      ? Text(
-                          '-\$${(unitPrice * quantity.value * discount!.value / 100).toStringAsFixed(2)}',
-                          style: ThemeColor.caption.copyWith(
-                            color: ThemeColor.errorColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-            ],
-          ),
+          ],
         ],
       ),
     );
