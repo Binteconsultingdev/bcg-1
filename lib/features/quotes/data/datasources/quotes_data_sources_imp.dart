@@ -193,9 +193,7 @@ class QuotesDataSourcesImp {
 ) async {
   try {
     Uri url = Uri.parse('$defaultApiServer/Cotizaciones/form');
-
     print('➡️ URL: $url');
-
     final bodyRequest = QuoteFromModel.fromEntity(entity).toJson();
 
     print('➡️ Body antes de enviar:');
@@ -204,9 +202,7 @@ class QuotesDataSourcesImp {
     });
 
     final request = http.MultipartRequest('POST', url);
-
     request.headers['Authorization'] = 'Bearer $token';
-
     bodyRequest.forEach((key, value) {
       if (value != null) {
         if (value is Map || value is List) {
