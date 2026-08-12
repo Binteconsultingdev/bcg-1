@@ -193,13 +193,13 @@ class QuotesDataSourcesImp {
 ) async {
   try {
     Uri url = Uri.parse('$defaultApiServer/Cotizaciones/form');
-    print('➡️ URL: $url');
+   // print('➡️ URL: $url');
     final bodyRequest = QuoteFromModel.fromEntity(entity).toJson();
 
-    print('➡️ Body antes de enviar:');
+   /* print('➡️ Body antes de enviar:');
     bodyRequest.forEach((key, value) {
       print('   $key: $value');
-    });
+    });*/
 
     final request = http.MultipartRequest('POST', url);
     request.headers['Authorization'] = 'Bearer $token';
@@ -214,7 +214,7 @@ class QuotesDataSourcesImp {
     });
 
      request.fields.forEach((key, value) {
-      print('   $key: $value');
+      // print('   $key: $value');
     });
 
     if (entity.imagenes != null) {
@@ -250,9 +250,7 @@ class QuotesDataSourcesImp {
     ApiExceptionCustom exception = ApiExceptionCustom(response: response);
     exception.validateMesage();
     throw exception;
-  } catch (e, stack) {
-    print('🚨 Excepción: $e');
-    print('📍 StackTrace:\n$stack');
+  } catch (e, stack) { 
 
     if (e is SocketException ||
         e is http.ClientException ||
