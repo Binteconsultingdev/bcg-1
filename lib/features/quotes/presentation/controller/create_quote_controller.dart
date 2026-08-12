@@ -1,3 +1,4 @@
+import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
@@ -180,16 +181,16 @@ class CreateQuoteController extends GetxController {
     ever(selectedPriceType, (_) => validateCart());
   }
 
-  Future<void> _checkStrowLicense() async {
-    final base = await LicenseService().getBase();
-    final normalized = (base ?? '').trim().toLowerCase();
-    print(
-      '🔍 [_checkStrowLicense] base crudo: "$base" | normalizado: "$normalized"',
-    );
-    isStrowLicense.value =
-        normalized == 'stown' || normalized == 'pruebastablas';
-    print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
-  }
+ Future<void> _checkStrowLicense() async {
+  final userData = await AuthService().getUserData();
+  final area = (userData?.area ?? '').trim().toLowerCase();
+
+  print('🔍 [_checkStrowLicense] area: "$area"');
+
+  isStrowLicense.value = area.isNotEmpty && area != 'venta';
+
+  print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
+}
 
   @override
   void onReady() {

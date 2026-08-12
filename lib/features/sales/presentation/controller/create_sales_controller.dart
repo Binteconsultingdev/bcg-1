@@ -119,18 +119,16 @@ class CreateSalesController extends GetxController {
       time: const Duration(milliseconds: 600),
     );
   }
+ Future<void> _checkStrowLicense() async {
+  final userData = await AuthService().getUserData();
+  final area = (userData?.area ?? '').trim().toLowerCase();
 
-  Future<void> _checkStrowLicense() async {
-    final base = await LicenseService().getBase();
-    final normalized = (base ?? '').trim().toLowerCase();
-    print(
-      '🔍 [_checkStrowLicense] base crudo: "$base" | normalizado: "$normalized"',
-    );
-    isStrowLicense.value =
-        normalized == 'stown' || normalized == 'pruebastablas';
-    print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
-  }
+  print('🔍 [_checkStrowLicense] area: "$area"');
 
+  isStrowLicense.value = area.isNotEmpty && area != 'venta';
+
+  print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
+}
   double get embalajeAmount {
     if (!selectedShippingOptions.contains('paquete')) return 0.0;
     final pct = selectedPackagePercent.value;
