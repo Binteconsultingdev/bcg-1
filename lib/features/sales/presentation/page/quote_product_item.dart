@@ -211,7 +211,7 @@ class QuoteProductItem extends StatelessWidget {
               ),
             ],
           ),
- 
+
           if (!readOnly && discount != null) ...[
             const SizedBox(height: 8),
             Wrap(
@@ -219,55 +219,56 @@ class QuoteProductItem extends StatelessWidget {
               runSpacing: 6,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Obx(
-                  () => GestureDetector(
-                    onTap: onDiscountTap,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: discount!.value > 0
-                            ? ThemeColor.errorColor.withOpacity(0.08)
-                            : ThemeColor.successColor.withOpacity(0.03),
-                        borderRadius: ThemeColor.circularBorderRadius,
-                        border: Border.all(
-                          color: discount!.value > 0
-                              ? ThemeColor.errorColor.withOpacity(0.35)
-                              : ThemeColor.successColor,
+                if (onDiscountTap != null)
+                  Obx(
+                    () => GestureDetector(
+                      onTap: onDiscountTap,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.local_offer_outlined,
-                            size: 12,
+                        decoration: BoxDecoration(
+                          color: discount!.value > 0
+                              ? ThemeColor.errorColor.withOpacity(0.08)
+                              : ThemeColor.successColor.withOpacity(0.03),
+                          borderRadius: ThemeColor.circularBorderRadius,
+                          border: Border.all(
                             color: discount!.value > 0
-                                ? ThemeColor.errorColor
-                                : ThemeColor.textSecondaryColor,
+                                ? ThemeColor.errorColor.withOpacity(0.35)
+                                : ThemeColor.successColor,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            discount!.value > 0
-                                ? '${discount!.value.toStringAsFixed(0)}% desc.'
-                                : 'Agregar descuento',
-                            style: ThemeColor.caption.copyWith(
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.local_offer_outlined,
+                              size: 12,
                               color: discount!.value > 0
                                   ? ThemeColor.errorColor
                                   : ThemeColor.textSecondaryColor,
-                              fontWeight: discount!.value > 0
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 4),
+                            Text(
+                              discount!.value > 0
+                                  ? '${discount!.value.toStringAsFixed(0)}% desc.'
+                                  : 'Agregar descuento',
+                              style: ThemeColor.caption.copyWith(
+                                color: discount!.value > 0
+                                    ? ThemeColor.errorColor
+                                    : ThemeColor.textSecondaryColor,
+                                fontWeight: discount!.value > 0
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
                 if (onEditPriceTap != null)
                   GestureDetector(
                     onTap: onEditPriceTap,

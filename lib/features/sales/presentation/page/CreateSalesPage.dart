@@ -538,10 +538,13 @@ class _ProductList extends StatelessWidget {
                   unitPrice: item.unitPrice,
                   total: item.totalRx,
                   quantity: item.quantity,
+                  discount: item.discount,
                   availableQuantity: item.product.availableQuantity ?? 0,
                   onRemove: () => ctrl.removeItem(item),
                   onQuantityChanged: (v) => item.quantity.value = v,
                   maxQuantity: item.stock.toDouble(),
+
+                  onDiscountTap: () => ctrl.showItemDiscountDialog(context, item),
                   onEditPriceTap: ctrl.isStrowLicense.value
                       ? () => ctrl.showEditPriceDialog(context, item)
                       : null,

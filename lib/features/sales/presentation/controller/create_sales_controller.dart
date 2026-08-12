@@ -66,8 +66,7 @@ class CreateSalesController extends GetxController {
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
-  final globalDiscountPercent = 0.0.obs;
-  final isStrowLicense = false.obs;
+  final globalDiscountPercent = 0.0.obs; 
   final items = <SaleItem>[].obs;
   final quoteSearchType = 'folio'.obs;
 
@@ -79,6 +78,7 @@ class CreateSalesController extends GetxController {
   final selectedFolioQuote = ''.obs;
   final quoteResults = <GetQuoteEntity>[].obs;
 
+  final isStrowLicense = false.obs;
   final isCreating = false.obs;
   final errorMessage = ''.obs;
 
@@ -112,13 +112,15 @@ class CreateSalesController extends GetxController {
   void onInit() {
     super.onInit();
     print('🟢 CreateSalesController.onInit() ejecutado');
+    
     _checkStrowLicense();
     _quoteSearchDebounce = debounce(
       quoteSearchInput,
       (v) => v.trim().isNotEmpty ? searchQuoteByFolio() : quoteResults.clear(),
       time: const Duration(milliseconds: 600),
     );
-  }
+  } 
+
  Future<void> _checkStrowLicense() async {
   final userData = await AuthService().getUserData();
   final area = (userData?.area ?? '').trim().toLowerCase();
@@ -308,7 +310,127 @@ class CreateSalesController extends GetxController {
     quoteSearchInput.value = '';
     isSearchingQuote.value = false;
   }
+void showItemDiscountDialog(BuildContext context, SaleItem item) {
+  final RxDouble tempDiscount = item.discount.value.obs;
 
+  Get.dialog(
+    Obx(
+      () => AlertDialog(
+        backgroundColor: ThemeColor.surfaceColor,
+        title: Text('Descuento del producto', style: ThemeColor.headingSmall),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.product.description ?? '',
+              style: ThemeColor.bodySmall.copyWith(
+                color: ThemeColor.textSecondaryColor,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Selecciona un porcentaje',
+              style: ThemeColor.bodySmall.copyWith(
+                color: ThemeColor.textSecondaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
+                final isSelected = tempDiscount.value == pct.toDouble();
+                return GestureDetector(
+                  onTap: () => tempDiscount.value = pct.toDouble(),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? ThemeColor.primaryColor
+                          : ThemeColor.backgroundColor,
+                      borderRadius: ThemeColor.circularBorderRadius,
+                      border: Border.all(
+                        color: isSelected
+                            ? ThemeColor.primaryColor
+                            : ThemeColor.dividerColor,
+                      ),
+                    ),
+                    child: Text(
+                      pct == 0 ? 'Sin desc.' : '$pct%',
+                      style: ThemeColor.bodySmall.copyWith(
+                        color: isSelected
+                            ? Colors.white
+                            : ThemeColor.textPrimaryColor,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            if (tempDiscount.value > 0)
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: ThemeColor.errorColor.withOpacity(0.07),
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Descuento ${tempDiscount.value.toInt()}%',
+                      style: ThemeColor.bodySmall.copyWith(
+                        color: ThemeColor.errorColor,
+                      ),
+                    ),
+                    Text(
+                      '-\$${(item.subtotal * (tempDiscount.value / 100)).toStringAsFixed(2)}',
+                      style: ThemeColor.bodySmall.copyWith(
+                        color: ThemeColor.errorColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: ThemeColor.textSecondaryColor),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeColor.primaryColor,
+            ),
+            onPressed: () {
+              item.discount.value = tempDiscount.value;
+              items.refresh();
+              Get.back();
+            },
+            child: const Text('Aplicar'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
   void showEditPriceDialog(BuildContext context, SaleItem item) {
     final priceCtrl = TextEditingController(
       text: item.unitPrice.toStringAsFixed(2),

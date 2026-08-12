@@ -16,25 +16,25 @@ class QuoteFromEntity {
   final String referencia;
   final String? attn;
   final int? cantidadProductos;
- 
+
   final List<ProductoEntity> productos;
-final Map<String, String>? imagenes;
+  final Map<String, String>? imagenes;
   QuoteFromEntity({
-     this.id,
+    this.id,
     required this.folio,
-     this.fecha,
+    this.fecha,
     required this.cliente,
     required this.total,
-     this.status,
-     this.vendedor,
+    this.status,
+    this.vendedor,
     required this.cataPrecio,
     required this.descuento,
     required this.iva,
     required this.diasEnt,
     required this.comentarios,
     required this.referencia,
-     this.attn,
-     this.cantidadProductos,
+    this.attn,
+    this.cantidadProductos,
     required this.productos,
     this.imagenes,
   });

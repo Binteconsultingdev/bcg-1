@@ -37,6 +37,7 @@ class PartidaEntity {
   final double precio;
   final String claveSat;
   final String um;
+  
 
   PartidaEntity({
     required this.numParte,
