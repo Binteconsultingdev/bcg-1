@@ -38,6 +38,7 @@ class PartidaEntity {
   final String claveSat;
   final String um;
   
+  final double descuento;  
 
   PartidaEntity({
     required this.numParte,
@@ -46,5 +47,6 @@ class PartidaEntity {
     required this.precio,
     required this.claveSat,
     required this.um,
+    required this.descuento,
   });
 }

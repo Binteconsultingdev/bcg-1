@@ -545,9 +545,8 @@ class _ProductList extends StatelessWidget {
                   maxQuantity: item.stock.toDouble(),
 
                   onDiscountTap: () => ctrl.showItemDiscountDialog(context, item),
-                  onEditPriceTap: ctrl.isStrowLicense.value
-                      ? () => ctrl.showEditPriceDialog(context, item)
-                      : null,
+                  onEditPriceTap: () => ctrl.showEditPriceDialog(context, item),
+
                 ),
 
                 if (!isLast)

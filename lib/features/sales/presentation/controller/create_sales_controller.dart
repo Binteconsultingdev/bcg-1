@@ -77,8 +77,7 @@ class CreateSalesController extends GetxController {
   final isLoadingQuote = false.obs;
   final selectedFolioQuote = ''.obs;
   final quoteResults = <GetQuoteEntity>[].obs;
-
-  final isStrowLicense = false.obs;
+ 
   final isCreating = false.obs;
   final errorMessage = ''.obs;
 
@@ -112,25 +111,14 @@ class CreateSalesController extends GetxController {
   void onInit() {
     super.onInit();
     print('🟢 CreateSalesController.onInit() ejecutado');
-    
-    _checkStrowLicense();
+     
     _quoteSearchDebounce = debounce(
       quoteSearchInput,
       (v) => v.trim().isNotEmpty ? searchQuoteByFolio() : quoteResults.clear(),
       time: const Duration(milliseconds: 600),
     );
   } 
-
- Future<void> _checkStrowLicense() async {
-  final userData = await AuthService().getUserData();
-  final area = (userData?.area ?? '').trim().toLowerCase();
-
-  print('🔍 [_checkStrowLicense] area: "$area"');
-
-  isStrowLicense.value = area.isNotEmpty && area != 'venta';
-
-  print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
-}
+ 
   double get embalajeAmount {
     if (!selectedShippingOptions.contains('paquete')) return 0.0;
     final pct = selectedPackagePercent.value;
@@ -562,6 +550,7 @@ void showItemDiscountDialog(BuildContext context, SaleItem item) {
               precio: i.unitPrice,
               claveSat: '',
               um: 'PZA',
+              descuento: i.discount.value, 
             ),
           )
           .toList();
@@ -578,6 +567,7 @@ void showItemDiscountDialog(BuildContext context, SaleItem item) {
             precio: embalajeAmount,
             claveSat: '31181701',
             um: 'UNIDAD DE SERVICIO',
+             descuento: 0, 
           ),
         );
       }
@@ -594,6 +584,7 @@ void showItemDiscountDialog(BuildContext context, SaleItem item) {
             precio: costoEnvio,
             claveSat: '81141606',
             um: 'UNIDAD DE SERVICIO',
+             descuento: 0, 
           ),
         );
       }

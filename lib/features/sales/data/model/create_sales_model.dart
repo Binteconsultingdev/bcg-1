@@ -56,6 +56,7 @@ factory CreateSalesModel.fromEntity(CreateSalesEntity entity) {
               precio: p.precio,
               claveSat: p.claveSat,
               um: p.um,
+              descuento: p.descuento,
             ))
         .toList(),
   );
@@ -87,6 +88,7 @@ class PartidaModel extends PartidaEntity {
     required super.precio,
     required super.claveSat,
     required super.um,
+    required super.descuento, 
   });
 
   factory PartidaModel.fromJson(Map<String, dynamic> json) {
@@ -97,6 +99,7 @@ class PartidaModel extends PartidaEntity {
       precio: (json['precio'] ?? 0).toDouble(),
       claveSat: json['clave_Sat'] ?? '',
       um: json['um'] ?? '',
+      descuento: (json['descuento'] ?? 0).toDouble()
     );
   }
 
@@ -108,6 +111,7 @@ class PartidaModel extends PartidaEntity {
       "precio": precio,
       "clave_Sat": claveSat,
       "um": um,
+      "descuento": descuento,
     };
   }
 }

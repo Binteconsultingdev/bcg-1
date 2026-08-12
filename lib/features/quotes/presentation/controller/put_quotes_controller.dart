@@ -137,8 +137,7 @@ class PutQuotesController extends GetxController {
   final items = <EditQuoteItem>[].obs;
   final selectedShippingOptions = <String>{}.obs;
   final selectedPackagePercent = Rxn<double>();
-  final envio = Rxn<double>();
-  final isStrowLicense = false.obs;
+  final envio = Rxn<double>(); 
   double get embalajeAmount {
     if (!selectedShippingOptions.contains('paquete')) return 0.0;
     final pct = selectedPackagePercent.value;
@@ -178,25 +177,14 @@ class PutQuotesController extends GetxController {
     if (args != null && args['idQuote'] != null) {
       loadQuote(args['idQuote'] as int);
     }
-
-    _checkStrowLicense();
+ 
 
     Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
     Get.find<ClientSearchController>().showResults.value = false;
     Get.find<ClientSearchController>().manuallyClosed = true;
 
     ever(selectedPriceType, (_) => validateCart());
-  }
- Future<void> _checkStrowLicense() async {
-  final userData = await AuthService().getUserData();
-  final area = (userData?.area ?? '').trim().toLowerCase();
-
-  print('🔍 [_checkStrowLicense] area: "$area"');
-
-  isStrowLicense.value = area.isNotEmpty && area != 'venta';
-
-  print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
-}
+  } 
 
   void showEditPriceDialog(BuildContext context, EditQuoteItem item) {
     final priceCtrl = TextEditingController(

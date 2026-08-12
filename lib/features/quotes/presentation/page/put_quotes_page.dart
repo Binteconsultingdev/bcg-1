@@ -591,9 +591,8 @@ class _ProductList extends StatelessWidget {
                   onEdit: item.isCustom
                       ? () => ctrl.showEditCustomProductDialog(context, item)
                       : null,
-                  onEditPriceTap: ctrl.isStrowLicense.value
-                      ? () => ctrl.showEditPriceDialog(context, item)
-                      : null,
+                   onEditPriceTap: () => ctrl.showEditPriceDialog(context, item),
+
                 ),
                 
                 if (!isLast)

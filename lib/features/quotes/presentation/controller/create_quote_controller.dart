@@ -1,4 +1,3 @@
-import 'package:bcg/common/services/auth_service.dart';
 import 'package:bcg/common/services/lisencias.dart';
 import 'package:bcg/common/theme/App_Theme.dart';
 import 'package:bcg/common/widgets/alert/snackbar_helper.dart';
@@ -141,8 +140,7 @@ class CreateQuoteController extends GetxController {
   final productSearchQuery = ''.obs;
   final isSearching = false.obs;
   final RxList<InventoryEntity> searchResults = <InventoryEntity>[].obs;
-  final RxBool isLoadingSearch = false.obs;
-  final isStrowLicense = false.obs;
+  final RxBool isLoadingSearch = false.obs; 
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
@@ -176,21 +174,10 @@ class CreateQuoteController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadFolio();
-    _checkStrowLicense();
+    _loadFolio(); 
     ever(selectedPriceType, (_) => validateCart());
   }
-
- Future<void> _checkStrowLicense() async {
-  final userData = await AuthService().getUserData();
-  final area = (userData?.area ?? '').trim().toLowerCase();
-
-  print('🔍 [_checkStrowLicense] area: "$area"');
-
-  isStrowLicense.value = area.isNotEmpty && area != 'venta';
-
-  print('🔍 [_checkStrowLicense] isStrowLicense = ${isStrowLicense.value}');
-}
+ 
 
   @override
   void onReady() {

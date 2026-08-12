@@ -507,9 +507,8 @@ class _ProductList extends StatelessWidget {
                       : null,
                   allowImageEdit: true,
                   onImageChanged: (path) => item.localImagePath.value = path,
-                  onEditPriceTap: ctrl.isStrowLicense.value
-                      ? () => ctrl.showEditPriceDialog(context, item)
-                      : null,  
+                  onEditPriceTap: () => ctrl.showEditPriceDialog(context, item),
+ 
                 ),
                 
                 if (!isLast)
