@@ -10,7 +10,7 @@ class ClientSearchController extends GetxController {
   final RxBool isLoadingSearch = false.obs;
   final TextEditingController searchCtrl = TextEditingController();
   final Rx<ClientEntity?> selectedClient = Rx<ClientEntity?>(null);
-final RxBool showResults = false.obs;
+  final RxBool showResults = false.obs;
 
   void Function(String)? onFreeText;
 
@@ -20,57 +20,66 @@ final RxBool showResults = false.obs;
     super.onClose();
   }
 
-void onSearchChanged(String value) async {
-  isSearching.value = value.isNotEmpty;
-  print(  'Valor de búsqueda: "$value", isSearching: ${isSearching.value}, showResults: ${showResults.value}, manuallyClosed: $manuallyClosed');
-  if (value.isNotEmpty && !manuallyClosed) {
-    showResults.value = true;
+  void onSearchChanged(String value) async {
+    manuallyClosed = false;
+    isSearching.value = value.isNotEmpty;
+
+    isSearching.value = value.isNotEmpty;
+    print(
+      'Valor de búsqueda: "$value", isSearching: ${isSearching.value}, showResults: ${showResults.value}, manuallyClosed: $manuallyClosed',
+    );
+    if (value.isNotEmpty && !manuallyClosed) {
+      showResults.value = true;
+    }
+    if (!manuallyClosed) {
+      showResults.value = true;
+    }
+    if (value.isEmpty) {
+      showResults.value = false;
+      manuallyClosed = false;
+    }
+
+    onFreeText?.call(value);
+    if (value.trim().isEmpty) {
+      searchResults.clear();
+      return;
+    }
+    try {
+      isLoadingSearch.value = true;
+      await _clientCtrl.fetchClients(client: value.trim());
+      searchResults.assignAll(_clientCtrl.clients);
+    } catch (_) {
+      searchResults.clear();
+    } finally {
+      isLoadingSearch.value = false;
+    }
   }
-  if (value.isEmpty) {
+
+  void toggleResults() {
+    showResults.value = !showResults.value;
+    manuallyClosed = !showResults.value;
+  }
+
+  bool manuallyClosed = false;
+
+  void clearSearch({bool notifyParent = false}) {
+    searchCtrl.clear();
+    isSearching.value = false;
     showResults.value = false;
     manuallyClosed = false;
-  }
-
-  onFreeText?.call(value);
-  if (value.trim().isEmpty) {
     searchResults.clear();
-    return;
+    selectedClient.value = null;
+    if (notifyParent) onFreeText?.call('');
   }
-  try {
-    isLoadingSearch.value = true;
-    await _clientCtrl.fetchClients(client: value.trim());
-    searchResults.assignAll(_clientCtrl.clients);
-  } catch (_) {
+
+  void selectClient(
+    ClientEntity client, {
+    required Function(ClientEntity) onSelected,
+  }) {
+    selectedClient.value = client;
+    onSelected(client);
+    isSearching.value = false;
+    showResults.value = false;
     searchResults.clear();
-  } finally {
-    isLoadingSearch.value = false;
   }
-}
-
-void toggleResults() {
-  showResults.value = !showResults.value;
-  manuallyClosed = !showResults.value;
-}
-
-bool manuallyClosed = false;
-
-void clearSearch({bool notifyParent = false}) {
-  searchCtrl.clear();
-  isSearching.value = false;
-  showResults.value = false;
-  manuallyClosed = false;
-  searchResults.clear();
-  selectedClient.value = null;
-  if (notifyParent) onFreeText?.call('');
-}
-
- 
-void selectClient(ClientEntity client, {required Function(ClientEntity) onSelected}) {
-  selectedClient.value = client;
-  onSelected(client);
-  isSearching.value = false;
-  showResults.value = false; 
-  searchResults.clear();
-}
-
 }

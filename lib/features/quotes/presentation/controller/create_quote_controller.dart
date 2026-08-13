@@ -183,12 +183,12 @@ class CreateQuoteController extends GetxController {
   void onReady() {
     super.onReady();
     resetState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final clientSearch = Get.find<ClientSearchController>();
-      clientSearch.onFreeText = onFreeTextClient;
-      clientSearch.showResults.value = false;
-      clientSearch.manuallyClosed = true;
-    });
+   WidgetsBinding.instance.addPostFrameCallback((_) {
+  final clientSearch = Get.find<ClientSearchController>();
+  clientSearch.onFreeText = onFreeTextClient;
+  clientSearch.showResults.value = false;
+  clientSearch.manuallyClosed = true;   
+});
   }
 
   void toggleShippingOption(String option) {
