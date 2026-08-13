@@ -60,14 +60,14 @@ class CreateSalesController extends GetxController {
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<int>();
-final isStownLicense = false.obs;
+  final isStownLicense = false.obs;
 
   final metodoEmbarque = 'CAMIONETA'.obs;
   final incIVA = true.obs;
   final validUntil = DateTime.now().add(const Duration(days: 15)).obs;
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
-  final globalDiscountPercent = 0.0.obs; 
+  final globalDiscountPercent = 0.0.obs;
   final items = <SaleItem>[].obs;
   final quoteSearchType = 'folio'.obs;
 
@@ -78,7 +78,7 @@ final isStownLicense = false.obs;
   final isLoadingQuote = false.obs;
   final selectedFolioQuote = ''.obs;
   final quoteResults = <GetQuoteEntity>[].obs;
- 
+
   final isCreating = false.obs;
   final errorMessage = ''.obs;
 
@@ -100,10 +100,13 @@ final isStownLicense = false.obs;
       ivaAmount +
       (envio.value ?? 0.0) +
       embalajeAmount;
-  bool get hasOutOfStockItems => items.any((i) {
-    final stock = (i.product.availableQuantity ?? 0);
-    return stock <= 0 || i.quantity.value > stock;
-  });
+  bool get hasOutOfStockItems {
+    if (isStownLicense.value) return false;
+    return items.any((i) {
+      final stock = (i.product.availableQuantity ?? 0);
+      return stock <= 0 || i.quantity.value > stock;
+    });
+  }
 
   final selectedShippingOptions = <String>{}.obs;
   final selectedPackagePercent = Rxn<double>();
@@ -112,19 +115,22 @@ final isStownLicense = false.obs;
   void onInit() {
     super.onInit();
     print('🟢 CreateSalesController.onInit() ejecutado');
-       _checkStownLicense();          // 👈 agregar
+    _checkStownLicense();  
 
     _quoteSearchDebounce = debounce(
       quoteSearchInput,
       (v) => v.trim().isNotEmpty ? searchQuoteByFolio() : quoteResults.clear(),
       time: const Duration(milliseconds: 600),
     );
-  } 
- Future<void> _checkStownLicense() async {
-  final base = await LicenseService().getBase();
-  final normalized = (base ?? '').trim().toLowerCase();
-  isStownLicense.value = normalized == 'stown' || normalized == 'pruebastablas';
-}
+  }
+
+  Future<void> _checkStownLicense() async {
+    final base = await LicenseService().getBase();
+    final normalized = (base ?? '').trim().toLowerCase();
+    isStownLicense.value =
+        normalized == 'stown' || normalized == 'pruebastablas';
+  }
+
   double get embalajeAmount {
     if (!selectedShippingOptions.contains('paquete')) return 0.0;
     final pct = selectedPackagePercent.value;
@@ -304,127 +310,129 @@ final isStownLicense = false.obs;
     quoteSearchInput.value = '';
     isSearchingQuote.value = false;
   }
-void showItemDiscountDialog(BuildContext context, SaleItem item) {
-  final RxDouble tempDiscount = item.discount.value.obs;
 
-  Get.dialog(
-    Obx(
-      () => AlertDialog(
-        backgroundColor: ThemeColor.surfaceColor,
-        title: Text('Descuento del producto', style: ThemeColor.headingSmall),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              item.product.description ?? '',
-              style: ThemeColor.bodySmall.copyWith(
-                color: ThemeColor.textSecondaryColor,
+  void showItemDiscountDialog(BuildContext context, SaleItem item) {
+    final RxDouble tempDiscount = item.discount.value.obs;
+
+    Get.dialog(
+      Obx(
+        () => AlertDialog(
+          backgroundColor: ThemeColor.surfaceColor,
+          title: Text('Descuento del producto', style: ThemeColor.headingSmall),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                item.product.description ?? '',
+                style: ThemeColor.bodySmall.copyWith(
+                  color: ThemeColor.textSecondaryColor,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Selecciona un porcentaje',
-              style: ThemeColor.bodySmall.copyWith(
-                color: ThemeColor.textSecondaryColor,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 16),
+              Text(
+                'Selecciona un porcentaje',
+                style: ThemeColor.bodySmall.copyWith(
+                  color: ThemeColor.textSecondaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
-                final isSelected = tempDiscount.value == pct.toDouble();
-                return GestureDetector(
-                  onTap: () => tempDiscount.value = pct.toDouble(),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? ThemeColor.primaryColor
-                          : ThemeColor.backgroundColor,
-                      borderRadius: ThemeColor.circularBorderRadius,
-                      border: Border.all(
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
+                  final isSelected = tempDiscount.value == pct.toDouble();
+                  return GestureDetector(
+                    onTap: () => tempDiscount.value = pct.toDouble(),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
                         color: isSelected
                             ? ThemeColor.primaryColor
-                            : ThemeColor.dividerColor,
+                            : ThemeColor.backgroundColor,
+                        borderRadius: ThemeColor.circularBorderRadius,
+                        border: Border.all(
+                          color: isSelected
+                              ? ThemeColor.primaryColor
+                              : ThemeColor.dividerColor,
+                        ),
+                      ),
+                      child: Text(
+                        pct == 0 ? 'Sin desc.' : '$pct%',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: isSelected
+                              ? Colors.white
+                              : ThemeColor.textPrimaryColor,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      pct == 0 ? 'Sin desc.' : '$pct%',
-                      style: ThemeColor.bodySmall.copyWith(
-                        color: isSelected
-                            ? Colors.white
-                            : ThemeColor.textPrimaryColor,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            if (tempDiscount.value > 0)
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: ThemeColor.errorColor.withOpacity(0.07),
-                  borderRadius: ThemeColor.smallBorderRadius,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Descuento ${tempDiscount.value.toInt()}%',
-                      style: ThemeColor.bodySmall.copyWith(
-                        color: ThemeColor.errorColor,
-                      ),
-                    ),
-                    Text(
-                      '-\$${(item.subtotal * (tempDiscount.value / 100)).toStringAsFixed(2)}',
-                      style: ThemeColor.bodySmall.copyWith(
-                        color: ThemeColor.errorColor,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                }).toList(),
               ),
+              const SizedBox(height: 16),
+              if (tempDiscount.value > 0)
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: ThemeColor.errorColor.withOpacity(0.07),
+                    borderRadius: ThemeColor.smallBorderRadius,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Descuento ${tempDiscount.value.toInt()}%',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: ThemeColor.errorColor,
+                        ),
+                      ),
+                      Text(
+                        '-\$${(item.subtotal * (tempDiscount.value / 100)).toStringAsFixed(2)}',
+                        style: ThemeColor.bodySmall.copyWith(
+                          color: ThemeColor.errorColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: ThemeColor.textSecondaryColor),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeColor.primaryColor,
+              ),
+              onPressed: () {
+                item.discount.value = tempDiscount.value;
+                items.refresh();
+                Get.back();
+              },
+              child: const Text('Aplicar'),
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: ThemeColor.textSecondaryColor),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeColor.primaryColor,
-            ),
-            onPressed: () {
-              item.discount.value = tempDiscount.value;
-              items.refresh();
-              Get.back();
-            },
-            child: const Text('Aplicar'),
-          ),
-        ],
       ),
-    ),
-  );
-}
+    );
+  }
+
   void showEditPriceDialog(BuildContext context, SaleItem item) {
     final priceCtrl = TextEditingController(
       text: item.unitPrice.toStringAsFixed(2),
@@ -556,7 +564,7 @@ void showItemDiscountDialog(BuildContext context, SaleItem item) {
               precio: i.unitPrice,
               claveSat: '',
               um: 'PZA',
-              descuento: i.discount.value, 
+              descuento: i.discount.value,
             ),
           )
           .toList();
@@ -573,7 +581,7 @@ void showItemDiscountDialog(BuildContext context, SaleItem item) {
             precio: embalajeAmount,
             claveSat: '31181701',
             um: 'UNIDAD DE SERVICIO',
-             descuento: 0, 
+            descuento: 0,
           ),
         );
       }
@@ -590,7 +598,7 @@ void showItemDiscountDialog(BuildContext context, SaleItem item) {
             precio: costoEnvio,
             claveSat: '81141606',
             um: 'UNIDAD DE SERVICIO',
-             descuento: 0, 
+            descuento: 0,
           ),
         );
       }
