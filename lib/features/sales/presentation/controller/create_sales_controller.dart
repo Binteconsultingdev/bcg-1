@@ -60,6 +60,7 @@ class CreateSalesController extends GetxController {
   final clienteName = ''.obs;
   final clienteController = TextEditingController();
   final selectedClientId = Rxn<int>();
+final isStownLicense = false.obs;
 
   final metodoEmbarque = 'CAMIONETA'.obs;
   final incIVA = true.obs;
@@ -111,14 +112,19 @@ class CreateSalesController extends GetxController {
   void onInit() {
     super.onInit();
     print('🟢 CreateSalesController.onInit() ejecutado');
-     
+       _checkStownLicense();          // 👈 agregar
+
     _quoteSearchDebounce = debounce(
       quoteSearchInput,
       (v) => v.trim().isNotEmpty ? searchQuoteByFolio() : quoteResults.clear(),
       time: const Duration(milliseconds: 600),
     );
   } 
- 
+ Future<void> _checkStownLicense() async {
+  final base = await LicenseService().getBase();
+  final normalized = (base ?? '').trim().toLowerCase();
+  isStownLicense.value = normalized == 'stown' || normalized == 'pruebastablas';
+}
   double get embalajeAmount {
     if (!selectedShippingOptions.contains('paquete')) return 0.0;
     final pct = selectedPackagePercent.value;

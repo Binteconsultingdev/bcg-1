@@ -190,58 +190,67 @@ class _CotizacionesPageState extends State<CotizacionesPage> {
   }
 
   Widget _buildTabs() {
-  const labels = ['Todas', 'Generadas', 'Vencidas', 'Vendidas', 'Canceladas'];
-  return Container(
-    color: ThemeColor.surfaceColor,
-    padding: const EdgeInsets.only(
-      left: ThemeColor.paddingMedium,
-      right: ThemeColor.paddingMedium,
-      bottom: ThemeColor.paddingSmall,
-    ),
-    child: SingleChildScrollView( 
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: List.generate(labels.length, (i) {
-          final selected = _selectedTab == i;
-          return Padding(
-            padding: const EdgeInsets.only(right: ThemeColor.paddingSmall),
-            child: GestureDetector(
-onTap: () {
-  setState(() => _selectedTab = i);
-  _ctrl.onTabChanged(i);
-},              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: ThemeColor.paddingMedium,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: selected ? ThemeColor.primaryColor : Colors.transparent,
-                  borderRadius: ThemeColor.mediumBorderRadius,
-                  border: Border.all(
-                    color: selected
-                        ? ThemeColor.primaryColor
-                        : ThemeColor.dividerColor,
-                  ),
-                ),
-                child: Text(
-                  labels[i],
-                  style: ThemeColor.bodySmall.copyWith(
-                    color: selected
-                        ? ThemeColor.textLightColor
-                        : ThemeColor.textSecondaryColor,
-                    fontWeight:
-                        selected ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
+    const labels = ['Todas', 'Generadas', 'Vencidas', 'Vendidas', 'Canceladas'];
+    return Container(
+      width: double.infinity,
+      color: ThemeColor.surfaceColor,
+      padding: const EdgeInsets.only(
+        left: ThemeColor.paddingMedium,
+        right: ThemeColor.paddingMedium,
+        bottom: ThemeColor.paddingSmall,
       ),
-    ),
-  );
-}
+      child: Center(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(labels.length, (i) {
+              final selected = _selectedTab == i;
+              return Padding(
+                padding: const EdgeInsets.only(right: ThemeColor.paddingSmall),
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedTab = i);
+                    _ctrl.onTabChanged(i);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ThemeColor.paddingMedium,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? ThemeColor.primaryColor
+                          : Colors.transparent,
+                      borderRadius: ThemeColor.mediumBorderRadius,
+                      border: Border.all(
+                        color: selected
+                            ? ThemeColor.primaryColor
+                            : ThemeColor.dividerColor,
+                      ),
+                    ),
+                    child: Text(
+                      labels[i],
+                      style: ThemeColor.bodySmall.copyWith(
+                        color: selected
+                            ? ThemeColor.textLightColor
+                            : ThemeColor.textSecondaryColor,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildList() {
     return Obx(() {
@@ -345,28 +354,26 @@ onTap: () {
   }
 }
 
-
-
 class _CotizacionTile extends StatelessWidget {
   final GetQuoteEntity item;
-  
-  final QuotesController _ctrl = Get.find<QuotesController>();
-   _CotizacionTile({required this.item});
 
- Color get _statusColor {
-  switch (item.status?.toLowerCase()) {
-    case 'cancelada':
-      return ThemeColor.errorColor;
-    case 'vendida':
-      return ThemeColor.successColor;
-    case 'vencida':
-      return ThemeColor.warningColor; 
-    case 'generada':
-      return ThemeColor.infoColor;
-    default:
-      return ThemeColor.tertiaryColor;
+  final QuotesController _ctrl = Get.find<QuotesController>();
+  _CotizacionTile({required this.item});
+
+  Color get _statusColor {
+    switch (item.status?.toLowerCase()) {
+      case 'cancelada':
+        return ThemeColor.errorColor;
+      case 'vendida':
+        return ThemeColor.successColor;
+      case 'vencida':
+        return ThemeColor.warningColor;
+      case 'generada':
+        return ThemeColor.infoColor;
+      default:
+        return ThemeColor.tertiaryColor;
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -415,71 +422,74 @@ class _CotizacionTile extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             Column(
-  crossAxisAlignment: CrossAxisAlignment.end,
-  children: [ 
-    Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: ThemeColor.paddingSmall + 2,
-        vertical: 5,
-      ),
-      decoration: BoxDecoration(
-        color: _statusColor,
-        borderRadius: ThemeColor.circularBorderRadius,
-      ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 100),
-        child: Text(
-          item.status?.toUpperCase() ?? '',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: ThemeColor.caption.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
-          ),
-        ),
-      ),
-    ),
-    const SizedBox(height: 6), 
-    Obx(() {
-      final isLoading = Get.find<PdfController>().isLoadingPdf.value;
-      return GestureDetector(
-        onTap: () => _ctrl.openSalePdf(context, item.id, item.folito ?? '${item.id}'),
-        child: Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: ThemeColor.errorColor.withOpacity(0.1),
-            borderRadius: ThemeColor.smallBorderRadius,
-          ),
-          child: isLoading
-              ? const Padding(
-                  padding: EdgeInsets.all(6),
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: ThemeColor.errorColor,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ThemeColor.paddingSmall + 2,
+                    vertical: 5,
                   ),
-                )
-              : const Icon(
-                  Icons.picture_as_pdf_outlined,
-                  color: ThemeColor.errorColor,
-                  size: 18,
+                  decoration: BoxDecoration(
+                    color: _statusColor,
+                    borderRadius: ThemeColor.circularBorderRadius,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 100),
+                    child: Text(
+                      item.status?.toUpperCase() ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: ThemeColor.caption.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
                 ),
-        ),
-      );
-    }),
-  ],
-),
+                const SizedBox(height: 6),
+                Obx(() {
+                  final isLoading =
+                      Get.find<PdfController>().isLoadingPdf.value;
+                  return GestureDetector(
+                    onTap: () => _ctrl.openSalePdf(
+                      context,
+                      item.id,
+                      item.folito ?? '${item.id}',
+                    ),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: ThemeColor.errorColor.withOpacity(0.1),
+                        borderRadius: ThemeColor.smallBorderRadius,
+                      ),
+                      child: isLoading
+                          ? const Padding(
+                              padding: EdgeInsets.all(6),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: ThemeColor.errorColor,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.picture_as_pdf_outlined,
+                              color: ThemeColor.errorColor,
+                              size: 18,
+                            ),
+                    ),
+                  );
+                }),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 }
-
-
 
 class _CotizacionFilterSheet extends StatefulWidget {
   final QuotesController controller;
@@ -496,7 +506,7 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
   @override
   void initState() {
     super.initState();
-    
+
     _desdeController.text = widget.controller.dateFromFilter.value;
     _hastaController.text = widget.controller.dateUntilFilter.value;
   }
@@ -706,8 +716,6 @@ class _CotizacionFilterSheetState extends State<_CotizacionFilterSheet> {
     );
   }
 }
-
-
 
 class _DateField extends StatelessWidget {
   final TextEditingController controller;

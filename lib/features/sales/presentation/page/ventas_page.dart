@@ -191,19 +191,22 @@ class _VentasPageState extends State<VentasPage> {
       ),
     );
   }
-
-  Widget _buildTabs() {
-    const labels = ['Todas', 'Por Cobrar', 'Pagado'];
-    return Container(
-      color: ThemeColor.surfaceColor,
-      padding: const EdgeInsets.only(
-        left: ThemeColor.paddingMedium,
-        right: ThemeColor.paddingMedium,
-        bottom: ThemeColor.paddingSmall,
-      ),
+Widget _buildTabs() {
+  const labels = ['Todas', 'Por Cobrar', 'Pagado'];
+  return Container(
+    width: double.infinity,
+    color: ThemeColor.surfaceColor,
+    padding: const EdgeInsets.only(
+      left: ThemeColor.paddingMedium,
+      right: ThemeColor.paddingMedium,
+      bottom: ThemeColor.paddingSmall,
+    ),
+    child: Center(                                    
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
+          mainAxisSize: MainAxisSize.min,             
+          mainAxisAlignment: MainAxisAlignment.center,   
           children: List.generate(labels.length, (i) {
             final selected = _selectedTab == i;
             return Padding(
@@ -247,9 +250,9 @@ class _VentasPageState extends State<VentasPage> {
           }),
         ),
       ),
-    );
-  }
-
+    ),
+  );
+}
   Widget _buildList() {
     return Obx(() {
       if (_ctrl.isLoading.value) {
@@ -491,7 +494,7 @@ class _VentaFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    controller.initFilterSheet();
+   // controller.initFilterSheet();
 
     return Container(
       decoration: BoxDecoration(
