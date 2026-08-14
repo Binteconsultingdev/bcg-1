@@ -1,3 +1,4 @@
+import 'package:bcg/common/errors/convert_message.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_category_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/inventory_entity.dart';
 import 'package:bcg/features/Inventory/domain/entities/sucursales_entity.dart';
@@ -94,7 +95,7 @@ final FetchSucursalesUsecase fetchSucursalesUsecase;
       sucursalesDetalle.value = null;
       sucursalesDetalle.value = await fetchSucursalesUsecase.call(numParte);
     } catch (e) {
-      sucursalesError.value = 'Error al cargar sucursales: $e';
+      sucursalesError.value = 'Error al cargar sucursales: ${cleanExceptionMessage(e)}';
     } finally {
       isLoadingSucursales.value = false;
     }
