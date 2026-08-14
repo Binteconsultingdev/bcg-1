@@ -509,9 +509,8 @@ class _ProductList extends StatelessWidget {
                   allowImageEdit: true,
                   onImageChanged: (path) => item.localImagePath.value = path,
                   onEditPriceTap: () => ctrl.showEditPriceDialog(context, item),
- 
                 ),
-                
+
                 if (!isLast)
                   Divider(
                     height: 1,
@@ -844,10 +843,10 @@ class _TotalsSection extends StatelessWidget {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-               inputFormatters: [
-              FilteringTextInputFormatter.deny(RegExp(r'[-]')),    
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),   
-            ],
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 hintText: '0.00',
@@ -912,10 +911,10 @@ class _TotalsSection extends StatelessWidget {
               backgroundColor: ThemeColor.primaryColor,
             ),
             onPressed: () {
-            final valor = double.tryParse(envioCtrl.text) ?? 0.0;
-            ctrl.envio.value = valor < 0 ? 0.0 : valor;   
-            Get.back();
-          },
+              final valor = double.tryParse(envioCtrl.text) ?? 0.0;
+              ctrl.envio.value = valor < 0 ? 0.0 : valor;
+              Get.back();
+            },
             child: const Text('Aplicar'),
           ),
         ],
@@ -1005,6 +1004,10 @@ class _TotalsSection extends StatelessWidget {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                  ],
                   style: ThemeColor.bodyMedium,
                   decoration: InputDecoration(
                     hintText: '0.00',
@@ -1037,7 +1040,7 @@ class _TotalsSection extends StatelessWidget {
                       () => Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: [5, 10, 15, 20, 25, 30].map((pct) {
+                        children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
                           final selected =
                               ctrl.globalDiscountPercent.value ==
                               pct.toDouble();
@@ -1062,7 +1065,7 @@ class _TotalsSection extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                '$pct%',
+                                pct == 0 ? 'Sin desc.' : '$pct%',
                                 style: ThemeColor.bodyMedium.copyWith(
                                   color: selected
                                       ? Colors.white

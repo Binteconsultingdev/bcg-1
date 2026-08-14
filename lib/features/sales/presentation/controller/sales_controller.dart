@@ -12,16 +12,19 @@ import 'package:get/get.dart';
 class SalesController extends GetxController {
   final PointSalesUsecase pointSalesUsecase;
   final GeneratePdfSales generatePdfSales;
-  SalesController({required this.pointSalesUsecase, required this.generatePdfSales});
+  SalesController({
+    required this.pointSalesUsecase,
+    required this.generatePdfSales,
+  });
 
   final ScrollController scrollController = ScrollController();
- 
+
   final RxList<PointSaleEntity> sales = <PointSaleEntity>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasMorePages = true.obs;
   final RxString errorMessage = ''.obs;
- 
+
   final RxString dateFromFilter = ''.obs;
   final RxString dateUntilFilter = ''.obs;
   final RxString clientFilter = ''.obs;
@@ -30,10 +33,10 @@ class SalesController extends GetxController {
   final RxString userFilter = ''.obs;
   final RxBool ignoreDatesFilter = true.obs;
   final RxInt selectedTab = 0.obs;
- 
+
   final RxString searchInput = ''.obs;
   final TextEditingController searchController = TextEditingController();
- 
+
   final RxString filterDateFrom = ''.obs;
   final RxString filterDateUntil = ''.obs;
   final RxString filterClienteName = ''.obs;
@@ -45,10 +48,11 @@ class SalesController extends GetxController {
   String get _trimmed => searchInput.value.trim();
   bool get _isEmpty => _trimmed.isEmpty;
   bool get _isNumeric => int.tryParse(_trimmed) != null;
- 
+
   String get filterStatusPayment {
     if (filterPagoIndex.value == 0) return 'pagado';
     if (filterPagoIndex.value == 1) return 'por cobrar';
+    if (filterPagoIndex.value == 2) return 'cancelado';
     return '';
   }
 
@@ -58,12 +62,16 @@ class SalesController extends GetxController {
     if (filterClienteName.value.isNotEmpty) true,
     if (filterPagoIndex.value != null) true,
   ].length;
- 
-  Future<void> openSalePdf(BuildContext context, int saleId, String folio) async {
+
+  Future<void> openSalePdf(
+    BuildContext context,
+    int saleId,
+    String folio,
+  ) async {
     final pdfCtrl = Get.find<PdfController>();
-    
+
     try {
-      pdfCtrl.reset(); 
+      pdfCtrl.reset();
       pdfCtrl.isLoadingPdf.value = true;
       final result = await generatePdfSales.call(saleId);
       if (result.generated && result.urlpdf.isNotEmpty) {
@@ -120,50 +128,110 @@ class SalesController extends GetxController {
     return merged;
   }
 
-String get _resolvedStatusPayment {
-  if (statusPaymentTabFilter.value.isNotEmpty) return statusPaymentTabFilter.value;
-  return statusPaymentFilter.value; 
-}
-String _tabToStatusPayment(int tab) {
-  switch (tab) {
-    case 1: return 'por cobrar';
-    case 2: return 'pagado';
-    case 3: return 'cancelado';
-    default: return '';
+  String get _resolvedStatusPayment {
+    if (statusPaymentTabFilter.value.isNotEmpty)
+      return statusPaymentTabFilter.value;
+    return statusPaymentFilter.value;
   }
-}
 
-void onTabChanged(int tab) {
-  selectedTab.value = tab;
-  statusPaymentTabFilter.value = _tabToStatusPayment(tab);
-  statusPaymentFilter.value = '';  
+  String _tabToStatusPayment(int tab) {
+    switch (tab) {
+      case 1:
+        return 'por cobrar';
+      case 2:
+        return 'pagado';
+      case 3:
+        return 'cancelado';
+      default:
+        return '';
+    }
+  }
 
-  fetchSales(
-    dateFrom: dateFromFilter.value,
-    dateUntil: dateUntilFilter.value,
-    ignoreDates: ignoreDatesFilter.value,
-    client: clientFilter.value,
-    statusPayment: statusPaymentTabFilter.value,  
-    userToFilter: userFilter.value,
-  );
-}
+  void onTabChanged(int tab) {
+    selectedTab.value = tab;
+    statusPaymentTabFilter.value = _tabToStatusPayment(tab);
+    statusPaymentFilter.value = '';
+
+    fetchSales(
+      dateFrom: dateFromFilter.value,
+      dateUntil: dateUntilFilter.value,
+      ignoreDates: ignoreDatesFilter.value,
+      client: clientFilter.value,
+      statusPayment: statusPaymentTabFilter.value,
+      userToFilter: userFilter.value,
+    );
+  }
 
   Future<List<List<PointSaleEntity>>> _buildSearchCalls(int page) {
     final calls = <Future<List<PointSaleEntity>>>[];
-    final dateFrom = ignoreDatesFilter.value ? '' : _toIso(dateFromFilter.value);
-    final dateUntil = ignoreDatesFilter.value ? '' : _toIso(dateUntilFilter.value, endOfDay: true);
+    final dateFrom = ignoreDatesFilter.value
+        ? ''
+        : _toIso(dateFromFilter.value);
+    final dateUntil = ignoreDatesFilter.value
+        ? ''
+        : _toIso(dateUntilFilter.value, endOfDay: true);
     final ignoreDates = ignoreDatesFilter.value;
     final client = clientFilter.value;
     final status = _resolvedStatusPayment;
     final user = userFilter.value;
 
     if (_isEmpty) {
-      calls.add(pointSalesUsecase.call('', dateFrom, dateUntil, ignoreDates, client, status, user, page, _pageSize));
+      calls.add(
+        pointSalesUsecase.call(
+          '',
+          dateFrom,
+          dateUntil,
+          ignoreDates,
+          client,
+          status,
+          user,
+          page,
+          _pageSize,
+        ),
+      );
     } else if (_isNumeric) {
-      calls.add(pointSalesUsecase.call('', dateFrom, dateUntil, ignoreDates, client, status, user, page, _pageSize, id: _trimmed));
+      calls.add(
+        pointSalesUsecase.call(
+          '',
+          dateFrom,
+          dateUntil,
+          ignoreDates,
+          client,
+          status,
+          user,
+          page,
+          _pageSize,
+          id: _trimmed,
+        ),
+      );
     } else {
-      calls.add(pointSalesUsecase.call('', dateFrom, dateUntil, ignoreDates, client, status, user, page, _pageSize, folio: _trimmed));
-      calls.add(pointSalesUsecase.call('', dateFrom, dateUntil, ignoreDates, _trimmed, status, user, page, _pageSize));
+      calls.add(
+        pointSalesUsecase.call(
+          '',
+          dateFrom,
+          dateUntil,
+          ignoreDates,
+          client,
+          status,
+          user,
+          page,
+          _pageSize,
+          folio: _trimmed,
+        ),
+      );
+      calls.add(
+        pointSalesUsecase.call(
+          '',
+          dateFrom,
+          dateUntil,
+          ignoreDates,
+          _trimmed,
+          status,
+          user,
+          page,
+          _pageSize,
+        ),
+      );
     }
 
     return Future.wait(calls);
@@ -230,7 +298,8 @@ void onTabChanged(int tab) {
 
       final results = await _buildSearchCalls(_currentPage);
       final combined = _mergeResults(results);
-      if (combined.isEmpty || combined.length < _pageSize) hasMorePages.value = false;
+      if (combined.isEmpty || combined.length < _pageSize)
+        hasMorePages.value = false;
       sales.addAll(combined);
     } catch (e) {
       _currentPage--;
@@ -239,19 +308,25 @@ void onTabChanged(int tab) {
       isLoadingMore.value = false;
     }
   }
- 
+
   void initFilterSheet() {
     filterDateFrom.value = dateFromFilter.value;
     filterDateUntil.value = dateUntilFilter.value;
     filterClienteName.value = clientFilter.value;
 
     final sp = statusPaymentFilter.value.toLowerCase();
-    if (sp == 'pagado') filterPagoIndex.value = 0;
-    else if (sp == 'por cobrar') filterPagoIndex.value = 1;
-    else filterPagoIndex.value = null;
+    if (sp == 'pagado')
+      filterPagoIndex.value = 0;
+    else if (sp == 'por cobrar')
+      filterPagoIndex.value = 1;
+    else if (sp == 'cancelado')
+      filterPagoIndex.value = 2;
+    else
+      filterPagoIndex.value = null;
 
     if (filterClienteName.value.isNotEmpty) {
-      Get.find<ClientSearchController>().searchCtrl.text = filterClienteName.value;
+      Get.find<ClientSearchController>().searchCtrl.text =
+          filterClienteName.value;
     }
   }
 

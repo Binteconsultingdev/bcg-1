@@ -191,68 +191,70 @@ class _VentasPageState extends State<VentasPage> {
       ),
     );
   }
-Widget _buildTabs() {
-  const labels = ['Todas', 'Por Cobrar', 'Pagado','cancelado'];
-  return Container(
-    width: double.infinity,
-    color: ThemeColor.surfaceColor,
-    padding: const EdgeInsets.only(
-      left: ThemeColor.paddingMedium,
-      right: ThemeColor.paddingMedium,
-      bottom: ThemeColor.paddingSmall,
-    ),
-    child: Center(                                    
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,             
-          mainAxisAlignment: MainAxisAlignment.center,   
-          children: List.generate(labels.length, (i) {
-            final selected = _selectedTab == i;
-            return Padding(
-              padding: const EdgeInsets.only(right: ThemeColor.paddingSmall),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() => _selectedTab = i);
-                  _ctrl.onTabChanged(i);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: ThemeColor.paddingMedium,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? ThemeColor.primaryColor
-                        : Colors.transparent,
-                    borderRadius: ThemeColor.mediumBorderRadius,
-                    border: Border.all(
+
+  Widget _buildTabs() {
+    const labels = ['Todas', 'Por Cobrar', 'Pagado', 'cancelado'];
+    return Container(
+      width: double.infinity,
+      color: ThemeColor.surfaceColor,
+      padding: const EdgeInsets.only(
+        left: ThemeColor.paddingMedium,
+        right: ThemeColor.paddingMedium,
+        bottom: ThemeColor.paddingSmall,
+      ),
+      child: Center(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(labels.length, (i) {
+              final selected = _selectedTab == i;
+              return Padding(
+                padding: const EdgeInsets.only(right: ThemeColor.paddingSmall),
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() => _selectedTab = i);
+                    _ctrl.onTabChanged(i);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ThemeColor.paddingMedium,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
                       color: selected
                           ? ThemeColor.primaryColor
-                          : ThemeColor.dividerColor,
+                          : Colors.transparent,
+                      borderRadius: ThemeColor.mediumBorderRadius,
+                      border: Border.all(
+                        color: selected
+                            ? ThemeColor.primaryColor
+                            : ThemeColor.dividerColor,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    labels[i],
-                    style: ThemeColor.bodySmall.copyWith(
-                      color: selected
-                          ? ThemeColor.textLightColor
-                          : ThemeColor.textSecondaryColor,
-                      fontWeight: selected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
+                    child: Text(
+                      labels[i],
+                      style: ThemeColor.bodySmall.copyWith(
+                        color: selected
+                            ? ThemeColor.textLightColor
+                            : ThemeColor.textSecondaryColor,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+
   Widget _buildList() {
     return Obx(() {
       if (_ctrl.isLoading.value) {
@@ -366,23 +368,23 @@ Widget _buildTabs() {
     );
   }
 }
- 
+
 class _VentaTile extends StatelessWidget {
   final PointSaleEntity item;
   const _VentaTile({required this.item});
 
-Color get _badgeColor {
-  switch (item.status?.toLowerCase()) {
-    case 'pagado':
-      return ThemeColor.successColor;
-    case 'por cobrar':
-      return ThemeColor.warningColor;
-    case 'cancelado':
-      return ThemeColor.errorColor; 
-    default:
-      return ThemeColor.infoColor;
+  Color get _badgeColor {
+    switch (item.status?.toLowerCase()) {
+      case 'pagado':
+        return ThemeColor.successColor;
+      case 'por cobrar':
+        return ThemeColor.warningColor;
+      case 'cancelado':
+        return ThemeColor.errorColor;
+      default:
+        return ThemeColor.infoColor;
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -422,10 +424,10 @@ Color get _badgeColor {
                 ),
               ],
             ),
-          ), 
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
-            children: [ 
+            children: [
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: ThemeColor.paddingSmall + 2,
@@ -450,7 +452,7 @@ Color get _badgeColor {
                 ),
               ),
               const SizedBox(height: 6),
-           
+
               Obx(() {
                 final isLoading = Get.find<PdfController>().isLoadingPdf.value;
                 return GestureDetector(
@@ -489,14 +491,43 @@ Color get _badgeColor {
     );
   }
 }
- 
-class _VentaFilterSheet extends StatelessWidget {
+
+class _VentaFilterSheet extends StatefulWidget {
   final SalesController controller;
   const _VentaFilterSheet({required this.controller});
 
   @override
+  State<_VentaFilterSheet> createState() => _VentaFilterSheetState();
+}
+
+class _VentaFilterSheetState extends State<_VentaFilterSheet> {
+  late final ClientSearchController _clientCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.initFilterSheet();
+    _clientCtrl = Get.find<ClientSearchController>();
+    _clientCtrl.searchCtrl.addListener(_onClientTextChanged);
+  }
+
+  void _onClientTextChanged() {
+    if (_clientCtrl.searchCtrl.text.trim().isEmpty &&
+        widget.controller.filterClienteName.value.isNotEmpty) {
+      widget.controller.filterClienteName.value = '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _clientCtrl.searchCtrl.removeListener(_onClientTextChanged);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-   // controller.initFilterSheet();
+    final controller = widget.controller;
+    // controller.initFilterSheet();
 
     return Container(
       decoration: BoxDecoration(
@@ -513,7 +544,7 @@ class _VentaFilterSheet extends StatelessWidget {
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [ 
+          children: [
             Container(
               margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
               width: 40,
@@ -522,7 +553,7 @@ class _VentaFilterSheet extends StatelessWidget {
                 color: ThemeColor.dividerColor,
                 borderRadius: ThemeColor.circularBorderRadius,
               ),
-            ), 
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium,
@@ -550,7 +581,7 @@ class _VentaFilterSheet extends StatelessWidget {
             ),
             Divider(height: 1, color: ThemeColor.dividerColor),
             const SizedBox(height: ThemeColor.paddingMedium),
- 
+
             _FilterCard(
               child: Row(
                 children: [
@@ -606,7 +637,7 @@ class _VentaFilterSheet extends StatelessWidget {
             ),
 
             const SizedBox(height: ThemeColor.paddingSmall),
- 
+
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -629,7 +660,7 @@ class _VentaFilterSheet extends StatelessWidget {
             ),
 
             const SizedBox(height: ThemeColor.paddingSmall),
- 
+
             _FilterCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -642,13 +673,21 @@ class _VentaFilterSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: ThemeColor.paddingSmall),
                   Obx(
-                    () => _ToggleGroup(
-                      options: const ['Todas', 'Pagado', 'Por Cobrar',],
-                      selectedIndex: controller.filterPagoIndex.value == null
-                          ? 0
-                          : controller.filterPagoIndex.value! + 1,
-                      onChanged: (i) => controller.filterPagoIndex.value =
-                          i == 0 ? null : i - 1,
+                    () => SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: _ToggleGroup(
+                        options: const [
+                          'Todas',
+                          'Pagado',
+                          'Por Cobrar',
+                          'Cancelado',
+                        ],
+                        selectedIndex: controller.filterPagoIndex.value == null
+                            ? 0
+                            : controller.filterPagoIndex.value! + 1,
+                        onChanged: (i) => controller.filterPagoIndex.value =
+                            i == 0 ? null : i - 1,
+                      ),
                     ),
                   ),
                 ],
@@ -656,7 +695,7 @@ class _VentaFilterSheet extends StatelessWidget {
             ),
 
             const SizedBox(height: ThemeColor.paddingMedium),
- 
+
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: ThemeColor.paddingMedium,
@@ -712,7 +751,6 @@ class _VentaFilterSheet extends StatelessWidget {
     );
   }
 }
- 
 
 class _FilterCard extends StatelessWidget {
   final Widget child;

@@ -163,7 +163,7 @@ class _TopSection extends StatelessWidget {
           ),
           ProductSearchResults(onSelected: ctrl.addProduct),
           const SizedBox(height: 4),
-         /* GestureDetector(
+          /* GestureDetector(
             onTap: () => ctrl.showAddCustomProductDialog(context),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -968,7 +968,7 @@ class _TotalsSection extends StatelessWidget {
                       () => Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: [5, 10, 15, 20, 25, 30].map((pct) {
+                        children: [0, 5, 10, 15, 20, 25, 30].map((pct) {
                           final selected =
                               ctrl.globalDiscountPercent.value ==
                               pct.toDouble();
@@ -993,7 +993,7 @@ class _TotalsSection extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                '$pct%',
+                                pct == 0 ? 'Sin desc.' : '$pct%',
                                 style: ThemeColor.bodyMedium.copyWith(
                                   color: selected
                                       ? Colors.white

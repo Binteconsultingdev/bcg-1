@@ -116,8 +116,8 @@ class CreateSalesController extends GetxController {
   void onInit() {
     super.onInit();
     print('🟢 CreateSalesController.onInit() ejecutado');
-    _checkStownLicense();  
-
+    _checkStownLicense();
+    _resetForm();
     _quoteSearchDebounce = debounce(
       quoteSearchInput,
       (v) => v.trim().isNotEmpty ? searchQuoteByFolio() : quoteResults.clear(),
@@ -137,6 +137,30 @@ class CreateSalesController extends GetxController {
     final pct = selectedPackagePercent.value;
     if (pct == null) return 0.0;
     return subtotal * (pct / 100);
+  }
+
+  void _resetForm() {
+    clienteController.clear();
+    clienteName.value = '';
+    selectedClientId.value = null;
+
+    final clientSearchCtrl = Get.find<ClientSearchController>();
+    clientSearchCtrl.searchCtrl.clear();
+    clientSearchCtrl.clearSearch();
+
+    items.clear();
+    commentsCtrl.clear();
+    referenciaCtrl.clear();
+    globalDiscountCtrl.clear();
+    globalDiscount.value = 0.0;
+    globalDiscountPercent.value = 0.0;
+    globalDiscountType.value = 'monto';
+    selectedShippingOptions.clear();
+    selectedPackagePercent.value = null;
+    envio.value = null;
+    createdSaleId.value = null;
+    selectedFolioQuote.value = '';
+    _clearQuoteSearch();
   }
 
   void toggleShippingOption(String option) {
@@ -461,10 +485,11 @@ class CreateSalesController extends GetxController {
               autofocus: true,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
-              ), inputFormatters: [
-              FilteringTextInputFormatter.deny(RegExp(r'[-]')),    
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),   
-            ],
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 labelText: 'Nuevo precio unitario',
