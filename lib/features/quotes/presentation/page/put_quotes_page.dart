@@ -6,6 +6,7 @@ import 'package:bcg/features/client/presentation/page/client_search_field.dart';
 import 'package:bcg/features/quotes/presentation/controller/put_quotes_controller.dart';
 import 'package:bcg/features/sales/presentation/page/quote_product_item.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class EditQuotePage extends StatelessWidget {
@@ -162,7 +163,29 @@ class _TopSection extends StatelessWidget {
           ),
           ProductSearchResults(onSelected: ctrl.addProduct),
           const SizedBox(height: 4),
-
+         /* GestureDetector(
+            onTap: () => ctrl.showAddCustomProductDialog(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.add_circle_outline,
+                    size: 18,
+                    color: ThemeColor.accentColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Agregar producto personalizado',
+                    style: ThemeColor.bodyMedium.copyWith(
+                      color: ThemeColor.accentColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),*/
           Column(
             children: [
               Row(
@@ -278,99 +301,6 @@ class _TopSection extends StatelessWidget {
                 );
               }),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEnvioDialog(BuildContext context) {
-    final envioCtrl = TextEditingController(
-      text: ctrl.envio.value != null && ctrl.envio.value! > 0
-          ? ctrl.envio.value!.toStringAsFixed(2)
-          : '',
-    );
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: ThemeColor.surfaceColor,
-        title: Text('Costo de envío', style: ThemeColor.headingSmall),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: envioCtrl,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: ThemeColor.bodyMedium,
-              decoration: InputDecoration(
-                hintText: '0.00',
-                prefixText: '\$ ',
-                labelText: 'Monto de envío',
-                border: OutlineInputBorder(
-                  borderRadius: ThemeColor.smallBorderRadius,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: ThemeColor.smallBorderRadius,
-                  borderSide: const BorderSide(
-                    color: ThemeColor.accentColor,
-                    width: 1.5,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [50, 100, 150, 200, 300, 500].map((monto) {
-                return GestureDetector(
-                  onTap: () {
-                    envioCtrl.text = monto.toString();
-                    envioCtrl.selection = TextSelection.fromPosition(
-                      TextPosition(offset: envioCtrl.text.length),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: ThemeColor.backgroundColor,
-                      borderRadius: ThemeColor.circularBorderRadius,
-                      border: Border.all(color: ThemeColor.dividerColor),
-                    ),
-                    child: Text(
-                      '\$$monto',
-                      style: ThemeColor.bodySmall.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: ThemeColor.textSecondaryColor),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeColor.primaryColor,
-            ),
-            onPressed: () {
-              ctrl.envio.value = double.tryParse(envioCtrl.text) ?? 0.0;
-              Get.back();
-            },
-            child: const Text('Aplicar'),
           ),
         ],
       ),
@@ -591,10 +521,9 @@ class _ProductList extends StatelessWidget {
                   onEdit: item.isCustom
                       ? () => ctrl.showEditCustomProductDialog(context, item)
                       : null,
-                   onEditPriceTap: () => ctrl.showEditPriceDialog(context, item),
-
+                  onEditPriceTap: () => ctrl.showEditPriceDialog(context, item),
                 ),
-                
+
                 if (!isLast)
                   Divider(
                     height: 1,
@@ -842,6 +771,10 @@ class _TotalsSection extends StatelessWidget {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 hintText: '0.00',
@@ -906,7 +839,8 @@ class _TotalsSection extends StatelessWidget {
               backgroundColor: ThemeColor.primaryColor,
             ),
             onPressed: () {
-              ctrl.envio.value = double.tryParse(envioCtrl.text) ?? 0.0;
+              final valor = double.tryParse(envioCtrl.text) ?? 0.0;
+              ctrl.envio.value = valor < 0 ? 0.0 : valor;
               Get.back();
             },
             child: const Text('Aplicar'),
@@ -998,6 +932,10 @@ class _TotalsSection extends StatelessWidget {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                  ],
                   style: ThemeColor.bodyMedium,
                   decoration: InputDecoration(
                     hintText: '0.00',

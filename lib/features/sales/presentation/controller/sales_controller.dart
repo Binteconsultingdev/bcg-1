@@ -120,31 +120,33 @@ class SalesController extends GetxController {
     return merged;
   }
 
-  String get _resolvedStatusPayment {
-    if (statusPaymentTabFilter.value.isNotEmpty) return statusPaymentTabFilter.value;
-    return statusPaymentFilter.value;
+String get _resolvedStatusPayment {
+  if (statusPaymentTabFilter.value.isNotEmpty) return statusPaymentTabFilter.value;
+  return statusPaymentFilter.value; 
+}
+String _tabToStatusPayment(int tab) {
+  switch (tab) {
+    case 1: return 'por cobrar';
+    case 2: return 'pagado';
+    case 3: return 'cancelado';
+    default: return '';
   }
+}
 
-  String _tabToStatusPayment(int tab) {
-    switch (tab) {
-      case 1: return 'por cobrar';
-      case 2: return 'pagado';
-      default: return '';
-    }
-  }
+void onTabChanged(int tab) {
+  selectedTab.value = tab;
+  statusPaymentTabFilter.value = _tabToStatusPayment(tab);
+  statusPaymentFilter.value = '';  
 
-  void onTabChanged(int tab) {
-    selectedTab.value = tab;
-    statusPaymentTabFilter.value = _tabToStatusPayment(tab);
-    fetchSales(
-      dateFrom: dateFromFilter.value,
-      dateUntil: dateUntilFilter.value,
-      ignoreDates: ignoreDatesFilter.value,
-      client: clientFilter.value,
-      statusPayment: _resolvedStatusPayment,
-      userToFilter: userFilter.value,
-    );
-  }
+  fetchSales(
+    dateFrom: dateFromFilter.value,
+    dateUntil: dateUntilFilter.value,
+    ignoreDates: ignoreDatesFilter.value,
+    client: clientFilter.value,
+    statusPayment: statusPaymentTabFilter.value,  
+    userToFilter: userFilter.value,
+  );
+}
 
   Future<List<List<PointSaleEntity>>> _buildSearchCalls(int page) {
     final calls = <Future<List<PointSaleEntity>>>[];

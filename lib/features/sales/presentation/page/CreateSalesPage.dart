@@ -862,7 +862,10 @@ class _TotalsSection extends StatelessWidget {
               autofocus: true,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
-              ),
+              ), inputFormatters: [
+              FilteringTextInputFormatter.deny(RegExp(r'[-]')),    
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),   
+            ],
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 hintText: '0.00',

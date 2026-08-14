@@ -61,7 +61,7 @@ class QuotesDataSourcesImp {
           'Authorization': 'Bearer $token',
         },
       );
-
+      
       if (response.statusCode == 200) {
         final dataUTF8 = utf8.decode(response.bodyBytes);
         final responseData = jsonDecode(dataUTF8) as List;

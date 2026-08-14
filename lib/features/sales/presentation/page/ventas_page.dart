@@ -192,7 +192,7 @@ class _VentasPageState extends State<VentasPage> {
     );
   }
 Widget _buildTabs() {
-  const labels = ['Todas', 'Por Cobrar', 'Pagado'];
+  const labels = ['Todas', 'Por Cobrar', 'Pagado','cancelado'];
   return Container(
     width: double.infinity,
     color: ThemeColor.surfaceColor,
@@ -371,16 +371,18 @@ class _VentaTile extends StatelessWidget {
   final PointSaleEntity item;
   const _VentaTile({required this.item});
 
-  Color get _badgeColor {
-    switch (item.status?.toLowerCase()) {
-      case 'pagado':
-        return ThemeColor.successColor;
-      case 'por cobrar':
-        return ThemeColor.warningColor;
-      default:
-        return ThemeColor.infoColor;
-    }
+Color get _badgeColor {
+  switch (item.status?.toLowerCase()) {
+    case 'pagado':
+      return ThemeColor.successColor;
+    case 'por cobrar':
+      return ThemeColor.warningColor;
+    case 'cancelado':
+      return ThemeColor.errorColor; 
+    default:
+      return ThemeColor.infoColor;
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -641,7 +643,7 @@ class _VentaFilterSheet extends StatelessWidget {
                   const SizedBox(height: ThemeColor.paddingSmall),
                   Obx(
                     () => _ToggleGroup(
-                      options: const ['Todas', 'Pagado', 'Por Cobrar'],
+                      options: const ['Todas', 'Pagado', 'Por Cobrar',],
                       selectedIndex: controller.filterPagoIndex.value == null
                           ? 0
                           : controller.filterPagoIndex.value! + 1,

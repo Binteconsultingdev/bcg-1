@@ -398,13 +398,21 @@ class _QuantityControls extends StatefulWidget {
 
 class _QuantityControlsState extends State<_QuantityControls> {
   late final TextEditingController _textCtrl;
+  Worker? _worker;
+
+  String _fmt(double v) => v % 1 == 0 ? v.toInt().toString() : v.toString();
 
   @override
   void initState() {
     super.initState();
-    _textCtrl = TextEditingController(text: widget.quantity.value.toString());
-    ever(widget.quantity, (val) {
-      final newText = val.toString();
+    _textCtrl = TextEditingController(text: _fmt(widget.quantity.value));
+    _bindWorker();
+  }
+
+  void _bindWorker() {
+    _worker?.dispose();
+    _worker = ever(widget.quantity, (val) {
+      final newText = _fmt(val);
       if (_textCtrl.text != newText) {
         _textCtrl.text = newText;
         _textCtrl.selection = TextSelection.fromPosition(
@@ -415,7 +423,17 @@ class _QuantityControlsState extends State<_QuantityControls> {
   }
 
   @override
+  void didUpdateWidget(covariant _QuantityControls oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.quantity, widget.quantity)) {
+      _bindWorker();                        
+      _textCtrl.text = _fmt(widget.quantity.value);   
+    }
+  }
+
+  @override
   void dispose() {
+    _worker?.dispose();
     _textCtrl.dispose();
     super.dispose();
   }

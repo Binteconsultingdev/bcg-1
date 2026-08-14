@@ -16,6 +16,7 @@ import 'package:bcg/features/sales/domain/usecase/generate_pdf_sales.dart';
 import 'package:bcg/features/sales/domain/usecase/generate_sales_usecase.dart';
 import 'package:bcg/features/sales/presentation/controller/sales_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class SaleItem {
@@ -460,7 +461,10 @@ class CreateSalesController extends GetxController {
               autofocus: true,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
-              ),
+              ), inputFormatters: [
+              FilteringTextInputFormatter.deny(RegExp(r'[-]')),    
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),   
+            ],
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 labelText: 'Nuevo precio unitario',

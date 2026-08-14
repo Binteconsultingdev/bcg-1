@@ -5,6 +5,7 @@ import 'package:bcg/features/client/presentation/page/client_search_field.dart';
 import 'package:bcg/features/quotes/presentation/controller/create_quote_controller.dart';
 import 'package:bcg/features/sales/presentation/page/quote_product_item.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class CreateQuotePage extends StatelessWidget {
@@ -843,6 +844,10 @@ class _TotalsSection extends StatelessWidget {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+               inputFormatters: [
+              FilteringTextInputFormatter.deny(RegExp(r'[-]')),    
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),   
+            ],
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 hintText: '0.00',
@@ -907,9 +912,10 @@ class _TotalsSection extends StatelessWidget {
               backgroundColor: ThemeColor.primaryColor,
             ),
             onPressed: () {
-              ctrl.envio.value = double.tryParse(envioCtrl.text) ?? 0.0;
-              Get.back();
-            },
+            final valor = double.tryParse(envioCtrl.text) ?? 0.0;
+            ctrl.envio.value = valor < 0 ? 0.0 : valor;   
+            Get.back();
+          },
             child: const Text('Aplicar'),
           ),
         ],

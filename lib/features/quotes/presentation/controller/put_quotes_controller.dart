@@ -18,6 +18,7 @@ import 'package:bcg/features/quotes/domain/usecase/put_quotes_usecase.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
 import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class EditQuoteItem {
@@ -137,7 +138,7 @@ class PutQuotesController extends GetxController {
   final items = <EditQuoteItem>[].obs;
   final selectedShippingOptions = <String>{}.obs;
   final selectedPackagePercent = Rxn<double>();
-  final envio = Rxn<double>(); 
+  final envio = Rxn<double>();
   double get embalajeAmount {
     if (!selectedShippingOptions.contains('paquete')) return 0.0;
     final pct = selectedPackagePercent.value;
@@ -177,14 +178,13 @@ class PutQuotesController extends GetxController {
     if (args != null && args['idQuote'] != null) {
       loadQuote(args['idQuote'] as int);
     }
- 
 
     Get.find<ClientSearchController>().onFreeText = onFreeTextClient;
     Get.find<ClientSearchController>().showResults.value = false;
     Get.find<ClientSearchController>().manuallyClosed = true;
 
     ever(selectedPriceType, (_) => validateCart());
-  } 
+  }
 
   void showEditPriceDialog(BuildContext context, EditQuoteItem item) {
     final priceCtrl = TextEditingController(
@@ -214,6 +214,10 @@ class PutQuotesController extends GetxController {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 labelText: 'Nuevo precio unitario',
@@ -357,6 +361,7 @@ class PutQuotesController extends GetxController {
     clienteController.text = quote.cliente;
     selectedPriceType.value = quote.cataPrecio;
     commentsCtrl.text = quote.comentarios;
+    includeIva.value = quote.iva.trim().toUpperCase() == 'SI';
 
     final daysToAdd = quote.diasEnt > 0 ? quote.diasEnt : 15;
     validUntil.value = DateTime.now().add(Duration(days: daysToAdd));
@@ -742,6 +747,155 @@ class PutQuotesController extends GetxController {
     );
   }
 
+  void addCustomProduct({
+    required String descripcion,
+    required double costo,
+    required double cantidad,
+  }) {
+    if (descripcion.trim().isEmpty) {
+      showErrorSnackbar('Ingresa una descripción');
+      return;
+    }
+    if (costo <= 0) {
+      showErrorSnackbar('El costo debe ser mayor a 0');
+      return;
+    }
+    if (cantidad <= 0) {
+      showErrorSnackbar('La cantidad debe ser mayor a 0');
+      return;
+    }
+
+    items.add(
+      EditQuoteItem(
+        productId: null,
+        codigo: 'CUSTOM',
+        descripcion: descripcion.trim(),
+        precio: costo,
+        quantity: cantidad,
+        descuento: 0,
+        unidad: 'PZA',
+        claveSat: '',
+        url: '',
+        disponible: 999,
+        prioridad: items.length + 1,
+      ),
+    );
+    validateCart();
+  }
+
+  void showAddCustomProductDialog(BuildContext context) {
+    final descCtrl = TextEditingController();
+    final costoCtrl = TextEditingController();
+    final cantCtrl = TextEditingController(text: '1');
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: ThemeColor.surfaceColor,
+        title: Text('Producto personalizado', style: ThemeColor.headingSmall),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: descCtrl,
+              textCapitalization: TextCapitalization.sentences,
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Descripción',
+                hintText: 'Ej. Servicio de instalación',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: costoCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Precio unitario',
+                prefixText: '\$ ',
+                hintText: '0.00',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: cantCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
+              style: ThemeColor.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Cantidad',
+                hintText: '1',
+                border: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: ThemeColor.smallBorderRadius,
+                  borderSide: const BorderSide(
+                    color: ThemeColor.accentColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: ThemeColor.textSecondaryColor),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ThemeColor.primaryColor,
+            ),
+            onPressed: () {
+              addCustomProduct(
+                descripcion: descCtrl.text,
+                costo: double.tryParse(costoCtrl.text) ?? 0,
+                cantidad: double.tryParse(cantCtrl.text) ?? 1,
+              );
+              Get.back();
+            },
+            child: const Text('Agregar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void showEditCustomProductDialog(BuildContext context, EditQuoteItem item) {
     final descCtrl = TextEditingController(text: item.descripcion.value);
     final costoCtrl = TextEditingController(
@@ -784,6 +938,10 @@ class PutQuotesController extends GetxController {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 labelText: 'Precio unitario',
@@ -806,6 +964,10 @@ class PutQuotesController extends GetxController {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
               style: ThemeColor.bodyMedium,
               decoration: InputDecoration(
                 labelText: 'Cantidad',

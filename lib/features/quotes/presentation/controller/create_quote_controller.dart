@@ -19,6 +19,7 @@ import 'package:bcg/features/quotes/domain/usecase/quote_from_usecase.dart';
 import 'package:bcg/features/quotes/presentation/controller/quotes_controller.dart';
 import 'package:bcg/features/quotes/presentation/widget/create_pdf_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -140,7 +141,7 @@ class CreateQuoteController extends GetxController {
   final productSearchQuery = ''.obs;
   final isSearching = false.obs;
   final RxList<InventoryEntity> searchResults = <InventoryEntity>[].obs;
-  final RxBool isLoadingSearch = false.obs; 
+  final RxBool isLoadingSearch = false.obs;
   final globalDiscount = 0.0.obs;
   final globalDiscountType = 'monto'.obs;
   final globalDiscountPercent = 0.0.obs;
@@ -174,21 +175,20 @@ class CreateQuoteController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadFolio(); 
+    _loadFolio();
     ever(selectedPriceType, (_) => validateCart());
   }
- 
 
   @override
   void onReady() {
     super.onReady();
     resetState();
-   WidgetsBinding.instance.addPostFrameCallback((_) {
-  final clientSearch = Get.find<ClientSearchController>();
-  clientSearch.onFreeText = onFreeTextClient;
-  clientSearch.showResults.value = false;
-  clientSearch.manuallyClosed = true;   
-});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final clientSearch = Get.find<ClientSearchController>();
+      clientSearch.onFreeText = onFreeTextClient;
+      clientSearch.showResults.value = false;
+      clientSearch.manuallyClosed = true;
+    });
   }
 
   void toggleShippingOption(String option) {
@@ -202,81 +202,84 @@ class CreateQuoteController extends GetxController {
     }
   }
 
-  void showEditPriceDialog(BuildContext context, QuoteItem item) {
-    final priceCtrl = TextEditingController(
-      text: item.unitPrice.toStringAsFixed(2),
-    );
+void showEditPriceDialog(BuildContext context, QuoteItem item) {
+  final priceCtrl = TextEditingController(
+    text: item.unitPrice.toStringAsFixed(2),
+  );
 
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: ThemeColor.surfaceColor,
-        title: Text('Cambiar precio', style: ThemeColor.headingSmall),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              item.description,
-              style: ThemeColor.bodySmall.copyWith(
-                color: ThemeColor.textSecondaryColor,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+  Get.dialog(
+    AlertDialog(
+      backgroundColor: ThemeColor.surfaceColor,
+      title: Text('Cambiar precio', style: ThemeColor.headingSmall),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            item.description,
+            style: ThemeColor.bodySmall.copyWith(
+              color: ThemeColor.textSecondaryColor,
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: priceCtrl,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: ThemeColor.bodyMedium,
-              decoration: InputDecoration(
-                labelText: 'Nuevo precio unitario',
-                prefixText: '\$ ',
-                border: OutlineInputBorder(
-                  borderRadius: ThemeColor.smallBorderRadius,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: ThemeColor.smallBorderRadius,
-                  borderSide: const BorderSide(
-                    color: ThemeColor.accentColor,
-                    width: 1.5,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: ThemeColor.textSecondaryColor),
-            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ThemeColor.primaryColor,
-            ),
-            onPressed: () {
-              final nuevoPrecio = double.tryParse(priceCtrl.text);
-              if (nuevoPrecio == null || nuevoPrecio <= 0) {
-                showErrorSnackbar('Ingresa un precio válido');
-                return;
-              }
-              item.manualPriceOverride.value = nuevoPrecio;
-              items.refresh();
-              Get.back();
-            },
-            child: const Text('Aplicar'),
-          ),
+          const SizedBox(height: 12),
+       TextField(
+  controller: priceCtrl,
+  autofocus: true,
+  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+  inputFormatters: [
+    FilteringTextInputFormatter.deny(RegExp(r'[-]')),
+    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+  ],
+  onChanged: (v) {
+    // Evita más de un punto decimal
+    if ('.'.allMatches(v).length > 1) {
+      priceCtrl.text = v.substring(0, v.length - 1);
+      priceCtrl.selection = TextSelection.collapsed(offset: priceCtrl.text.length);
+    }
+  },
+  style: ThemeColor.bodyMedium,
+  decoration: InputDecoration(
+    labelText: 'Nuevo precio unitario',
+    prefixText: '\$ ',
+    border: OutlineInputBorder(borderRadius: ThemeColor.smallBorderRadius),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: ThemeColor.smallBorderRadius,
+      borderSide: const BorderSide(color: ThemeColor.accentColor, width: 1.5),
+    ),
+  ),
+),
         ],
       ),
-    );
-  }
-
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text(
+            'Cancelar',
+            style: TextStyle(color: ThemeColor.textSecondaryColor),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ThemeColor.primaryColor,
+          ),
+          onPressed: () {
+            final nuevoPrecio = double.tryParse(priceCtrl.text);
+            if (nuevoPrecio == null || nuevoPrecio <= 0) {   // 👈 ya cubre negativos y cero
+              showErrorSnackbar('Ingresa un precio válido');
+              return;
+            }
+            item.manualPriceOverride.value = nuevoPrecio;
+            items.refresh();
+            Get.back();
+          },
+          child: const Text('Aplicar'),
+        ),
+      ],
+    ),
+  );
+}
   Future<void> validateCart() async {
     final inventoryItems = items
         .where((i) => !i.isCustom && i.product?.id != null)
@@ -422,7 +425,7 @@ class CreateQuoteController extends GetxController {
       costo: costo,
       initialQty: cantidad,
     );
-    items.add(QuoteItem.custom(custom: custom));
+    items.add(QuoteItem.custom(custom: custom, initialQty: cantidad));
     validateCart();
   }
 
@@ -543,7 +546,9 @@ class CreateQuoteController extends GetxController {
         costo: item.customProduct!.costo,
         initialQty: item.quantity.value,
       );
-      items.add(QuoteItem.custom(custom: copy));
+      items.add(
+        QuoteItem.custom(custom: copy, initialQty: item.quantity.value),
+      );
     } else {
       items.add(
         QuoteItem(
@@ -860,52 +865,56 @@ class CreateQuoteController extends GetxController {
     );
   }
 
-  void editCustomProduct({
-    required QuoteItem item,
-    required String descripcion,
-    required double costo,
-    required double cantidad,
-  }) {
-    if (descripcion.trim().isEmpty) {
-      showErrorSnackbar('Ingresa una descripción');
-      return;
-    }
-    if (costo <= 0) {
-      showErrorSnackbar('El costo debe ser mayor a 0');
-      return;
-    }
-    if (cantidad <= 0) {
-      showErrorSnackbar('La cantidad debe ser mayor a 0');
-      return;
-    }
-    item.customProduct!.cantidad.value = cantidad;
-    item.quantity.value = cantidad;
-    final index = items.indexOf(item);
-    if (index == -1) return;
-    final updated = QuoteItem.custom(
-      custom: CustomQuoteItem(
-        descripcion: descripcion.trim(),
-        costo: costo,
-        initialQty: cantidad,
-      ),
-    );
-    items[index] = updated;
-    items.refresh();
+void editCustomProduct({
+  required QuoteItem item,
+  required String descripcion,
+  required double costo,
+  required double cantidad,
+}) {
+  if (descripcion.trim().isEmpty) {
+    showErrorSnackbar('Ingresa una descripción');
+    return;
+  }
+  if (costo <= 0) {
+    showErrorSnackbar('El costo debe ser mayor a 0');
+    return;
+  }
+  if (cantidad <= 0) {
+    showErrorSnackbar('La cantidad debe ser mayor a 0');
+    return;
   }
 
-  void showEditCustomProductDialog(BuildContext context, QuoteItem item) {
-    final descCtrl = TextEditingController(
-      text: item.customProduct!.descripcion,
-    );
-    final costoCtrl = TextEditingController(
-      text: item.customProduct!.costo.toStringAsFixed(2),
-    );
-    final cantCtrl = TextEditingController(
-      text: item.quantity.value % 1 == 0
-          ? item.quantity.value.toInt().toString()
-          : item.quantity.value.toString(),
-    );
+  final index = items.indexOf(item);
+  if (index == -1) return;
 
+  final updatedCustom = CustomQuoteItem(
+    descripcion: descripcion.trim(),
+    costo: costo,
+    initialQty: cantidad,
+  );
+  final updated = QuoteItem.custom(
+    custom: updatedCustom,
+    initialQty: cantidad,
+  );
+  updated.discount.value = item.discount.value;
+  updated.localImagePath.value = item.localImagePath.value; 
+
+  items[index] = updated;
+  items.refresh();
+}
+
+void showEditCustomProductDialog(BuildContext context, QuoteItem item) {
+  final descCtrl = TextEditingController(
+    text: item.customProduct!.descripcion,
+  );
+  final costoCtrl = TextEditingController(
+    text: item.unitPrice.toStringAsFixed(2),   // 👈 cambio aquí
+  );
+  final cantCtrl = TextEditingController(
+    text: item.quantity.value % 1 == 0
+        ? item.quantity.value.toInt().toString()
+        : item.quantity.value.toString(),
+  );
     Get.dialog(
       AlertDialog(
         backgroundColor: ThemeColor.surfaceColor,
