@@ -23,7 +23,9 @@ class ClientController extends GetxController {
   });
 
   final ScrollController scrollController = ScrollController();
-
+final RxString searchInput = ''.obs;
+int _searchRequestId = 0;
+Worker? _searchDebounce;
   final RxList<ClientEntity> clients = <ClientEntity>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
@@ -63,26 +65,33 @@ class ClientController extends GetxController {
   int _currentPage = 1;
   static const int _pageSize = 20;
 
-  @override
-  void onReady() {
-    super.onReady();
-    fetchClients();
-    scrollController.addListener(_onScroll);
-  }
+@override
+void onReady() {
+  super.onReady();
+  fetchClients();
+  scrollController.addListener(_onScroll);
 
-  @override
-  void onClose() {
-    scrollController.dispose();
-    empresaCtrl.dispose();
-    nombreCtrl.dispose();
-    telefonoCtrl.dispose();
-    emailCtrl.dispose();
-    empresaFocus.dispose();
-    nombreFocus.dispose();
-    telefonoFocus.dispose();
-    emailFocus.dispose();
-    super.onClose();
-  }
+  _searchDebounce = debounce(
+    searchInput,
+    (String v) => fetchClients(client: v, porCobrar: porCobrarFilter.value),
+    time: const Duration(milliseconds: 400),
+  );
+}
+
+@override
+void onClose() {
+  _searchDebounce?.dispose();
+  scrollController.dispose();
+  empresaCtrl.dispose();
+  nombreCtrl.dispose();
+  telefonoCtrl.dispose();
+  emailCtrl.dispose();
+  empresaFocus.dispose();
+  nombreFocus.dispose();
+  telefonoFocus.dispose();
+  emailFocus.dispose();
+  super.onClose();
+}
 
   void resetForm() {
     empresaCtrl.clear();
@@ -95,6 +104,12 @@ class ClientController extends GetxController {
 
   Future<void> createClient() async {
     if (!isFormValid) return;
+     final phone = telefonoCtrl.text.trim();
+  if (phone.isNotEmpty && (phone.length != 10 || int.tryParse(phone) == null)) {
+    createError.value = 'El teléfono debe tener 10 dígitos numéricos';
+    return;
+  }
+
     try {
       isCreating.value = true;
       createError.value = '';
@@ -170,45 +185,48 @@ Future<void> openAccountStatementPdf(
     fetchClients();
   }
 
-  Future<void> fetchClients({
-    String client = '',
-    String company = '',
-    String rfc = '',
-    String email = '',
-    bool? porCobrar,
-  }) async {
-    if (isLoading.value) return;
-    try {
-      isLoading.value = true;
-      isLoadingMore.value = false;
-      errorMessage.value = '';
-      _currentPage = 1;
-      hasMorePages.value = true;
+ Future<void> fetchClients({
+  String client = '',
+  String company = '',
+  String rfc = '',
+  String email = '',
+  bool? porCobrar,
+}) async {
+  final requestId = ++_searchRequestId;  
+  try {
+    isLoading.value = true;
+    isLoadingMore.value = false;
+    errorMessage.value = '';
+    _currentPage = 1;
+    hasMorePages.value = true;
 
-      clientFilter.value = client;
-      companyFilter.value = company;
-      rfcFilter.value = rfc;
-      emailFilter.value = email;
-      porCobrarFilter.value = porCobrar;
+    clientFilter.value = client;
+    companyFilter.value = company;
+    rfcFilter.value = rfc;
+    emailFilter.value = email;
+    porCobrarFilter.value = porCobrar;
 
-      final result = await fetchClientsUsecase.call(
-        client,
-        company,
-        rfc,
-        email,
-        _currentPage,
-        _pageSize,
-        porCobrar: porCobrar,
-      );
+    final result = await fetchClientsUsecase.call(
+      client,
+      company,
+      rfc,
+      email,
+      _currentPage,
+      _pageSize,
+      porCobrar: porCobrar,
+    );
 
-      clients.assignAll(result);
-      if (result.length < _pageSize) hasMorePages.value = false;
-    } catch (e) {
-      errorMessage.value = 'Error al cargar clientes: $e';
-    } finally {
-      isLoading.value = false;
-    }
+    if (requestId != _searchRequestId) return; 
+
+    clients.assignAll(result);
+    if (result.length < _pageSize) hasMorePages.value = false;
+  } catch (e) {
+    if (requestId != _searchRequestId) return;
+    errorMessage.value = 'Error al cargar clientes: $e';
+  } finally {
+    if (requestId == _searchRequestId) isLoading.value = false;
   }
+}
 
   Future<void> loadMoreClients() async {
     if (isLoadingMore.value || !hasMorePages.value || isLoading.value) return;

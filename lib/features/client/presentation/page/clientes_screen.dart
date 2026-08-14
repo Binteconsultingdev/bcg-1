@@ -120,9 +120,9 @@ class _ClientesScreenState extends State<ClientesScreen> {
               child: TextField(
                 controller: _searchController,
                 onChanged: (v) => _ctrl.fetchClients(
-                  client: v,
-                  porCobrar: _ctrl.porCobrarFilter.value,
-                ),
+  client: v,
+  porCobrar: _ctrl.porCobrarFilter.value,
+),
                 style: ThemeColor.bodyMedium,
                 decoration: InputDecoration(
                   hintText: 'Buscar cliente',
@@ -747,6 +747,10 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                           focusNode: _ctrl.telefonoFocus,
                           keyboardType: TextInputType.phone,
                           borderRadius: ThemeColor.smallBorderRadius,
+                           inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(10),
+                          ],
                           onSubmitted: (_) => _ctrl.emailFocus.requestFocus(),
                         ),
                         const SizedBox(height: ThemeColor.paddingMedium),
