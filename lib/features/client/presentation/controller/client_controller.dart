@@ -47,9 +47,17 @@ Worker? _searchDebounce;
 
   final RxnInt loadingPdfClientId = RxnInt();
 
-  bool get isFormValid =>
-      empresaCtrl.text.trim().isNotEmpty && nombreCtrl.text.trim().isNotEmpty;
+bool get _isValidEmail {
+  final email = emailCtrl.text.trim();
+  if (email.isEmpty) return true; // 👈 vacío = válido, porque ya no es requerido
+  final regex = RegExp(r'^[\w\.\-]+@[\w\-]+\.[a-zA-Z]{2,}$');
+  return regex.hasMatch(email);
+}
 
+bool get isFormValid =>
+    empresaCtrl.text.trim().isNotEmpty &&
+    nombreCtrl.text.trim().isNotEmpty &&
+    _isValidEmail;  
   final RxString clientFilter = ''.obs;
   final RxString companyFilter = ''.obs;
   final RxString rfcFilter = ''.obs;
@@ -107,6 +115,10 @@ void onClose() {
      final phone = telefonoCtrl.text.trim();
   if (phone.isNotEmpty && (phone.length != 10 || int.tryParse(phone) == null)) {
     createError.value = 'El teléfono debe tener 10 dígitos numéricos';
+    return;
+  }
+if (!_isValidEmail) {
+    createError.value = 'Ingresa un correo válido (ejemplo@gmail.com)';
     return;
   }
 

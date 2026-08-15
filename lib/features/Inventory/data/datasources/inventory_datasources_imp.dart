@@ -87,66 +87,64 @@ class InventoryDatasourcesImp {
       throw Exception('$e');
     }
   }
-Future<List<InventoryEntity>> fetchInventario(
-  String token,
-  String description,
-  String numparte,
-  String familia,
-  String subfamilia,
-  int page,
-  int pageSize, {
-  int? idProducto,
-}) async {
-  try {
 
-    final queryParams = {
-      'familia': familia,
-      'descripcion': description,
-      'numparte': numparte,
-      'subfamilia': subfamilia,
-      'pagina': page.toString(),
-      'tamanoPagina': pageSize.toString(),
-    };
- 
-    if (idProducto != null) {
-      queryParams['id'] = idProducto.toString();
+  Future<List<InventoryEntity>> fetchInventario(
+    String token,
+    String description,
+    String numparte,
+    String familia,
+    String subfamilia,
+    int page,
+    int pageSize, {
+    int? idProducto,
+  }) async {
+    try {
+      final queryParams = {
+        'familia': familia,
+        'descripcion': description,
+        'numparte': numparte,
+        'subfamilia': subfamilia,
+        'pagina': page.toString(),
+        'tamanoPagina': pageSize.toString(),
+      };
+
+      if (idProducto != null) {
+        queryParams['id'] = idProducto.toString();
+      }
+
+      Uri url = Uri.parse(
+        '$defaultApiServer/inventario/buscar',
+      ).replace(queryParameters: queryParams);
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      print('🔍 URL de búsqueda: $url');
+      if (response.statusCode == 200) {
+        final dataUTF8 = utf8.decode(response.bodyBytes);
+
+        final responseDecode = jsonDecode(dataUTF8) as List;
+
+        return responseDecode
+            .map((json) => InventoryModel.fromJson(json))
+            .toList();
+      }
+
+      throw ApiExceptionCustom(response: response);
+    } catch (e) {
+      if (e is SocketException ||
+          e is http.ClientException ||
+          e is TimeoutException) {
+        throw Exception(convertMessageException(error: e));
+      }
+
+      throw Exception('$e');
     }
-
-    Uri url = Uri.parse(
-      '$defaultApiServer/inventario/buscar',
-    ).replace(queryParameters: queryParams); 
-
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-print('🔍 URL de búsqueda: $url');
-    if (response.statusCode == 200) {
-      final dataUTF8 = utf8.decode(response.bodyBytes);
-
-      final responseDecode = jsonDecode(dataUTF8) as List;
-
-      return responseDecode
-          .map((json) => InventoryModel.fromJson(json))
-          .toList();
-    }
-
-    throw ApiExceptionCustom(response: response);
-
-  } catch (e) {
-
-    if (e is SocketException ||
-        e is http.ClientException ||
-        e is TimeoutException) {
-      throw Exception(convertMessageException(error: e));
-    }
-
-    throw Exception('$e');
   }
-}
 
   Future<List<InventoryCategoryEntity>> fetchSubfamilias(
     String token,
@@ -190,7 +188,6 @@ print('🔍 URL de búsqueda: $url');
       final uri = Uri.parse('$defaultApiServer/Inventario/validar-carrito');
 
       final bodyRequest = PostValidateCartModel.fromEntity(entity).toJson();
- 
 
       final response = await http.post(
         uri,
@@ -200,23 +197,19 @@ print('🔍 URL de búsqueda: $url');
         },
         body: jsonEncode(bodyRequest),
       );
- 
+
       if (response.statusCode == 200) {
         final dataUTF8 = utf8.decode(response.bodyBytes);
- 
 
         final responseDecode = jsonDecode(dataUTF8);
- 
 
         return ResponseValidateCartModel.fromJson(responseDecode);
       }
- 
 
       ApiExceptionCustom exception = ApiExceptionCustom(response: response);
       exception.validateMesage();
       throw exception;
-    } catch (e) { 
-
+    } catch (e) {
       if (e is SocketException ||
           e is http.ClientException ||
           e is TimeoutException) {

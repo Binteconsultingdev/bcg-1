@@ -120,9 +120,9 @@ class _ClientesScreenState extends State<ClientesScreen> {
               child: TextField(
                 controller: _searchController,
                 onChanged: (v) => _ctrl.fetchClients(
-  client: v,
-  porCobrar: _ctrl.porCobrarFilter.value,
-),
+                  client: v,
+                  porCobrar: _ctrl.porCobrarFilter.value,
+                ),
                 style: ThemeColor.bodyMedium,
                 decoration: InputDecoration(
                   hintText: 'Buscar cliente',
@@ -142,7 +142,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
               ),
             ),
           ),
-          const SizedBox(width: ThemeColor.paddingSmall), 
+          const SizedBox(width: ThemeColor.paddingSmall),
           Obx(() {
             final hasFilter = _ctrl.porCobrarFilter.value != null;
             return GestureDetector(
@@ -301,7 +301,8 @@ class _ClientesScreenState extends State<ClientesScreen> {
       );
     });
   }
-} 
+}
+
 class _ClienteFilterSheet extends StatelessWidget {
   final ClientController controller;
   const _ClienteFilterSheet({required this.controller});
@@ -320,7 +321,7 @@ class _ClienteFilterSheet extends StatelessWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [ 
+        children: [
           Container(
             margin: const EdgeInsets.only(top: ThemeColor.paddingSmall),
             width: 40,
@@ -329,7 +330,7 @@ class _ClienteFilterSheet extends StatelessWidget {
               color: ThemeColor.dividerColor,
               borderRadius: ThemeColor.circularBorderRadius,
             ),
-          ), 
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -354,7 +355,7 @@ class _ClienteFilterSheet extends StatelessWidget {
           ),
           Divider(height: 1, color: ThemeColor.dividerColor),
           const SizedBox(height: ThemeColor.paddingMedium),
- 
+
           Container(
             margin: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -377,7 +378,7 @@ class _ClienteFilterSheet extends StatelessWidget {
                 const SizedBox(height: ThemeColor.paddingSmall),
                 Obx(
                   () => _ToggleGroup(
-                    options: const ['Todos', 'Con adeudo'], 
+                    options: const ['Todos', 'Con adeudo'],
                     selectedIndex: controller.filterPorCobrar.value == null
                         ? 0
                         : controller.filterPorCobrar.value == true
@@ -395,7 +396,7 @@ class _ClienteFilterSheet extends StatelessWidget {
           ),
 
           const SizedBox(height: ThemeColor.paddingMedium),
- 
+
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: ThemeColor.paddingMedium,
@@ -452,7 +453,7 @@ class _ClienteFilterSheet extends StatelessWidget {
     );
   }
 }
- 
+
 class _ToggleGroup extends StatelessWidget {
   final List<String> options;
   final int selectedIndex;
@@ -506,7 +507,7 @@ class _ToggleGroup extends StatelessWidget {
     );
   }
 }
-  
+
 class _ClienteTile extends StatelessWidget {
   final ClientEntity cliente;
   const _ClienteTile({required this.cliente});
@@ -567,7 +568,7 @@ class _ClienteTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 6), 
+                const SizedBox(height: 6),
                 Obx(() {
                   final isLoading = ctrl.loadingPdfClientId.value == cliente.id;
                   return GestureDetector(
@@ -606,10 +607,8 @@ class _ClienteTile extends StatelessWidget {
       ),
     );
   }
-
- 
 }
- 
+
 class _NuevoClienteSheet extends StatefulWidget {
   final ClientController controller;
   const _NuevoClienteSheet({required this.controller});
@@ -629,12 +628,14 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
     _ctrl.resetForm();
     _ctrl.empresaCtrl.addListener(_onFieldChanged);
     _ctrl.nombreCtrl.addListener(_onFieldChanged);
+    _ctrl.emailCtrl.addListener(_onFieldChanged);
   }
 
   @override
   void dispose() {
     _ctrl.empresaCtrl.removeListener(_onFieldChanged);
     _ctrl.nombreCtrl.removeListener(_onFieldChanged);
+    _ctrl.emailCtrl.removeListener(_onFieldChanged);
     super.dispose();
   }
 
@@ -747,7 +748,7 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                           focusNode: _ctrl.telefonoFocus,
                           keyboardType: TextInputType.phone,
                           borderRadius: ThemeColor.smallBorderRadius,
-                           inputFormatters: [
+                          inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(10),
                           ],
@@ -759,7 +760,7 @@ class _NuevoClienteSheetState extends State<_NuevoClienteSheet> {
                           controller: _ctrl.emailCtrl,
                           focusNode: _ctrl.emailFocus,
                           keyboardType: TextInputType.emailAddress,
-                          borderRadius: ThemeColor.smallBorderRadius,
+                          borderRadius: ThemeColor.smallBorderRadius, 
                           onSubmitted: (_) => _onGuardar(),
                         ),
                         Obx(() {

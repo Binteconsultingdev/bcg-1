@@ -34,7 +34,7 @@ class CreateQuotePage extends StatelessWidget {
                     _ProductList(ctrl: ctrl),
                     _TotalsSection(ctrl: ctrl),
                     _sectionGap(),
-                    _ValidUntilSection(ctrl: ctrl),
+                 //   _ValidUntilSection(ctrl: ctrl),
                     _sectionGap(),
                     _CommentsSection(ctrl: ctrl),
                     const SizedBox(height: 100),
