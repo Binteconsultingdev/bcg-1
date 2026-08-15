@@ -7,16 +7,18 @@ class PdfOptionsSheet extends StatelessWidget {
   final VoidCallback onDownloadPdf;
   final RxBool isDownloading;
   final RxDouble downloadProgress;
-final VoidCallback onOpenPdf;  
-  final Rxn<String> lastDownloadedPath; 
+  final VoidCallback onOpenPdf;
+  final Rxn<String> lastDownloadedPath;
+  final RxBool isLoadingWhatsApp;
   const PdfOptionsSheet({
-     super.key,
+    super.key,
     required this.onSendWhatsApp,
     required this.onDownloadPdf,
     required this.onOpenPdf,
     required this.isDownloading,
     required this.downloadProgress,
     required this.lastDownloadedPath,
+    required this.isLoadingWhatsApp,
   });
 
   @override
@@ -29,7 +31,8 @@ final VoidCallback onOpenPdf;
         ),
       ),
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).padding.bottom + ThemeColor.paddingMedium,
+        bottom:
+            MediaQuery.of(context).padding.bottom + ThemeColor.paddingMedium,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -61,31 +64,42 @@ final VoidCallback onOpenPdf;
           Text('¡Listo!', style: ThemeColor.headingSmall),
           const SizedBox(height: 4),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingLarge),
+            padding: const EdgeInsets.symmetric(
+              horizontal: ThemeColor.paddingLarge,
+            ),
             child: Text(
               'Tu cotización ha sido creada con éxito.\nPuedes consultarla en cualquier momento desde el módulo de cotizaciones.',
-              style: ThemeColor.bodySmall.copyWith(color: ThemeColor.textSecondaryColor),
+              style: ThemeColor.bodySmall.copyWith(
+                color: ThemeColor.textSecondaryColor,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: ThemeColor.paddingLarge),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingMedium),
-            child: ThemeColor.widgetButton(
-              text: 'Enviar por WhatsApp',
-              backgroundColor: const Color(0xFF25D366),
-              textColor: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              borderRadius: ThemeColor.mediumRadius,
-              onPressed: onSendWhatsApp,
-              showShadow: false,
+            padding: const EdgeInsets.symmetric(
+              horizontal: ThemeColor.paddingMedium,
+            ),
+            child: Obx(
+              () => ThemeColor.widgetButton(
+                text: 'Enviar por WhatsApp',
+                backgroundColor: const Color(0xFF25D366),
+                textColor: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                borderRadius: ThemeColor.mediumRadius,
+                isLoading: isLoadingWhatsApp.value,
+                onPressed: isLoadingWhatsApp.value ? null : onSendWhatsApp,
+                showShadow: false,
+              ),
             ),
           ),
           const SizedBox(height: ThemeColor.paddingSmall),
-         Padding(
-            padding: const EdgeInsets.symmetric(horizontal: ThemeColor.paddingMedium),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: ThemeColor.paddingMedium,
+            ),
             child: Obx(() {
               if (isDownloading.value) {
                 return Column(
@@ -102,12 +116,14 @@ final VoidCallback onOpenPdf;
                     const SizedBox(height: 8),
                     Text(
                       'Descargando ${(downloadProgress.value * 100).toStringAsFixed(0)}%',
-                      style: ThemeColor.caption.copyWith(color: ThemeColor.textSecondaryColor),
+                      style: ThemeColor.caption.copyWith(
+                        color: ThemeColor.textSecondaryColor,
+                      ),
                     ),
                   ],
                 );
               }
- 
+
               if (lastDownloadedPath.value != null) {
                 return Column(
                   children: [
@@ -122,7 +138,7 @@ final VoidCallback onOpenPdf;
                       showShadow: false,
                       onPressed: onOpenPdf,
                     ),
-                    const SizedBox(height: ThemeColor.paddingSmall), 
+                    const SizedBox(height: ThemeColor.paddingSmall),
                     GestureDetector(
                       onTap: onDownloadPdf,
                       child: Text(
@@ -136,7 +152,7 @@ final VoidCallback onOpenPdf;
                   ],
                 );
               }
- 
+
               return ThemeColor.widgetButton(
                 text: 'Descargar PDF',
                 backgroundColor: ThemeColor.backgroundColor,

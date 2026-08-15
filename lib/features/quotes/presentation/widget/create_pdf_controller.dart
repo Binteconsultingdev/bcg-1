@@ -30,23 +30,23 @@ class PdfController extends GetxController {
     return ' ${folio}_${DateTime.now().millisecondsSinceEpoch}.pdf';
   }
 
-  void showOptionsSheet(BuildContext context) {
-    if (pdfUrl.value == null || pdfUrl.value!.isEmpty) return;
+void showOptionsSheet(BuildContext context) {
+  if (pdfUrl.value == null || pdfUrl.value!.isEmpty) return;
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => PdfOptionsSheet(
-        onSendWhatsApp: sendWhatsApp,
-        onDownloadPdf: downloadPdf,
-        onOpenPdf: openDownloadedPdf,
-        isDownloading: isDownloading,
-        downloadProgress: downloadProgress,
-        lastDownloadedPath: lastDownloadedPath,
-      ),
-    );
-  }
-
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (_) => PdfOptionsSheet(
+      onSendWhatsApp: sendWhatsApp,
+      onDownloadPdf: downloadPdf,
+      onOpenPdf: openDownloadedPdf,
+      isDownloading: isDownloading,
+      downloadProgress: downloadProgress,
+      lastDownloadedPath: lastDownloadedPath,
+      isLoadingWhatsApp: isLoadingPdf, 
+    ),
+  );
+}
   Future<void> sendWhatsApp() async {
     final url = pdfUrl.value;
     if (url == null || url.isEmpty) return;
